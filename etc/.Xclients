@@ -1,0 +1,41 @@
+#!/bin/sh
+
+command -v xdpyinfo >/dev/null 2>&1 && \
+    geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
+
+[ -r $HOME/.Xresources ] && \
+    xrdb -merge $HOME/.Xresources
+[ -r $HOME/.Xresources_$geometry ] && \
+    xrdb -merge $HOME/.Xresources_$geometry
+
+xsetroot -solid grey
+vncconfig -nowin &
+case $geometry in
+    1440x900)
+        xterm -geometry 110x66+0+0 &
+        xterm -geometry 110x32-0+0 &
+        xterm -geometry 110x31-0-0 &
+        ;;
+    1920x1200)
+        xterm -geometry 100x43+0+0 &
+        xterm -geometry 100x43+0-0 &
+        xterm -geometry 100x43+643+0 &
+        xterm -geometry 100x43+643-0 &
+        xterm -geometry 100x43-0+0 &
+        xterm -geometry 100x43-0-0 &
+        ;;
+    *)
+        case `hostname -s` in
+            cp-loginy)
+                xterm -geometry 110x66+0+0 &
+                xterm -geometry 110x32-0+0 &
+                xterm -geometry 110x31-0-0 &
+                ;;
+            *)
+                xterm -geometry +0+0 &
+                ;;
+        esac
+        ;;
+esac
+[ -n "$SSH_ASKPASS" ] && ssh-add &
+[ -x /usr/bin/mwm ] && /usr/bin/mwm
