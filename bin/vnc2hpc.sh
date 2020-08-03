@@ -294,7 +294,7 @@ else
 fi
 
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then 
-   newport=$(if ! $GATEWAY ssh $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/bin/start_vncserver.sh \"$PORT\" \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"" ; then echo "FAIL" ; fi )
+   newport=$(if ! $GATEWAY ssh $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$PORT\" \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"" ; then echo "FAIL" ; fi )
    if [[ "${newport}" =~ FAIL ]] ; then 
       die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!" 
    elif [[ "${newport}" != "${port}" ]] ; then 
