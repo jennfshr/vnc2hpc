@@ -352,6 +352,6 @@ else
 fi 
 
 #killing the tunnel to $machine
-kill ${tunnel_pid}
+kill ${tunnel_pid} &>/dev/null
 exit 
 
