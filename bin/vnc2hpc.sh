@@ -1,7 +1,6 @@
 #!/bin/bash
 VERSION="0.0.1"
 # this script automates the creation of a ssh local tunnel connection to a LANL front-end 
-# it autogenerates a port number to avoid conflicts with others running on vnc ports
 # it waits for the vncserver to return success - potentially catching and handling conflicts?
 # then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
 
