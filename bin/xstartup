@@ -1,0 +1,76 @@
+#!/bin/sh
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+[ -r /etc/profile ] && source /etc/profile
+[ -n "$BASH_ENV" ] && source "$BASH_ENV" 
+command -v xdpyinfo >/dev/null 2>&1 && \
+    geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
+
+[ -r $HOME/.Xresources ] && \
+    xrdb -merge $HOME/.Xresources
+[ -r $HOME/.Xresources_$geometry ] && \
+    xrdb -merge $HOME/.Xresources_$geometry
+
+case $geometry in
+    1440x900)
+        geometry_set () {
+            /usr/bin/xterm -geometry 110x66+0+0 &
+            /usr/bin/xterm -geometry 110x32-0+0 &
+            /usr/bin/xterm -geometry 110x31-0-0 &
+        }
+        ;;
+    1920x1200)
+        geometry_set () { 
+            /usr/bin/xterm -geometry 100x43+0+0 &
+            /usr/bin/xterm -geometry 100x43+0-0 &
+            /usr/bin/xterm -geometry 100x43+643+0 &
+            /usr/bin/xterm -geometry 100x43+643-0 &
+            /usr/bin/xterm -geometry 100x43-0+0 &
+            /usr/bin/xterm -geometry 100x43-0-0 &
+        }
+        ;;
+    *)
+        geometry_set () {
+            case `hostname -s` in
+                cp-loginy)
+                    /usr/bin/xterm -geometry 110x66+0+0 &
+                    /usr/bin/xterm -geometry 110x32-0+0 &
+                    /usr/bin/xterm -geometry 110x31-0-0 &
+                    ;;
+                *)
+                    /usr/bin/xterm -geometry +0+0 &
+                    ;;
+            esac
+        }
+        ;;
+esac
+[ -n "$SSH_ASKPASS" ] && ssh-add &
+# this establishes a default windowing env. 
+SSH_AGENT=$(which ssh-agent)
+# The user may have their own clients they want to run.  If they don't,
+# fall back to system defaults.
+case "$1" in
+    mwm)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        [ -x /usr/bin/mwm ] && /usr/bin/mwm
+    ;; 
+    xfwm4)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4
+    ;;
+    twm)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        [ -x /usr/bin/twm ] && /usr/bin/twm
+    ;;
+    *)
+        "echo UNSUPPORTED $1"
+        exit 1 ;
+    ;;
+esac
+      
