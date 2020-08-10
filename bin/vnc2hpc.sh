@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="0.0.1"
+VERSION="0.0.2"
 # this script automates the creation of a ssh local tunnel connection to a LANL front-end 
 # it waits for the vncserver to return success - potentially catching and handling conflicts?
 # then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
@@ -14,7 +14,7 @@ usage () {
 			    [-k|--keep] 
 			    [-r|--reconnect] 
 			    [-h|--help] 
-			    [-w|--wm <mwm>]
+			    [-w|--wm <mwm|xfwm4|openbox-session>]
                "
 }
 
@@ -35,7 +35,7 @@ check_network () {
 }
 
 setup_gateway_tunnel () { 
-    echo "ssh -o LogLevel=QUIET -tt -L 59$PORT:localhost:59$PORT $MACHUSER@wtrw1.lanl.gov ssh -tt"
+    echo "ssh -o LogLevel=QUIET -fN -tt -L 59$PORT:localhost:59$PORT $MACHUSER@wtrw1.lanl.gov ssh -tt"
 }
 
 setup_gateway () {
@@ -211,7 +211,7 @@ if [[ "$network" =~ TURQUOISE ]] ; then
     GATEWAY_SSH=$(setup_gateway)
     debug "GATEWAY FOR $network:" "${GATEWAY_SSH}" 
 else
-    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET -q -fN"
+    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET -f"
     debug "GATEWAY FOR $network:" "${NO_GATEWAY_SSH}" 
 fi 
 debug "NETWORK FOR $machine:" "$network"
@@ -278,12 +278,13 @@ if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -gt 2 ]] ; then
 fi
 
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then 
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"")
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
+    #newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\" \"$PORT\"")
     #newport=$(if ! $($GATEWAY ssh ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"") ; then echo "FAIL" ; fi 2>/dev/null )
     #turquoise network connection requires this
-    while [[ -z ${newport} ]] ; do 
-        sleep 1 
-    done
+    #while [[ -z ${newport} ]] ; do 
+    #    sleep 1 
+    #done
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then 
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!" 
@@ -316,7 +317,7 @@ fi
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
     ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>/dev/null & 
 else
-    ${NO_GATEWAY_SSH} -L 59$PORT:localhost:59$PORT $machine &>/dev/null &
+    ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>/dev/null &
 fi 
 
 # establish a ssh local tunnel to $machine 
@@ -351,6 +352,8 @@ else
 fi 
 
 #killing the tunnel to $machine
-kill ${tunnel_pid} &>/dev/null
+if kill -0 ${tunnel_pid} &>/dev/null ; then 
+    kill ${tunnel_pid} &>/dev/null
+fi
 exit 
 

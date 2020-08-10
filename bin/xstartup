@@ -62,11 +62,29 @@ case "$1" in
         geometry_set
         [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4
     ;;
-    twm)
+    openbox-session)
+        #exec /etc/X11/xinit/xinitrc
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
-        [ -x /usr/bin/twm ] && /usr/bin/twm
+        module load mesa 
+        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-session
+    ;;
+    openbox-gnome-session)
+        #exec /etc/X11/xinit/xinitrc
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        module load mesa 
+        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-gnome-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-gnome-session
+    ;;
+    openbox-kde-session)
+        #exec /etc/X11/xinit/xinitrc
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        module load mesa 
+        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-kde-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-kde-session
     ;;
     *)
         "echo UNSUPPORTED $1"
