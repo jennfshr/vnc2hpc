@@ -318,12 +318,10 @@ fi
 debug "STARTING PORT FORWARDING `hostname -s` TO $machine ON PORT 59$PORT"
 tunnel_pid=$!
 debug "TUNNEL PID IS:" "${tunnel_pid}"
-sleep 15
 
 #test that the Xvnc process on $port was instantiated
 remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
 debug "XVNC PID IS:" "${remote_pid}"
-sleep 15 
 
 #fail if not
 if [[ "${remote_pid}x" == x ]] ; then warning "ERROR OCCURRED STARTING VNCSERVER."; fi 
