@@ -217,8 +217,10 @@ else
 fi 
 debug "NETWORK FOR $machine:" "$network"
 
+# some client side logs, the second one is only in the event of a failure
 CLIENT_LOG=${PWD}
 SERVER_LOG=${PWD}/vncserver.log.$(date +%d-%m-%y"-"%H.%m.%S) 
+
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
 debug "ALL ACTIVE VNCSERVER PORTS:" "$(echo ${all_active_vncserver_ports[@]})" 
@@ -254,6 +256,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
     fi 
 fi 
 
+# ensure that we don't have exploits on this service, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then 
     warning "$MACHUSER HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!"
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports}" 
@@ -273,9 +276,22 @@ if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then
 	;; 
         R*|r*)
 	    debug "WILL REUSE PORT ${active_vncserver_ports}"
+            debug "WILL ALSO KEEP PORT ACTIVE UPON DISCONNECT"
+	    KEEP_VNC_SERVER_ACTIVE=true
             port=${active_vncserver_ports}
 	;; 
     esac
+fi
+
+# generate a random port number between 1-99 that will be padded with 59 later
+if [[ "${port}"x == x ]] ; then
+    port=0
+    RANGE=99
+    FLOOR=0
+    while [ "$port" -le $FLOOR ] ; do
+        port=$RANDOM
+        let "port %= $RANGE"
+        done
 fi
 
 # manage some details on the port formats
@@ -331,10 +347,12 @@ fi
 debug "STARTING PORT FORWARDING `hostname -s` TO $machine ON PORT 59$PORT"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 if [[ -n ${tunnel_pid} ]] ; then 
+    #hate this but it seems needed
     sleep 15
 else 
     die "TUNNEL CONNECTION FAILED!" 
 fi 
+
 #test that the Xvnc process on $port was instantiated
 remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
 debug "XVNC PID IS:" "${remote_pid}"
@@ -342,8 +360,10 @@ debug "XVNC PID IS:" "${remote_pid}"
 #fail if not
 if [[ "${remote_pid}x" == x ]] ; then die "ERROR OCCURRED STARTING VNCSERVER."; fi 
 
-#connect client to localhost
+#hate this but it seems needed
 sleep 15
+
+#connect client to localhost
 "$client" -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${CLIENT_LOG} localhost:59$PORT 
 
 #test client connection return code
