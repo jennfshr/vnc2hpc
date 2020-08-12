@@ -279,12 +279,7 @@ fi
 
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then 
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
-    #newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\" \"$PORT\"")
-    #newport=$(if ! $($GATEWAY ssh ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"") ; then echo "FAIL" ; fi 2>/dev/null )
-    #turquoise network connection requires this
-    #while [[ -z ${newport} ]] ; do 
-    #    sleep 1 
-    #done
+    # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then 
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!" 
@@ -302,7 +297,6 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
         debug "PORT NUMBER ADJUSTED FOR ZERO PADDING" "$PORT"
         debug "PORT NUMBER ADJUSTED TO REMOVE ZEROS" "$port"
     fi 
-    sleep 2.5
 else
     debug "VNCSERVER RUNNING AS $USER ALREADY on $port" "WILL USE THIS PORT $port"
 fi
