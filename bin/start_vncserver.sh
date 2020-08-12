@@ -13,5 +13,5 @@ if [[ $? -ne 0 ]] ; then
 else  
    displayport=$(awk -F: '/^New/ {print $3}' $LOG) 
 fi 
-echo "USER=$USER HOSTNAME=`hostname -s` DISPLAYPORT=${displayport} PID=$pid WINDOWMANAGER=$windowmanager VNC2HPC_VERSION=$vnc2hpc_version CLIENT=$client CLIENTOS=$clientOS COMMAND:(/usr/bin/vncserver -name "$USER at `hostname -s`:$displayport $windowmanager" -autokill -depth 16 -xstartup /usr/projects/hpcsoft/vnc2hpc/0.0.2/bin/xstartup &>/dev/null )" &> $LOG
+echo "USER=$USER HOSTNAME=`hostname -s` DISPLAYPORT=${displayport} PID=$pid WINDOWMANAGER=$windowmanager VNC2HPC_VERSION=$vnc2hpc_version CLIENT=$client CLIENTOS=$clientOS COMMAND:(/usr/bin/vncserver -name "$USER at `hostname -s`:$displayport $windowmanager" -autokill -depth 16 -xstartup /usr/projects/hpcsoft/vnc2hpc/0.0.2/bin/xstartup &>/dev/null )" &>> $LOG
 echo $displayport
