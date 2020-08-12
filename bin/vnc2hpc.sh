@@ -211,7 +211,7 @@ if [[ "$network" =~ TURQUOISE ]] ; then
     GATEWAY_SSH=$(setup_gateway)
     debug "GATEWAY FOR $network:" "${GATEWAY_SSH}" 
 else
-    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET -f"
+    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET"
     debug "GATEWAY FOR $network:" "${NO_GATEWAY_SSH}" 
 fi 
 debug "NETWORK FOR $machine:" "$network"
