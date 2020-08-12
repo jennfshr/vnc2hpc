@@ -92,7 +92,7 @@ kill_vnc () {
 
 get_vnc_connections () { 
     declare -a LOCAL_VNC_CONS
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux| grep -Po \"/usr/bin/Xvnc :([0-9]+)\"|awk -F: '{print \$2}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "$machine" ; fi); do 
+    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "$machine" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
