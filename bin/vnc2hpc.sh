@@ -217,8 +217,10 @@ else
 fi 
 debug "NETWORK FOR $machine:" "$network"
 
+# some client side logs, the second one is only in the event of a failure
 CLIENT_LOG=${PWD}
 SERVER_LOG=${PWD}/vncserver.log.$(date +%d-%m-%y"-"%H.%m.%S) 
+
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
 debug "ALL ACTIVE VNCSERVER PORTS:" "$(echo ${all_active_vncserver_ports[@]})" 
@@ -254,6 +256,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
     fi 
 fi 
 
+# ensure that we don't have exploits on this service, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then 
     warning "$MACHUSER HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!"
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports}" 
