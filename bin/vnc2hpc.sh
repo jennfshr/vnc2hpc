@@ -92,7 +92,7 @@ kill_vnc () {
 
 get_vnc_connections () { 
     declare -a LOCAL_VNC_CONS
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux| grep -Po \"/usr/bin/Xvnc :([0-9]+)\"|awk -F: '{print \$2}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "$machine" ; fi); do 
+    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "$machine" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -172,6 +172,7 @@ while getopts "c:m:n:p:u:w:dhrk" opt ; do
         ;;
         r) 
             RECONNECT=true
+            KEEP_VNC_SERVER_ACTIVE=true
         ;; 	    
         h) 
             usage
@@ -211,16 +212,20 @@ if [[ "$network" =~ TURQUOISE ]] ; then
     GATEWAY_SSH=$(setup_gateway)
     debug "GATEWAY FOR $network:" "${GATEWAY_SSH}" 
 else
-    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET -f"
+    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET"
     debug "GATEWAY FOR $network:" "${NO_GATEWAY_SSH}" 
 fi 
 debug "NETWORK FOR $machine:" "$network"
+
+# some client side logs, the second one is only in the event of a failure
+CLIENT_LOG=${PWD}
+SERVER_LOG=${PWD}/vncserver.log.$(date +%d-%m-%y"-"%H.%m.%S) 
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
 debug "ALL ACTIVE VNCSERVER PORTS:" "$(echo ${all_active_vncserver_ports[@]})" 
 active_vncserver_ports=( $(list_vncservers) )
-debug "ACTIVE VNCSERVER PORTS:" "$(echo ${active_vncserver_ports[@]})"
+debug "$MACHUSER ACTIVE VNCSERVER PORTS:" "$(echo ${active_vncserver_ports[@]})"
 
 # test connecting to remote and scraping ps output for Xvnc 
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -238,19 +243,12 @@ else
     debug "XVNC SESSIONS ON $machine FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi 
 
-# manage some details on the port formats
-if [[ ${#port} -lt 2 ]] && [[ -n ${port} ]]; then
-    PORT=0${port}
-else 
-    PORT=${port}
-fi
-# strip leading zeros from lower-case port
-port=${port#0}
-
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
 if [[ "${RECONNECT}"x != x ]] ; then 
     if [[ "${port}"x == x ]] ; then 
         debug "RECONNECT REQUESTED WITHOUT PORT ARGUMENT"
+	debug "WILL REUSE PORT ${active_vncserver_ports}" 
+	port=${active_vncserver_ports}
     elif ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then 
         die "PORT $port NOT RUNNING VNCSERVER PORT FOR" "$MACHUSER on $machine"
     else
@@ -258,9 +256,11 @@ if [[ "${RECONNECT}"x != x ]] ; then
     fi 
 fi 
 
-if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -gt 2 ]] ; then 
-    warning "$MACHUSER HAS MORE THAN 2 VNCSERVER SESSIONS RUNNING!"
-    warning "DO YOU WISH TO KILL THESE SESSIONS?" "[Y/N]?"
+# ensure that we don't have exploits on this service, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
+if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then 
+    warning "$MACHUSER HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!"
+    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports}" 
+    warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes, N - exit, R - reuse]?"
     read RESPONSE
     case $RESPONSE in
         Y*|y*) 
@@ -274,17 +274,39 @@ if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -gt 2 ]] ; then
 	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_vncserver_ports[@]}; do printf "%s " $p ; done)"
 	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$port\""
 	;; 
+        R*|r*)
+	    debug "WILL REUSE PORT ${active_vncserver_ports}"
+            debug "WILL ALSO KEEP PORT ACTIVE UPON DISCONNECT"
+	    KEEP_VNC_SERVER_ACTIVE=true
+            port=${active_vncserver_ports}
+	;; 
     esac
 fi
 
+# generate a random port number between 1-99 that will be padded with 59 later
+if [[ "${port}"x == x ]] ; then
+    port=0
+    RANGE=99
+    FLOOR=0
+    while [ "$port" -le $FLOOR ] ; do
+        port=$RANDOM
+        let "port %= $RANGE"
+        done
+fi
+
+# manage some details on the port formats
+if [[ ${#port} -lt 2 ]] && [[ -n ${port} ]]; then
+    PORT=0${port}
+else 
+    PORT=${port}
+fi
+# strip leading zeros from lower-case port
+port=${port#0}
+
+
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then 
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
-    #newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\" \"$PORT\"")
-    #newport=$(if ! $($GATEWAY ssh ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"$VERSION\" \"$WINDOWMANAGER\" \"$CLIENT_VERSION\" \"$CLIENTOS\"") ; then echo "FAIL" ; fi 2>/dev/null )
-    #turquoise network connection requires this
-    #while [[ -z ${newport} ]] ; do 
-    #    sleep 1 
-    #done
+    # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then 
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!" 
@@ -302,7 +324,6 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
         debug "PORT NUMBER ADJUSTED FOR ZERO PADDING" "$PORT"
         debug "PORT NUMBER ADJUSTED TO REMOVE ZEROS" "$port"
     fi 
-    sleep 2.5
 else
     debug "VNCSERVER RUNNING AS $USER ALREADY on $port" "WILL USE THIS PORT $port"
 fi
@@ -316,29 +337,38 @@ fi
 #port forwarding connection using zero padded port number
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
     ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>/dev/null & 
+    tunnel_pid=$!
 else
     ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>/dev/null &
+    tunnel_pid=$!
 fi 
 
 # establish a ssh local tunnel to $machine 
 debug "STARTING PORT FORWARDING `hostname -s` TO $machine ON PORT 59$PORT"
-tunnel_pid=$!
 debug "TUNNEL PID IS:" "${tunnel_pid}"
-sleep 15
+if [[ -n ${tunnel_pid} ]] ; then 
+    #hate this but it seems needed
+    sleep 15
+else 
+    die "TUNNEL CONNECTION FAILED!" 
+fi 
 
 #test that the Xvnc process on $port was instantiated
 remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
 debug "XVNC PID IS:" "${remote_pid}"
-sleep 15 
 
 #fail if not
-if [[ "${remote_pid}x" == x ]] ; then warning "ERROR OCCURRED STARTING VNCSERVER."; fi 
+if [[ "${remote_pid}x" == x ]] ; then die "ERROR OCCURRED STARTING VNCSERVER."; fi 
+
+#hate this but it seems needed
+sleep 15
 
 #connect client to localhost
-"$client" localhost:59$PORT 
+"$client" -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${CLIENT_LOG} localhost:59$PORT 
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:$port.log" >> $SERVER_LOG 
     die "FAILURE CONNECTING:" "$client TO $PORT" 
 fi 
 

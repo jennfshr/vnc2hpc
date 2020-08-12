@@ -50,7 +50,12 @@ SSH_AGENT=$(which ssh-agent)
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
 case "$1" in
-    fvwm) 
+    fvwm)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        geometry_set
+        [ -x /usr/projects/hpcsoft/common/fvwm/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/2.6.9/bin/fvwm
+    mwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
