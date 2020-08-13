@@ -5,17 +5,18 @@ The usage output is available by running
 
 `./vnc2hpc.sh --help`
 
-vnc2hpc.sh v0.0.2
-    usage: vnc2hpc.sh [-d|--debug] 
-	            [-p|--port <display port>]
-			    [-m|--machine <machine>] 
-			    [-u|--user <hpcuserid> 
-	            [-c|--client <vncclient>] 
-			    [-k|--keep] 
-			    [-r|--reconnect] 
-			    [-h|--help] 
-			    [-w|--wm <mwm|xfwm4|openbox-session>]
-
+```    vnc2hpc.sh v0.0.2
+        usage: vnc2hpc.sh 
+                    [-d|--debug] 
+    	            [-p|--port <display port>]
+    	            [-m|--machine <machine>] 
+    	            [-u|--user <hpcuserid> 
+                    [-c|--client <vncclient>] 
+                    [-k|--keep] 
+                    [-r|--reconnect] 
+                    [-h|--help] 
+                    [-w|--wm <mwm|xfwm4|openbox-session|fvwm>]
+```
 ### Usage Examples - Connecting to Snow
 
 #### Initial Setup on the Remote
