@@ -15,18 +15,11 @@ case $geometry in
     1440x900)
         geometry_set () {
             /usr/bin/xterm -geometry 110x66+0+0 &
-            /usr/bin/xterm -geometry 110x32-0+0 &
-            /usr/bin/xterm -geometry 110x31-0-0 &
         }
         ;;
     1920x1200)
         geometry_set () { 
             /usr/bin/xterm -geometry 100x43+0+0 &
-            /usr/bin/xterm -geometry 100x43+0-0 &
-            /usr/bin/xterm -geometry 100x43+643+0 &
-            /usr/bin/xterm -geometry 100x43+643-0 &
-            /usr/bin/xterm -geometry 100x43-0+0 &
-            /usr/bin/xterm -geometry 100x43-0-0 &
         }
         ;;
     *)
@@ -34,8 +27,6 @@ case $geometry in
             case `hostname -s` in
                 cp-loginy)
                     /usr/bin/xterm -geometry 110x66+0+0 &
-                    /usr/bin/xterm -geometry 110x32-0+0 &
-                    /usr/bin/xterm -geometry 110x31-0-0 &
                     ;;
                 *)
                     /usr/bin/xterm -geometry +0+0 &
