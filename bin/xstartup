@@ -49,7 +49,7 @@ esac
 SSH_AGENT=$(which ssh-agent)
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
-case "$1" in
+case "$VNC2HPC_WM" in
     fvwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
@@ -97,4 +97,3 @@ case "$1" in
         exit 1 ;
     ;;
 esac
-      
