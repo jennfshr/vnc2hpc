@@ -35,9 +35,10 @@ case $geometry in
         }
         ;;
 esac
-[ -n "$SSH_ASKPASS" ] && ssh-add &
-# this establishes a default windowing env. 
+#[ -n "$SSH_ASKPASS" ] && ssh-add &
 SSH_AGENT=$(which ssh-agent)
+eval $SSH_AGENT && ssh-add & 
+# this establishes a default windowing env. 
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
 case "$VNC2HPC_WM" in
