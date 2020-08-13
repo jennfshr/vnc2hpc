@@ -1,31 +1,20 @@
 # vnc2hpc
 
 ## Quickstart
-The usage output is available by running `./vnc2hpc.sh --help`
+The usage output is available by running 
 
+`./vnc2hpc.sh --help`
 
-```
-   vnc2hpc.sh v0.0.2
-
-          usage: vnc2hpc.sh [-d|--debug]
-
-                            [-p|--port <display port>]
-
-                            [-m|--machine <machine>]
-
-                            [-u|--user <hpcuserid>
-
-                            [-c|--client <vncclient>]
-
-                            [-k|--keep]
-
-                            [-r|--reconnect]
-
-                            [-h|--help]
-
-                            [-w|--wm <mwm>]
-
-```
+vnc2hpc.sh v0.0.2
+    usage: vnc2hpc.sh [-d|--debug] 
+	            [-p|--port <display port>]
+			    [-m|--machine <machine>] 
+			    [-u|--user <hpcuserid> 
+	            [-c|--client <vncclient>] 
+			    [-k|--keep] 
+			    [-r|--reconnect] 
+			    [-h|--help] 
+			    [-w|--wm <mwm|xfwm4|openbox-session>]
 
 ### Usage Examples - Connecting to Snow
 
@@ -127,11 +116,11 @@ userid for the remote system.  If you have different userids, you need to pass t
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.1 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, openbox-session, xfwm4 |
-| v0.0.1 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, openbox-session, xfwm4 |
-| v0.0.1 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, openbox-session, xfwm4 |
-| v0.0.1 | Linux | UNTESTED | UNTESTED |
-| v0.0.1 | Windows | UNTESTED | UNTESTED |
+| v0.0.2 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, openbox-session, xfwm4 |
+| v0.0.2 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, openbox-session, xfwm4 |
+| v0.0.2 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, openbox-session, xfwm4 |
+| v0.0.2 | Linux | UNTESTED | UNTESTED |
+| v0.0.2 | Windows | UNTESTED | UNTESTED |
 
 ## What is VNC
 
