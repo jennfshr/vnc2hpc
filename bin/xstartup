@@ -68,23 +68,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
         module load mesa 
-        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-session
-    ;;
-    openbox-gnome-session)
-        #exec /etc/X11/xinit/xinitrc
-        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
-        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        geometry_set
-        module load mesa 
-        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-gnome-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-gnome-session
-    ;;
-    openbox-kde-session)
-        #exec /etc/X11/xinit/xinitrc
-        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
-        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        geometry_set
-        module load mesa 
-        [ -x /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-kde-session ] && /usr/projects/hpcsoft/common/openbox/3.6.1/bin/openbox-kde-session
+        [ -x /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
