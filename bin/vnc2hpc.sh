@@ -14,7 +14,7 @@ usage () {
 			    [-k|--keep] 
 			    [-r|--reconnect] 
 			    [-h|--help] 
-			    [-w|--wm <mwm|xfwm4|openbox-session>]
+			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>]
                "
 }
 
