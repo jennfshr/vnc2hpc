@@ -54,7 +54,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
-        [ -x /usr/projects/hpcsoft/common/fvwm/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/2.6.9/bin/fvwm
+        [ -x /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm
     ;;
     mwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
