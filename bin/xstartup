@@ -45,13 +45,13 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
-        [ -x /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm
+        [ -x /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm &
     ;;
     mwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
-        [ -x /usr/bin/mwm ] && /usr/bin/mwm
+        [ -x /usr/bin/mwm ] && /usr/bin/mwm &
     ;; 
     openbox-session)
         #exec /etc/X11/xinit/xinitrc
@@ -59,13 +59,13 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
         module load mesa 
-        [ -x /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session
+        [ -x /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session &
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         geometry_set
-        [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4
+        [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4 &
     ;;
     *)
         "echo UNSUPPORTED $1"
