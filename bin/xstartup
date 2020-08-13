@@ -97,4 +97,3 @@ case "$VNC2HPC_WM" in
         exit 1 ;
     ;;
 esac
-      
