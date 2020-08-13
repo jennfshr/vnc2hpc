@@ -5,7 +5,7 @@ The usage output is available by running `./vnc2hpc.sh --help`
 
 
 ```
-   vnc2hpc.sh v0.0.1
+   vnc2hpc.sh v0.0.2
 
           usage: vnc2hpc.sh [-d|--debug]
 
