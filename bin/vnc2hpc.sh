@@ -74,6 +74,9 @@ note () {
 }
 
 die () {
+    if kill -0 ${tunnel_pid} &>/dev/null ; then
+        kill ${tunnel_pid} &>/dev/null
+    fi
     message -r "DIE" "$1" "$2" "$3"
     exit 2
 }
@@ -218,7 +221,7 @@ fi
 debug "NETWORK FOR $machine:" "$network"
 
 # some client side logs, the second one is only in the event of a failure
-CLIENT_LOG=${PWD}
+CLIENT_LOG=${PWD}/vncclient.log.$(date +%d-%m-%y"-"%H.%m.%S)
 SERVER_LOG=${PWD}/vncserver.log.$(date +%d-%m-%y"-"%H.%m.%S) 
 
 # grab all Xvnc pid running, parse out the ports
@@ -336,10 +339,10 @@ fi
 
 #port forwarding connection using zero padded port number
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
-    ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>/dev/null & 
+    ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG} & 
     tunnel_pid=$!
 else
-    ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>/dev/null &
+    ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG} &
     tunnel_pid=$!
 fi 
 
@@ -349,6 +352,8 @@ debug "TUNNEL PID IS:" "${tunnel_pid}"
 if [[ -n ${tunnel_pid} ]] ; then 
     #hate this but it seems needed
     sleep 15
+elif $(grep "Address already in use" ${CLIENT_LOG} &>/dev/null ) ; then 
+    die "TUNNEL CONNECTION FAILED:" "Address already in use" 
 else 
     die "TUNNEL CONNECTION FAILED!" 
 fi 
