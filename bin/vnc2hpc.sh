@@ -35,6 +35,7 @@ check_network () {
 }
 
 setup_gateway_tunnel () { 
+    #echo "ssh -o LogLevel=QUIET -fN -t -L 59$PORT:localhost:59$PORT $MACHUSER@wtrw1.lanl.gov ssh"
     echo "ssh -o LogLevel=QUIET -fN -tt -L 59$PORT:localhost:59$PORT $MACHUSER@wtrw1.lanl.gov ssh -tt"
 }
 
@@ -221,8 +222,8 @@ fi
 debug "NETWORK FOR $machine:" "$network"
 
 # some client side logs, the second one is only in the event of a failure
-CLIENT_LOG=${PWD}/vncclient.log.$(date +%d-%m-%y"-"%H.%m.%S)
-SERVER_LOG=${PWD}/vncserver.log.$(date +%d-%m-%y"-"%H.%m.%S) 
+CLIENT_LOG_FILE=vncclient.log.$(date +%m-%d-%y"-"%H.%m.%S)
+SERVER_LOG=${PWD}/vncserver.log.$(date +%m-%d-%y"-"%H.%m.%S) 
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
@@ -263,7 +264,7 @@ fi
 if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then 
     warning "$MACHUSER HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!"
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports}" 
-    warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes, N - exit, R - reuse]?"
+    warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
         Y*|y*) 
@@ -286,7 +287,7 @@ if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then
     esac
 fi
 
-# generate a random port number between 1-99 that will be padded with 59 later
+# generate a random port number between 1-99 that will be padded with 59 later # this is a limitation which should be addressed
 if [[ "${port}"x == x ]] ; then
     port=0
     RANGE=99
@@ -312,6 +313,8 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then 
+        scp ${MACHUSER}@${machine}:~/.vnc/${machine}*${PORT}.log /tmp/.
+        cat /tmp/${machine}*${PORT}.log >> ${SERVER_LOG} && rm /tmp/${machine}*${PORT}.log 
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!" 
     else
         # reassign port here to the actual port vncserver established
@@ -339,10 +342,10 @@ fi
 
 #port forwarding connection using zero padded port number
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
-    ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG} & 
+    ${GATEWAY_TUNNEL} -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG_FILE} & 
     tunnel_pid=$!
 else
-    ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG} &
+    ${NO_GATEWAY_SSH} -N -L 59$PORT:localhost:59$PORT $machine &>${CLIENT_LOG_FILE} &
     tunnel_pid=$!
 fi 
 
@@ -352,7 +355,7 @@ debug "TUNNEL PID IS:" "${tunnel_pid}"
 if [[ -n ${tunnel_pid} ]] ; then 
     #hate this but it seems needed
     sleep 15
-elif $(grep "Address already in use" ${CLIENT_LOG} &>/dev/null ) ; then 
+elif $(grep "Address already in use" ${CLIENT_LOG_FILE} &>/dev/null ) ; then 
     die "TUNNEL CONNECTION FAILED:" "Address already in use" 
 else 
     die "TUNNEL CONNECTION FAILED!" 
@@ -369,11 +372,11 @@ if [[ "${remote_pid}x" == x ]] ; then die "ERROR OCCURRED STARTING VNCSERVER."; 
 sleep 15
 
 #connect client to localhost
-"$client" -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${CLIENT_LOG} localhost:59$PORT 
+"$client" -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD} -LogFile=${CLIENT_LOG_FILE} localhost:59$PORT 
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:$port.log" >> $SERVER_LOG 
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:$PORT.log" >> $SERVER_LOG 
     die "FAILURE CONNECTING:" "$client TO $PORT" 
 fi 
 
