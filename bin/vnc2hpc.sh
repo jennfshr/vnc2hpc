@@ -36,7 +36,7 @@ check_network () {
 }
 
 setup_gateway_tunnel () {
-    echo "ssh -o LogLevel=QUIET -fN -tt -L 59${PORT}:localhost:${PORT} ${MACHUSER}@wtrw1.lanl.gov ssh -tt"
+    echo "ssh -o LogLevel=QUIET -fN -tt -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@wtrw1.lanl.gov ssh -tt"
 }
 
 # This is unused, but worth investigating
@@ -94,7 +94,7 @@ die () {
 
 # Informative messages to user
 inform () {
-    message -g "DEBUG" "$1" "$2" "$3"
+    message -g "INFO" "$1" "$2" "$3"
 }
 
 # only used for extended debug output with -d or --debug
@@ -239,7 +239,7 @@ network=$(check_network $machine)
 
 # setup the appropriate ssh commands for the network
 if [[ "$network" =~ TURQUOISE ]] ; then
-    GATEWAY_SSH=$(setup_gateway)
+    GATEWAY_SSH=$(setup_gateway_ssh)
     debug "GATEWAY FOR $network:" "${GATEWAY_SSH}"
 else
     NO_GATEWAY_SSH="ssh -o LogLevel=QUIET"
@@ -250,10 +250,11 @@ inform "NETWORK FOR $machine:" "$network"
 
 # some client side logs, the second one is only in the event of a failure
 CLIENT_LOG_FILE="vncclient.log.$mydate"
-inform "VNC CLIENT ${client//*\//} LOGGING TO ${PWD}/log/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${CLIENT_LOG_FILE}"
 
 # TODO: some fixing to do with getting this in the event of a failure
 SERVER_LOG_FILE="vncserver.log.$mydate"
+inform "VNC SERVER LOGGING" "${PWD}/log/${SERVER_LOG_FILE}"
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
@@ -347,7 +348,7 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
         scp ${MACHUSER}@${machine}:~/.vnc/${machine}*${PORT}.log /tmp/.
-        cat /tmp/${machine}*${PORT}.log >> ${SERVER_LOG} && rm /tmp/${machine}*${PORT}.log
+        cat /tmp/${machine}*${PORT}.log >> ${PWD}/log/${SERVER_LOG_FILE} && rm /tmp/${machine}*${PORT}.log
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!"
     else
         # reassign port here to the actual port vncserver established
@@ -382,7 +383,7 @@ fi
 
 #port forwarding connection using zero padded port number
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
-    debug "RUNNING: ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:${PORT} $machine &"
+    debug "RUNNING: ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} $machine &"
     ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${machine} &>/dev/null &
 else
     debug "RUNNING: ${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${machine} &"
@@ -407,7 +408,7 @@ if [[ "${remote_pid}x" == x ]] ; then warning "ERROR OCCURRED STARTING VNCSERVER
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:*$PORT.log" >> ${SERVER_LOG_FILE}
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:*$PORT.log" >> ${PWD}/log/${SERVER_LOG_FILE}
     die "FAILURE CONNECTING:" "$client TO $PORT"
 fi
 
