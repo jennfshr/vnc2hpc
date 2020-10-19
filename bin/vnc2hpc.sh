@@ -106,6 +106,24 @@ debug () {
 
 checkvncpasswd () {
     if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ls \$HOME/.vnc/passwd" &>/dev/null ); then 
+
+        if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
+            warning "${0//*\//} detects xtrace set in your shell." "Potential clear casing of your vncpasswd could occur!"
+            warning "Do you wish to proceed and assume the risk to revealing your password? [Y/N]"
+            read CLEARCASE
+            case $CLEARCASE in
+                Y*|y*)
+                    continue
+                ;; 
+                N*|n*)
+                    warning "Unsetting the xtrace shellopt on your behalf!" 
+                    set +x
+                ;;
+                *)
+                    die "Didn't receive a Y or N response." "Exitting ${0//*\//}"
+                ;;
+            esac
+        fi 
         inform "VNC passwd not available on $machine for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
@@ -129,7 +147,8 @@ checkvncpasswd () {
                 else 
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH" 
                 fi
-                debug "CHECKING PERMS ON PASSWD FILE:" "$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine 'ls -al \$HOME/.vnc/passwd')"
+                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine ""ls -al \$HOME/.vnc/passwd"")
+                debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)
                 die "YOU MUST LOGIN TO $machine AND SETUP A VNC PASSWORD TO PROCEED" 
