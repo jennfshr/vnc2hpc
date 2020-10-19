@@ -1,20 +1,20 @@
 # vnc2hpc
 
 ## Quickstart
-The usage output is available by running 
+The usage output is available by running
 
 `./vnc2hpc.sh --help`
 
 ```    vnc2hpc.sh v0.0.2
-        usage: vnc2hpc.sh 
-                    [-d|--debug] 
+        usage: vnc2hpc.sh
+                    [-d|--debug]
     	            [-p|--port <display port>]
-    	            [-m|--machine <machine>] 
-    	            [-u|--user <hpcuserid> 
-                    [-c|--client <vncclient>] 
-                    [-k|--keep] 
-                    [-r|--reconnect] 
-                    [-h|--help] 
+    	            [-m|--machine <machine>]
+    	            [-u|--user <hpcuserid>
+                    [-c|--client <vncclient>]
+                    [-k|--keep]
+                    [-r|--reconnect]
+                    [-h|--help]
                     [-w|--wm <mwm|xfwm4|openbox-session|fvwm>]
 ```
 ### Usage Examples - Connecting to Snow
@@ -22,14 +22,14 @@ The usage output is available by running
 #### Initial Setup on the Remote
 
 It's necessary to create a password that the client will use to connect to the vncserver upon connection before
-using the vnc2hpc.sh script.  Eventually, automation of this step is ideal. 
+using the vnc2hpc.sh script.  Eventually, automation of this step is ideal.
 
 Once this is setup on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all
-remote hosts on that network. 
+remote hosts on that network.
 
 ```bash
-ssh -l ${USER} <machine> 
-$> vncpasswd 
+ssh -l ${USER} <machine>
+$> vncpasswd
 >  Password:
 >  Verify:
 >  Would you like to enter a view-only password (y/n)? n
@@ -47,19 +47,19 @@ Or to connect to a turquoise hosted system:
 
 ### Features
 
-#### --client | -c 
+#### --client | -c
 
-The client flag is how you direct vnc2hpc.sh to the vncviewer on your desktop to use to connect to the vncserver. 
+The client flag is how you direct vnc2hpc.sh to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
 isn't in your $PATH.  To determine if the executable is in your path, in a terminal window, run `which vncviewer`.
 
 `$> ./vnc2hpc.sh -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
-#### --debug | -d 
+#### --debug | -d
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
-#### --machine | -m 
+#### --machine | -m
 
 This flag specifies the front-end node's short hostname you wish to connect to.  If you want to connect
 to a system on the turquoise network, just pass the front-end short hostname to the script and it will detect
@@ -74,31 +74,31 @@ To preserve your vncserver session for later reuse, run the script with --keep o
 To reconnect to this, you can request a reconnect with later invocations with a --reconnect or -r flag
 
 `$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --reconnect`
-                    
+
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
 
-#### --port | -p 
+#### --port | -p
 
 One can request a specific port, and that port will be attempted to be connected to upon starting the vncserver
 
 `$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
-There is a limit of one vncserver service running per user per remote host, and the script will enforce this. 
+There is a limit of one vncserver service running per user per remote host, and the script will enforce this.
 The script will prompt for an action on the command line if a port is already running for the user.
 
 `$ ./vnc2hpc.sh -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
 `WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
-`WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`                                         
+`WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         Y - yes, N - exit, R - reuse]?`
 
 Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
 
-If that port returns a conflict when the vncserver script is invoked, the vnc2hpc.sh script will utilize the newport. 
+If that port returns a conflict when the vncserver script is invoked, the vnc2hpc.sh script will utilize the newport.
 
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
-don't have localhost:port tunnel conflicts on the client side. 
+don't have localhost:port tunnel conflicts on the client side.
 
-#### --user | -u 
+#### --user | -u
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc.sh is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
