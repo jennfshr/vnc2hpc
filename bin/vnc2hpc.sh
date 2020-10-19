@@ -113,17 +113,23 @@ checkvncpasswd () {
         case $PWREPLY in
             Y*|y*)
                 inform "Enter your password (at least six characters long, up to eight)"
-                read VNCPW
+                read -s VNCPW
                 inform "Reenter your password to confirm" 
-                read REVNCPW
+                read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then 
-                   inform "SETTING VNCPASSWD" "$machine for $MACHUSER"
-                   ${GATEWAY_SSH} ${NO_GATEWAY_SSH} -fn -tt $MACHUSER@$machine "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0700 \$HOME/.vnc/passwd"
-                   if [[ $? -ne 0 ]] ; then die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD" ; else inform "VNCPASSWD SET!" ; fi; 
-                   debug "CHECKING PERMISSIONS ON PASSWD:" "$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER$machine ls -al \$HOME/.vnc/passwd)"
+                    inform "SETTING VNCPASSWD" "$machine for $MACHUSER"
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0700 \$HOME/.vnc/passwd"
+                    if [[ $? -ne 0 ]] ; then 
+                        die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
+                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ls \$HOME/.vnc/passwd" &>/dev/null ); then
+                        die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
+                    else 
+                        inform "VNCPASSWD SET!"
+                    fi 
                 else 
-                   die "FIRST AND SECOND PASSWORDS DIDN'T MATCH" 
+                    die "FIRST AND SECOND PASSWORDS DIDN'T MATCH" 
                 fi
+                debug "CHECKING PERMS ON PASSWD FILE:" "$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine 'ls -al \$HOME/.vnc/passwd')"
             ;;
             N*|n*)
                 die "YOU MUST LOGIN TO $machine AND SETUP A VNC PASSWORD TO PROCEED" 
@@ -291,10 +297,10 @@ mkdir -p ${PWD}/log/${machine}
 # TODO: some fixing to do with getting this in the event of a failure
 SERVER_LOG_FILE="vncserver.log.$mydate"
 inform "VNC SERVER LOGGING" "${PWD}/log/${machine}/${SERVER_LOG_FILE}"
-set -x 
+
 # check vncpasswd
 checkvncpasswd
-set +x
+
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
 inform "ALL USERS VNCSERVER PORTS ON $machine:" "$(echo ${all_active_vncserver_ports[@]})"
