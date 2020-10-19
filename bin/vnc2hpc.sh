@@ -294,7 +294,7 @@ fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 # KEEPING FOR NOW... if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then
-[[ if "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
+if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
     warning "$MACHUSER HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!"
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports[@]}"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
