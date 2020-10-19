@@ -250,7 +250,8 @@ inform "NETWORK FOR $machine:" "$network"
 
 # some client side logs, the second one is only in the event of a failure
 CLIENT_LOG_FILE="vncclient.log.$mydate"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${machine}/${CLIENT_LOG_FILE}"
+mkdir -p ${PWD}/log/${machine}
 
 # TODO: some fixing to do with getting this in the event of a failure
 SERVER_LOG_FILE="vncserver.log.$mydate"
@@ -392,7 +393,7 @@ fi
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $machine
-debug "STARTING PORT FORWARDING `hostname -s` TO $machine ON PORT 59${PORT}"
+debug "STARTING PORT FORWARDING" "`hostname -s` TO $machine ON PORT 59${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 #test that the Xvnc process on $port was instantiated
@@ -404,11 +405,11 @@ debug "XVNC PID IS:" "${remote_pid}"
 if [[ "${remote_pid}x" == x ]] ; then warning "ERROR OCCURRED STARTING VNCSERVER."; fi
 
 #connect client to localhost
-"$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log -LogFile=${CLIENT_LOG_FILE}
+"$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${machine} -LogFile=${CLIENT_LOG_FILE}
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:*$PORT.log" >> ${PWD}/log/${SERVER_LOG_FILE}
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:*$PORT.log" >> ${PWD}/log/${machine}/${SERVER_LOG_FILE}
     die "FAILURE CONNECTING:" "$client TO $PORT"
 fi
 
