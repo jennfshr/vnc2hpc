@@ -31,9 +31,9 @@ usage () {
 			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
 			    [-h|--help]
 
-          Need Help?        ${README}
           Questions?        <${CONTACT}> 
-               "
+          Need Help?        ${README}
+"
 }
 
 #######################################
@@ -144,7 +144,7 @@ message () {
 	    g)  color=$(tput setaf 2) ;;
 	    y)  color=$(tput setaf 3) ;;
 	    m)  color=$(tput setaf 5) ;;
-            *)  color=$(tput sgr0) ;;
+            *)  color=$(tput sgr0)    ;;
         esac
     done
     shift $(($OPTIND -1))
@@ -210,26 +210,34 @@ debug () {
     fi
 }
 
+#######################################
+# Checks/sets vncpasswd interactively
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
 checkvncpasswd () {
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE}"ls \$HOME/.vnc/passwd" &>/dev/null ); then 
+    # if default passwd doesn't exist
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE} "ls \$HOME/.vnc/passwd" &>/dev/null ); then 
 
+        # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
             warning "${0//*\//} detects xtrace set in your shell." "Potential clear casing of your vncpasswd could occur!"
             warning "Do you wish to proceed and assume the risk to revealing your password? [Y/N]"
             read CLEARCASE
             case $CLEARCASE in
-                Y*|y*)
-                    continue
-                ;; 
-                N*|n*)
-                    warning "Unsetting the xtrace shellopt on your behalf!" 
-                    set +x
-                ;;
-                *)
-                    die "Didn't receive a Y or N response." "Exitting ${0//*\//}"
-                ;;
+                Y*|y*) warning "Continuing despite risk of clearcasing vncpasswd!"       ;; 
+                N*|n*) warning "Unsetting the xtrace shellopt on your behalf!" && set +x ;;
+                *)     die "Didn't receive a Y or N response." "Exitting ${0//*\//}"     ;;
             esac
         fi 
+
         inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
@@ -266,15 +274,37 @@ checkvncpasswd () {
     fi 
 }
 
-# command to kill the vncserver
+#######################################
+# Command to kill the vncserver
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHUSER
+#   MACHINE
+#   PORT
+# Arguments:
+#   None
+# Outputs:
+#   echos stdout from vncserver
+#######################################
 kill_vnc () {
-    LOCAL_PORT=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${LOCAL_PORT} 2>&1)
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${PORT} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
 
-# command to get all users Xvnc instances on remote
+#######################################
+# Command to get all users Xvnc instances on remote
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   ${LOCAL_VNC_CONS[@]}
+#######################################
 get_vnc_connections () {
     for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
@@ -282,7 +312,18 @@ get_vnc_connections () {
     echo "${LOCAL_VNC_CONS[@]}"
 }
 
-# command to get Users Vncserver list
+#######################################
+# Command to get Users Vncserver list
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   ${VNCSERVERS_LIST[@]}
+#######################################
 list_vncservers () {
     vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'"| awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
     for item in ${vncservers_list[@]} ; do
@@ -291,41 +332,78 @@ list_vncservers () {
     echo "${VNCSERVERS_LIST[@]}"
 }
 
+#######################################
+# File tests ${client} for viability
+# Globals:
+#   client
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+client_check () {
+    [ ! -d "${client}" ] && [ -x "${client}" ] || exit 1
+}
+
+#######################################
+# Parses ${client} and version string
+# Globals:
+#   client
+# Arguments:
+#   None
+# Outputs:
+#   Client/Version
+#######################################
 client_version () {
     "${client}" -help 2>&1 | head -n 2 | awk '/./ {print $1$2"-"$3}' |head -n 1
 }
 
+#######################################
+# Gets OS info on localhost
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   OS String
+#######################################
 clientOS () {
     uname -a | awk '{print $2"-"$1}'
 }
 
+#######################################
+# Remote ssh to capture server log file
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHUSER
+#   MACHINE
+#   PORT
+#   SERVER_LOG_FILE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
 remotelog () {
     ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "cat ~/.vnc/${MACHINE}*:*$PORT.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}
 }
 
+#######################################
+# Parse positional parameters passed to script
 for arg in "$@"; do
     shift
     case "$arg" in
-        *client)    set -- "$@" "-c"
-  	;;
-        *debug)     set -- "$@" "-d"
-   	;;
-        *help)      set -- "$@" "-h"
- 	;;
-        *keep)      set -- "$@" "-k"
- 	;;
-        *machine)   set -- "$@" "-m"
- 	;;
-        *port)      set -- "$@" "-p"
-        ;;
-        *reconnect) set -- "$@" "-r"
-        ;;
-        *user)      set -- "$@" "-u"
- 	;;
-        *wmw)       set -- "$@" "-w"
-	;;
-        *)          set -- "$@" "$arg"
- 	;;
+        *client)    set -- "$@" "-c"   ;;
+        *debug)     set -- "$@" "-d"   ;;
+        *help)      set -- "$@" "-h"   ;;
+        *keep)      set -- "$@" "-k"   ;;
+        *machine)   set -- "$@" "-m"   ;;
+        *port)      set -- "$@" "-p"   ;;
+        *reconnect) set -- "$@" "-r"   ;;
+        *user)      set -- "$@" "-u"   ;;
+        *wmw)       set -- "$@" "-w"   ;;
+        *)          set -- "$@" "$arg" ;;
     esac
 done
 
@@ -333,56 +411,28 @@ OPTIND=1
 
 while getopts "c:m:n:p:u:w:dhrk" opt ; do
     case "${opt}" in
-        d)
-            DEBUG=true
-        ;;
-        p)
-            port="$OPTARG"
-            debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"
-        ;;
-        m)
-            MACHINE="$OPTARG"
-            debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
-        ;;
-        n)
-            network="$OPTARG"
-	    debug "RECEIVED REQUEST TO CONNECT TO:" "$network"
-        ;;
-        c)
-            client="$OPTARG"
-	    client=$(echo $OPTARG | sed 's/\\//g')
-	    client=${client//\~/$HOME}
-	    if [[ -x "${client}" ]] ; then
-	        debug "PATH TO CLIENT IS" "$client"
-            else
-                debug "PATH TO CLIENT IS INVALID" "$client"
-            fi
-        ;;
-        k)
-            KEEP_VNC_SERVER_ACTIVE=true
-        ;;
-        r)
-            RECONNECT=true
-            KEEP_VNC_SERVER_ACTIVE=true
-        ;;
-        h)
-            usage
-	    exit 0
-        ;;
-        u)
-            MACHUSER="${OPTARG}"
-        ;;
-        w)
-            WINDOWMANAGER="${OPTARG}"
-        ;;
+        d)  DEBUG=true                                                                             ;;
+        p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
+        m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
+        n)  network="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "$network"                 ;;
+        c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    ;;
+        k)  KEEP_VNC_SERVER_ACTIVE=true                                                            ;;
+        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          ;;
+        h)  usage && exit 0                                                                        ;;
+        u)  MACHUSER="${OPTARG}"                                                                   ;;
+        w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
     esac
 done
+#######################################
 
 # need to have a viable vncclient to use on the local machine
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
 
 # ensure $MACHINE is set
 if [[ "${MACHINE}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
+
+# check the client works
+if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi 
 
 # vncclient version information
 CLIENT_VERSION=$(client_version)
@@ -575,13 +625,18 @@ if [[ "${remote_pid}x" == x ]] ; then
 fi
 
 #connect client to localhost
-"$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
+if [[ "${client}" =~ Tiger ]] ; then 
+    warning "Client: ${client}" "Redirecting ${client} stdout to ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}" 
+    "$client" localhost:59${PORT} >> ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE} 2>&1
+else
+    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
+fi
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
     remotelog
-    die "FAILURE CONNECTING:" "$client TO $PORT"
-fi
+    die "FAILURE CONNECTING:" "$client TO 59$PORT"
+    fi
 
 #if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
