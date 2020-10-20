@@ -3,29 +3,55 @@
 ## Quickstart
 The usage output is available by running
 
-`./vnc2hpc.sh --help`
+`./vnc2hpc --help`
 
-```    vnc2hpc.sh v0.0.2
-        usage: vnc2hpc.sh
-                    [-d|--debug]
-    	            [-p|--port <display port>]
-    	            [-m|--machine <machine>]
-    	            [-u|--user <hpcuserid>
-                    [-c|--client <vncclient>]
-                    [-k|--keep]
-                    [-r|--reconnect]
-                    [-h|--help]
-                    [-w|--wm <mwm|xfwm4|openbox-session|fvwm>]
+```vnc2hpc v0.0.2
+
+          usage: vnc2hpc [-m|--machine <machine>] (required)
+                            [-c|--client <vncclient>] (required)
+                            [-d|--debug] (optional)
+	                    [-p|--port <display port>] (optional)
+			    [-u|--user <hpcuserid> (required: if $USER is different on remote host)
+			    [-k|--keep] (optional)
+			    [-r|--reconnect] (optional)
+			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
+			    [-h|--help]
+
+          Questions?        <vnc2hpc@lanl.gov> 
+          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md
 ```
 ### Usage Examples - Connecting to Snow
 
 #### Initial Setup on the Remote
 
-It's necessary to create a password that the client will use to connect to the vncserver upon connection before
-using the vnc2hpc.sh script.  Eventually, automation of this step is ideal.
+VNC2HPC does some sanity testing when run, to ensure it has all it needs to successfully connect the client to the server on the remote system. 
+If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user through the password creation for the vncserver:
+
+```
+...
+INFO       VNC passwd not available on sn-fey1 for jgreen                                                       
+INFO       Do you want to setup a password now? [Y/N]                                                           
+y
+INFO       Enter your password (at least six characters long, up to eight)                                                   
+INFO       Reenter your password to confirm                                          
+```
 
 Once this is setup on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all
-remote hosts on that network.
+remote hosts on that network thanks to common home directories on LANL networks.
+
+##### Whoops, I forgot my vncpasswd! Now what?
+
+If you forget your password, it's easy enough to remove it; though the file itself isn't encrypted, it's not in a readable format:
+
+```
+$>  ssh -l $USER sn-fey1
+jgreen@sn-fey1>  rm ~/.vnc/passwd
+jgreen@sn-fey1>  exit
+$>  vnc2hpc -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
+# walk through the password recreation process once again
+```
+
+##### Manually Set VNC Passwd
 
 ```bash
 ssh -l ${USER} <machine>
@@ -37,23 +63,26 @@ $> vncpasswd
 $> exit
 ```
 
-For instance, to launch a session to Snow’s sn-fey1:
+#### Basic usage
 
-`$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
+##### To launch a session to Snow’s sn-fey1:
+
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
 
 Or to connect to a turquoise hosted system:
 
-`$> ./vnc2hpc.sh -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
+`$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
 ### Features
 
 #### --client | -c
 
-The client flag is how you direct vnc2hpc.sh to the vncviewer on your desktop to use to connect to the vncserver.
+The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
 isn't in your $PATH.  To determine if the executable is in your path, in a terminal window, run `which vncviewer`.
 
-`$> ./vnc2hpc.sh -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
+`$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
+* note, it's not required to pass the client in double quotes to the script
 
 #### --debug | -d
 
@@ -69,11 +98,11 @@ the network, and setup the gateway hop appropriately.
 
 To preserve your vncserver session for later reuse, run the script with --keep or -k
 
-`$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --keep`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --keep`
 
 To reconnect to this, you can request a reconnect with later invocations with a --reconnect or -r flag
 
-`$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --reconnect`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --reconnect`
 
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
 
@@ -81,37 +110,37 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 
 One can request a specific port, and that port will be attempted to be connected to upon starting the vncserver
 
-`$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
 There is a limit of one vncserver service running per user per remote host, and the script will enforce this.
 The script will prompt for an action on the command line if a port is already running for the user.
 
-`$ ./vnc2hpc.sh -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
+`$ ./vnc2hpc -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
 `WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
 `WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         Y - yes, N - exit, R - reuse]?`
 
 Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
 
-If that port returns a conflict when the vncserver script is invoked, the vnc2hpc.sh script will utilize the newport.
+If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the newport.
 
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
 
 #### --user | -u
 
-Sometimes the userid of the user running on the desktop system where vnc2hpc.sh is invoked doesn't match the corresponding
+Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
 
-`$> ./vnc2hpc.sh -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
 
 ### Issues resolved for v0.0.2 tag
 
-- [ ] #2 xstartup script needs to be replicated to HOME before invoked
-- [ ] #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
-- [ ] #5 ssh -fN is suppressing remote commands
-- [ ] #3 xstartup script should use environment variable to set the window manager, rather than positional parameters
-- [ ] #4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
+- [√] #2 xstartup script needs to be replicated to HOME before invoked
+- [√] #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
+- [√] #5 ssh -fN is suppressing remote commands
+- [√] #3 xstartup script should use environment variable to set the window manager, rather than positional parameters
+- [√] #4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
 
 
 ## Client Compatibility Table
