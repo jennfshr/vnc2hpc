@@ -11,7 +11,7 @@ usage () {
                             [-c|--client <vncclient>] *
                             [-d|--debug] (optional)
 	                    [-p|--port <display port>] (optional)
-			    [-u|--user <hpcuserid> (required if $USER is different on remote host)
+			    [-u|--user <hpcuserid> (required if \$USER is different on remote host)
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
 			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
