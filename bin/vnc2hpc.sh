@@ -283,12 +283,13 @@ checkvncpasswd () {
 #   MACHINE
 #   PORT
 # Arguments:
-#   None
+#   LOCAL_PORT
 # Outputs:
 #   echos stdout from vncserver
 #######################################
 kill_vnc () {
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${PORT} 2>&1)
+    LOCAL_PORT=$1
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${LOCAL_PORT} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -590,7 +591,7 @@ fi
 #TODO:# setup socket name
 #tunnel_socket="VNC2HPC-${MYDATE}-${MACHINE}"
 
-#need the tunnel to include the port as determined above
+# need the tunnel to include the port as determined above
 if [[ "${network}" =~ TURQUOISE ]] ; then
     GATEWAY_TUNNEL=$(setup_gateway_tunnel)
     debug "GATEWAY_TUNNEL FOR $network:" "$GATEWAY_TUNNEL"
@@ -613,18 +614,17 @@ tunnel_pid=$!
 debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT 59${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
-#test that the Xvnc process on $port was instantiated
-#Make this better!
-remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
+# test that the Xvnc process on $port was instantiated
+remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE} "ps aux" | awk -v exclude="awk" -v pat="Xvnc :${PORT#0}" '($0 !~ exclude) && $0~pat{print $12}')
 debug "XVNC PID IS:" "${remote_pid}"
 
-#fail if not
+#f ail if not
 if [[ "${remote_pid}x" == x ]] ; then 
     remotelog
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-#connect client to localhost
+# connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then 
     warning "Client: ${client}" "Redirecting ${client} stdout to ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}" 
     "$client" localhost:59${PORT} >> ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE} 2>&1
@@ -632,13 +632,13 @@ else
     "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
 fi
 
-#test client connection return code
+# test client connection return code
 if [[ $? -ne 0 ]] ; then
     remotelog
     die "FAILURE CONNECTING:" "$client TO 59$PORT"
     fi
 
-#if -k is passed to the script, don't kill the process
+# if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
     inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port Active"
 else
@@ -647,7 +647,7 @@ else
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
-#killing the tunnel to $MACHINE
+# killing the tunnel to $MACHINE
 if kill -0 ${tunnel_pid} &>/dev/null ; then
     kill ${tunnel_pid} &>/dev/null
 fi
