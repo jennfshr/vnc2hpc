@@ -1,12 +1,26 @@
 #!/bin/bash
+
+# Basic software information
+AUTHOR_EMAIL="jgreen@lanl.gov"
+CONTACT="vnc2hpc@lanl.gov"
 VERSION="0.0.2"
-mydate=$(date +%m-%d-%y"-"%H.%m.%S)
+REPO="git@lanl.gov:hpcsoft/vnc2hpc.git"
+README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
+
+# set this first
+MYDATE=$(date +%m-%d-%y"-"%H.%m.%S)
+
+# Versioning approach
+# Feature updates signified by even numbers
+# Bugfix updates signified by odd numbers
+# This software is still in beta testing, when it's ready for production, minor version shall increment to 0.1, etc. 
 # this script automates the creation of a ssh local tunnel connection to a LANL front-end
 # it waits for the vncserver to return success - potentially catching and handling conflicts
 # then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
 
 usage () {
     message -m "${0//*\//} v${VERSION}
+
           usage: ${0//*\//} [-m|--machine <machine>] (required)
                             [-c|--client <vncclient>] (required)
                             [-d|--debug] (optional)
@@ -16,12 +30,23 @@ usage () {
 			    [-r|--reconnect] (optional)
 			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
 			    [-h|--help]
+
+          Need Help?        ${README}
+          Questions?        <${CONTACT}> 
                "
 }
 
+#######################################
+# Identify the Network for $MACHINE
+# Globals:
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes $network to stdout
+#######################################
 check_network () {
-    local_machine=$1
-    case $local_machine in
+    case "${MACHINE}" in
         *loginy*|*fey*)
             network="YELLOW"
 	    ;;
@@ -35,42 +60,91 @@ check_network () {
     echo $network
 }
 
+
+#######################################
+# Setup ssh command to tunnel via wtrw
+# Globals:
+#   PORT
+#   MACHUSER
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh prologue to stdout
+#######################################
 setup_gateway_tunnel () {
     echo "ssh -o LogLevel=QUIET -fN -tt -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@wtrw1.lanl.gov ssh -tt"
 }
 
-# This is unused, but worth investigating
+#######################################
+# Stub in socket connection feature
+# Globals: 
+#   tunnel_socket
+#   PORT
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh tunnel socket cmd to stdout
+# Comments:
+#   New feature for improved tunnel control
+#######################################
 setup_nogateway_tunnel () {
-    echo "ssh -o LogLevel=QUIET -M -S ${tunnel_socket} -fNT -L $PORT:localhost:$PORT $MACHUSER@$machine"
+    echo "ssh -o LogLevel=QUIET -M -S ${tunnel_socket} -fNT -L ${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE}"
 }
 
-# reusable string to setup ssh command via wtrw
+
+#######################################
+# String to setup ssh command via wtrw
+# Globals:
+#   MACHUSER
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh via wtrw to stdout
+#######################################
 setup_gateway_ssh () {
     echo "ssh -o LogLevel=QUIET -tt ${MACHUSER}@wtrw1.lanl.gov ssh"
 }
 
-# This is unused, but worth investigating
+#######################################
+# Stub in socket connection feature
+# Globals:
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh tunnel socket cmd to stdout
+# Comments:
+#   New feature for improved tunnel control
+#######################################
 setup_nogateway_ssh () {
-    echo "ssh -o LogLevel=QUIET -fN -tt ${MACHUSER}@${machine}"
+    echo "ssh -o LogLevel=QUIET -fN -tt ${MACHUSER}@${MACHINE}"
 }
 
+#######################################
 # Colorize output
+# Globals:
+#   None
+# Arguments:
+#   opt
+#   $[1-3]
+# Outputs:
+#   colorizes message output based on flag
+#######################################
 message () {
     local color
     local OPTIND
     local opt
-    while getopts "rgymn" opt; do
+    while getopts "crgymn" opt; do
         case $opt in
-            r)
-                color=$(tput setaf 1) ;;
-	    g)
-                color=$(tput setaf 2) ;;
-	    y)
-                color=$(tput setaf 3) ;;
-	    m)
-                color=$(tput setaf 5) ;;
-            *)
-                color=$(tput sgr0) ;;
+            c)  color=$(tput setaf 6) ;;
+            r)  color=$(tput setaf 1) ;;
+	    g)  color=$(tput setaf 2) ;;
+	    y)  color=$(tput setaf 3) ;;
+	    m)  color=$(tput setaf 5) ;;
+            *)  color=$(tput sgr0) ;;
         esac
     done
     shift $(($OPTIND -1))
@@ -78,12 +152,28 @@ message () {
     tput sgr0
 }
 
+#######################################
 # Warn if something's amiss
+# Globals:
+#   None
+# Arguments:
+#   $[1-3]
+# Outputs:
+#   yellow printf output
+#######################################
 warning () {
     message -y "NOTE" "$1" "$2" "$3"
 }
 
-# clean up tunnel before terminating shell, emit useful diagnostic info
+#######################################
+# Gracefully exit on error
+# Globals:
+#   tunnel_pid
+# Arguments:
+#   $[1-3]
+# Outputs:
+#   red printf output
+#######################################
 die () {
     if kill -0 ${tunnel_pid} &>/dev/null ; then
         kill ${tunnel_pid} &>/dev/null
@@ -92,20 +182,36 @@ die () {
     exit 2
 }
 
+#######################################
 # Informative messages to user
+# Globals:
+#   None
+# Arguments:
+#   $[1-3]
+# Outputs:
+#   green printf output
+#######################################
 inform () {
     message -g "INFO" "$1" "$2" "$3"
 }
 
-# only used for extended debug output with -d or --debug
+#######################################
+# Informative messages to user
+# Globals:
+#   None
+# Arguments:
+#   $[1-3]
+# Outputs:
+#   cyan printf output
+#######################################
 debug () {
-    if [[ ${DEBUG}x != x ]] ; then
-        message -g "DEBUG" "$1" "$2" "$3"
+    if [[ "${DEBUG}"x != x ]] ; then
+        message -c "DEBUG" "$1" "$2" "$3"
     fi
 }
 
 checkvncpasswd () {
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ls \$HOME/.vnc/passwd" &>/dev/null ); then 
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE}"ls \$HOME/.vnc/passwd" &>/dev/null ); then 
 
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
             warning "${0//*\//} detects xtrace set in your shell." "Potential clear casing of your vncpasswd could occur!"
@@ -124,7 +230,7 @@ checkvncpasswd () {
                 ;;
             esac
         fi 
-        inform "VNC passwd not available on $machine for $MACHUSER"
+        inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
 
@@ -135,11 +241,11 @@ checkvncpasswd () {
                 inform "Reenter your password to confirm" 
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then 
-                    inform "SETTING VNCPASSWD" "$machine for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
+                    inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
                     if [[ $? -ne 0 ]] ; then 
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
-                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ls \$HOME/.vnc/passwd" &>/dev/null ); then
+                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ls \$HOME/.vnc/passwd" &>/dev/null ); then
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
                     else 
                         inform "VNCPASSWD SET!"
@@ -147,14 +253,14 @@ checkvncpasswd () {
                 else 
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH" 
                 fi
-                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine ""ls -al \$HOME/.vnc/passwd"")
+                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} ""ls -al \$HOME/.vnc/passwd"")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)
-                die "YOU MUST LOGIN TO $machine AND SETUP A VNC PASSWORD TO PROCEED" 
+                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED" 
             ;;
             *)
-                die "A password to use your vncserver on $machine is required!" 
+                die "A password to use your vncserver on ${MACHINE} is required!" 
             ;;
         esac
     fi 
@@ -163,14 +269,14 @@ checkvncpasswd () {
 # command to kill the vncserver
 kill_vnc () {
     LOCAL_PORT=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine vncserver -kill :${LOCAL_PORT} 2>&1)
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${LOCAL_PORT} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
 
 # command to get all users Xvnc instances on remote
 get_vnc_connections () {
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "$machine" ; fi); do
+    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -178,7 +284,7 @@ get_vnc_connections () {
 
 # command to get Users Vncserver list
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'"| awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "$machine" ; fi) )
+    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'"| awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
@@ -194,7 +300,7 @@ clientOS () {
 }
 
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "cat ~/.vnc/${machine}*:*$PORT.log" >> ${PWD}/log/${machine}/${SERVER_LOG_FILE}
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "cat ~/.vnc/${MACHINE}*:*$PORT.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}
 }
 
 for arg in "$@"; do
@@ -232,11 +338,11 @@ while getopts "c:m:n:p:u:w:dhrk" opt ; do
         ;;
         p)
             port="$OPTARG"
-            debug "RECEIVED REQUEST TO CONNECT TO:" "$machine at port $port"
+            debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"
         ;;
         m)
-            machine="$OPTARG"
-            debug "RECEIVED REQUEST TO CONNECT TO:" "$machine"
+            MACHINE="$OPTARG"
+            debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
         ;;
         n)
             network="$OPTARG"
@@ -275,8 +381,8 @@ done
 # need to have a viable vncclient to use on the local machine
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
 
-# ensure $machine is set
-if [[ "${machine}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
+# ensure $MACHINE is set
+if [[ "${MACHINE}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
 
 # vncclient version information
 CLIENT_VERSION=$(client_version)
@@ -295,7 +401,7 @@ WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # ensure we know what network requirements there are to connect to machine
-network=$(check_network $machine)
+network=$(check_network)
 
 # setup the appropriate ssh commands for the network
 if [[ "$network" =~ TURQUOISE ]] ; then
@@ -306,42 +412,42 @@ else
     debug "GATEWAY FOR $network:" "${NO_GATEWAY_SSH}"
 fi
 
-inform "NETWORK FOR $machine:" "$network"
+inform "NETWORK FOR ${MACHINE}:" "$network"
 
 # some client side logs, the second one is only in the event of a failure
-CLIENT_LOG_FILE="vncclient.log.$mydate"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${machine}/${CLIENT_LOG_FILE}"
-mkdir -p ${PWD}/log/${machine}
+CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
+inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}"
+mkdir -p ${PWD}/log/${MACHINE}
 
 # TODO: some fixing to do with getting this in the event of a failure
-SERVER_LOG_FILE="vncserver.log.$mydate"
-inform "VNC SERVER LOGGING" "${PWD}/log/${machine}/${SERVER_LOG_FILE}"
+SERVER_LOG_FILE="vncserver.log.${MYDATE}"
+inform "VNC SERVER LOGGING" "${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}"
 
 # check vncpasswd
 checkvncpasswd
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
-inform "ALL USERS VNCSERVER PORTS ON $machine:" "$(echo ${all_active_vncserver_ports[@]})"
+inform "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-inform "$MACHUSER ACTIVE VNCSERVER PORTS ON $machine:" "$(echo ${active_vncserver_ports[@]})"
+inform "$MACHUSER ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
-    die "DETECTED FAILURE WITH SSH TO: $machine"
+    die "DETECTED FAILURE WITH SSH TO: ${MACHINE}"
 elif [[ ${#all_active_vncserver_ports[@]} -eq 0 ]] ; then
-    debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "$machine"
+    debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${MACHINE}"
 else
-    debug "ALL USERS XVNC SESSIONS ON $machine:" "$(echo ${all_active_vncserver_ports[@]})"
+    debug "ALL USERS XVNC SESSIONS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 fi
 
 # test connecting to remote and scraping vncserver -list output for user specific displays
 if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
-    die "FAILURE CONNECTING TO:" "$machine"
+    die "FAILURE CONNECTING TO:" "${MACHINE}"
 else
-    debug "XVNC SESSIONS ON $machine FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
+    debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
@@ -351,7 +457,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
 	port=${active_vncserver_ports}
 	inform "ATTEMPTING TO RECONNECT TO PORT ${port}"
     elif ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-        die "PORT $port NOT RUNNING VNCSERVER PORT FOR" "$MACHUSER on $machine"
+        die "PORT $port NOT RUNNING VNCSERVER PORT FOR" "$MACHUSER on ${MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED PORT" "localhost:59$port"
     fi
@@ -360,7 +466,7 @@ fi
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 # KEEPING FOR NOW... if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then
 if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
-    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON $machine" "${active_vncserver_ports[@]}"
+    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "${active_vncserver_ports[@]}"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -406,7 +512,7 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
@@ -432,7 +538,7 @@ else
 fi
 
 #TODO:# setup socket name
-#tunnel_socket="VNC2HPC-${mydate}-${machine}"
+#tunnel_socket="VNC2HPC-${MYDATE}-${MACHINE}"
 
 #need the tunnel to include the port as determined above
 if [[ "${network}" =~ TURQUOISE ]] ; then
@@ -445,21 +551,21 @@ fi
 
 #port forwarding connection using zero padded port number
 if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
-    debug "RUNNING:" "${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} $machine &"
-    ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${machine} &>/dev/null &
+    debug "RUNNING:" "${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${MACHINE} &"
+    ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${MACHINE} &>/dev/null &
 else
-    debug "RUNNING:" "${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${machine} &"
-    ${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${machine} &>/dev/null &
+    debug "RUNNING:" "${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE} &"
+    ${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE} &>/dev/null &
 fi
 tunnel_pid=$!
 
-# establish a ssh local tunnel to $machine
-debug "STARTING PORT FORWARDING" "`hostname -s` TO $machine ON PORT 59${PORT}"
+# establish a ssh local tunnel to $MACHINE
+debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT 59${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 #test that the Xvnc process on $port was instantiated
 #Make this better!
-remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
+remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ps aux | grep -e \"/usr/bin/Xvnc :$port \" -e \"/usr/bin/Xvnc :$PORT \"" 2>/dev/null |grep -v grep | grep -v bash | awk '{print $2}')
 debug "XVNC PID IS:" "${remote_pid}"
 
 #fail if not
@@ -469,7 +575,7 @@ if [[ "${remote_pid}x" == x ]] ; then
 fi
 
 #connect client to localhost
-"$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${machine} -LogFile=${CLIENT_LOG_FILE}
+"$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
 
 #test client connection return code
 if [[ $? -ne 0 ]] ; then
@@ -479,14 +585,14 @@ fi
 
 #if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "$machine AT PORT $port Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "$machine AT PORT $port"
+    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port"
     kill_vnc_output=$(kill_vnc $port)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
-#killing the tunnel to $machine
+#killing the tunnel to $MACHINE
 if kill -0 ${tunnel_pid} &>/dev/null ; then
     kill ${tunnel_pid} &>/dev/null
 fi
