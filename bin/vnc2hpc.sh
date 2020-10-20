@@ -7,11 +7,11 @@ mydate=$(date +%m-%d-%y"-"%H.%m.%S)
 
 usage () {
     message -m "${0//*\//} v${VERSION}
-          usage: ${0//*\//} [-m|--machine <machine>] *
-                            [-c|--client <vncclient>] *
+          usage: ${0//*\//} [-m|--machine <machine>] (required)
+                            [-c|--client <vncclient>] (required)
                             [-d|--debug] (optional)
 	                    [-p|--port <display port>] (optional)
-			    [-u|--user <hpcuserid> (required if \$USER is different on remote host)
+			    [-u|--user <hpcuserid> (required: if \$USER is different on remote host)
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
 			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
@@ -136,7 +136,7 @@ checkvncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then 
                     inform "SETTING VNCPASSWD" "$machine for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0700 \$HOME/.vnc/passwd"
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
                     if [[ $? -ne 0 ]] ; then 
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
                     elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@$machine "ls \$HOME/.vnc/passwd" &>/dev/null ); then
