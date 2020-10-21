@@ -267,6 +267,10 @@ debug () {
 #   None
 #######################################
 checkvncpasswd () {
+    # need a $HOME/.vnc directory if the first use
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls \$HOME/.vnc" &>/dev/null ); then
+        ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "mkdir -p \$HOME/.vnc" &>/dev/null
+    fi 
     # if default passwd doesn't exist
     if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls \$HOME/.vnc/passwd" &>/dev/null ); then
 
