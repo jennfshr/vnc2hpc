@@ -51,17 +51,53 @@ usage () {
 check_network () {
     local loc_network
     case "${MACHINE}" in
-        *loginy*|*fey*)
-            loc_network="YELLOW"
-	    ;;
-        ic*|fi*|cy*|tr*|vm*)
-	    loc_network="RED"
-	    ;;
-	*)
-	    loc_network="TURQUOISE"
-	    ;;
+        *loginy*|*fey*)        loc_network="YELLOW"        ;;
+        ic*|fi*|cy*|tr*|vm*)   loc_network="RED"           ;;
+        wtrw*)                 loc_network="invalid"       ;;
+	*)                     loc_network="TURQUOISE"     ;;
     esac
     echo "${loc_network}"
+}
+
+#######################################
+# Ensure $MACHINE resolves
+# Globals:
+#   MACHINE
+#   NETWORK
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+# Arguments:
+#   None
+# Outputs:
+#   Writes $loc_machine to stdout
+#######################################
+check_machine () {
+    local loc_machine
+    local loc_machines
+    local loc_machine_index
+    if [[ "${MACHINE}"x != x ]] ; then 
+        if ! [[ "$MACHINE" =~ [0-9] ]] ; then
+            case "${NETWORK}" in
+                YELLOW)    netpart="128.165" ;;
+                TURQUOISE) netpart="204.121" ;;
+                RED)       netpart="10.160"  ;;
+            esac
+            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" ) )
+            if [[ ${#loc_machines[@]} -gt 0 ]] ; then 
+                loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
+                loc_machine="${loc_machines[$loc_machine_index]}"
+            else
+                loc_machine="invalid" 
+            fi 
+        elif [[ "${MACHINE}" =~ wtrw ]] ; then
+            loc_machine="invalid"
+        else
+            loc_machine="${MACHINE}"
+        fi
+    else
+        loc_machine="invalid"
+    fi
+    echo "$loc_machine"
 }
 
 #######################################
@@ -113,7 +149,7 @@ setup_tunnel_host () {
 #   Writes ssh cmd to stdout
 #######################################
 setup_nogateway_ssh () {
-    echo "ssh ${SSH_OPTS} ${MACHUSER}@${MACHINE}"
+    echo "ssh ${SSH_OPTS} ${MACHUSER}@$(echo ${MACHINE})"
 }
 
 #######################################
@@ -129,7 +165,7 @@ setup_nogateway_ssh () {
 #######################################
 setup_gateway_ssh () {
     local loc_gateway="$1"
-    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
+    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@$(echo ${MACHINE})"
 }
 
 #######################################
@@ -192,7 +228,7 @@ message () {
         esac
     done
     shift $(($OPTIND -1))
-    printf "${color}%-10s %-50s %-50s\n" "$1" "$2" "$3"
+    printf "${color}%-10s %-50s %-50s\n" "$1" "$2" "$3" "$4"
     tput sgr0
 }
 
@@ -479,9 +515,6 @@ if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PAT
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
 
-# Ensure MACHINE is set
-if [[ "${MACHINE}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
-
 # uname output on local host
 CLIENTOS=$(clientOS)
 inform "LOCALHOST OS INFO:" "$CLIENTOS"
@@ -496,6 +529,7 @@ inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
+if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
 inform "CONNECTION:" "MACHINE: $MACHINE" "NETWORK: $NETWORK"
 
 # setup ssh options for reuse
@@ -510,6 +544,27 @@ else
     NO_GATEWAY_SSH=$(setup_nogateway_ssh)
 fi
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
+
+# Ensure MACHINE is set to a real hostname, not round-robin
+REAL_MACHINE=$(check_machine)
+if [[ "${REAL_MACHINE}" =~ invalid ]] ; then die "INVALID MACHINE REQUEST" "$MACHINE" ; fi 
+if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then 
+    debug "MACHINE CHECK:" "$REAL_MACHINE NOT EQUAL TO" "$MACHINE"
+    # setup the appropriate ssh commands for the network
+    MACHINE="${REAL_MACHINE}"
+    if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
+        GATEWAY="wtrw1.lanl.gov"
+        GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+    else
+        NO_GATEWAY_SSH=$(setup_nogateway_ssh)
+    fi
+fi 
+
+debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
+if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then 
+    usage
+    die "PASS -m <frontend> TO ${0//\.\\/}!" "RECEIVED:${MACHINE}"
+fi
 
 # some client side logs, the second one is only in the event of a failure
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
