@@ -667,9 +667,9 @@ fi
 
 # test client connection return code
 if [[ $? -ne 0 ]] ; then
-    remotelog
-    die "FAILURE CONNECTING:" "$client TO 59$PORT"
-    fi
+    message -r "FAILURE CONNECTING $client TO 59$PORT"
+fi
+remotelog
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
