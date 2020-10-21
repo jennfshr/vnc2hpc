@@ -1,37 +1,40 @@
 #!/bin/bash
+#
+# script that automates establishing vncclient>server connections to LANL HPC systems
+# This software is still in beta testing, when it's ready for production, minor version shall increment to 0.1, etc.
+# this script automates the creation of a ssh local tunnel connection to a LANL front-end
+# it waits for the vncserver to return success - potentially catching and handling conflicts
+# then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
 
-# Basic software information
+# Basic VNC2HPC information
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
 VERSION="0.0.2"
 REPO="git@lanl.gov:hpcsoft/vnc2hpc.git"
 README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
 
-# set this first
+# Timestamp string for logs
 MYDATE=$(date +%m-%d-%y"-"%H.%m.%S)
 
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-# This software is still in beta testing, when it's ready for production, minor version shall increment to 0.1, etc. 
-# this script automates the creation of a ssh local tunnel connection to a LANL front-end
-# it waits for the vncserver to return success - potentially catching and handling conflicts
-# then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
 
 usage () {
     message -m "${0//*\//} v${VERSION}
 
-          usage: ${0//*\//} [-m|--machine <machine>] (required)
-                            [-c|--client <vncclient>] (required)
-                            [-d|--debug] (optional)
-	                    [-p|--port <display port>] (optional)
-			    [-u|--user <hpcuserid> (required: if \$USER is different on remote host)
-			    [-k|--keep] (optional)
-			    [-r|--reconnect] (optional)
-			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
+          usage: ${0//*\//}
+                            [-m|--machine <machine>]			(required)
+                            [-c|--client <vncclient>]			(required)
+			    [-u|--user <hpcuserid>] 			(required: if \$USER is different on remote host)
+                            [-d|--debug]				(optional)
+	                    [-p|--port <display port>]			(optional)
+			    [-k|--keep]					(optional)
+			    [-r|--reconnect]				(optional)
+			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>]	(optional)
 			    [-h|--help]
 
-          Questions?        <${CONTACT}> 
+          Questions?        <${CONTACT}>
           Need Help?        ${README}
 "
 }
@@ -43,84 +46,124 @@ usage () {
 # Arguments:
 #   None
 # Outputs:
-#   Writes $network to stdout
+#   Writes $loc_network to stdout
 #######################################
 check_network () {
+    local loc_network
     case "${MACHINE}" in
         *loginy*|*fey*)
-            network="YELLOW"
+            loc_network="YELLOW"
 	    ;;
         ic*|fi*|cy*|tr*|vm*)
-	    network="RED"
+	    loc_network="RED"
 	    ;;
 	*)
-	    network="TURQUOISE"
+	    loc_network="TURQUOISE"
 	    ;;
     esac
-    echo $network
+    echo "${loc_network}"
 }
 
-
 #######################################
-# Setup ssh command to tunnel via wtrw
+# Setup ssh options
 # Globals:
-#   PORT
-#   MACHUSER
+#   None
 # Arguments:
 #   None
 # Outputs:
-#   Writes ssh prologue to stdout
+#   Writes $loc_ssh_opts to stdout
 #######################################
-setup_gateway_tunnel () {
-    echo "ssh -o LogLevel=QUIET -fN -tt -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@wtrw1.lanl.gov ssh -tt"
+setup_ssh_opts () {
+    local loc_ssh_opts=""
+    loc_ssh_opts+="-tt"
+    loc_ssh_opts+=" -N"
+    loc_ssh_opts+=" -f"
+    loc_ssh_opts+=" -o LogLevel=QUIET"
+    loc_ssh_opts+=" -o ControlMaster=auto"
+    loc_ssh_opts+=" -o ControlPersist=5m"
+    loc_ssh_opts+=" -o ControlPath=~/.ssh/connections/vnc2hpc-%r@%h:%p"
+    echo "$loc_ssh_opts"
 }
 
 #######################################
-# Stub in socket connection feature
-# Globals: 
-#   tunnel_socket
+# Setup port/host string for tunnels
+# Globals:
+#   MACHINE
+#   MACHUSER
 #   PORT
+# Arguments:
+#   None
+# Outputs:
+#   Writes $TUNNELHOST to stdout
+#######################################
+setup_tunnel_host () {
+    echo "-L 59${PORT}:localhost:59${PORT}"
+}
+
+#######################################
+# Ssh command
+# Globals:
+#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
 #   None
 # Outputs:
-#   Writes ssh tunnel socket cmd to stdout
-# Comments:
-#   New feature for improved tunnel control
+#   Writes ssh cmd to stdout
 #######################################
-setup_nogateway_tunnel () {
-    echo "ssh -o LogLevel=QUIET -M -S ${tunnel_socket} -fNT -L ${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE}"
+setup_nogateway_ssh () {
+    echo "ssh ${SSH_OPTS} ${MACHUSER}@${MACHINE}"
 }
 
-
 #######################################
-# String to setup ssh command via wtrw
+# Ssh command via wtrw
 # Globals:
+#   SSH_OPTS
 #   MACHUSER
+#   MACHINE
 # Arguments:
-#   None
+#   GATEWAY
 # Outputs:
 #   Writes ssh via wtrw to stdout
 #######################################
 setup_gateway_ssh () {
-    echo "ssh -o LogLevel=QUIET -tt ${MACHUSER}@wtrw1.lanl.gov ssh"
+    local loc_gateway="$1"
+    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
 }
 
 #######################################
-# Stub in socket connection feature
+# Tunnel to host
 # Globals:
+#   SSH_OPTS
+#   PORT
 #   MACHUSER
 #   MACHINE
+#   TUNNEL_HOST
 # Arguments:
 #   None
 # Outputs:
-#   Writes ssh tunnel socket cmd to stdout
-# Comments:
-#   New feature for improved tunnel control
+#   Writes ssh tunnel cmd to stdout
 #######################################
-setup_nogateway_ssh () {
-    echo "ssh -o LogLevel=QUIET -fN -tt ${MACHUSER}@${MACHINE}"
+setup_nogateway_tunnel () {
+    echo "ssh ${SSH_OPTS} ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+}
+
+#######################################
+# Tunnel to host via gateway
+# Globals:
+#   PORT
+#   MACHUSER
+#   MACHINE
+#   SSH_OPTS
+#   TUNNEL_HOST
+# Arguments:
+#   GATEWAY
+# Outputs:
+#   Writes ssh tunnel cmd to stdout
+#######################################
+setup_gateway_tunnel () {
+    local loc_gateway="$1"
+    echo "ssh ${SSH_OPTS} ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
 }
 
 #######################################
@@ -178,7 +221,7 @@ die () {
     if kill -0 ${tunnel_pid} &>/dev/null ; then
         kill ${tunnel_pid} &>/dev/null
     fi
-    message -r "ERROR" "$1" "$2" "$3"
+    message -r "ERROR" "$1" "$2" "$3" >&2
     exit 2
 }
 
@@ -224,7 +267,7 @@ debug () {
 #######################################
 checkvncpasswd () {
     # if default passwd doesn't exist
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE} "ls \$HOME/.vnc/passwd" &>/dev/null ); then 
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls \$HOME/.vnc/passwd" &>/dev/null ); then
 
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
@@ -232,11 +275,11 @@ checkvncpasswd () {
             warning "Do you wish to proceed and assume the risk to revealing your password? [Y/N]"
             read CLEARCASE
             case $CLEARCASE in
-                Y*|y*) warning "Continuing despite risk of clearcasing vncpasswd!"       ;; 
+                Y*|y*) warning "Continuing despite risk of clearcasing vncpasswd!"       ;;
                 N*|n*) warning "Unsetting the xtrace shellopt on your behalf!" && set +x ;;
                 *)     die "Didn't receive a Y or N response." "Exitting ${0//*\//}"     ;;
             esac
-        fi 
+        fi
 
         inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
@@ -246,32 +289,32 @@ checkvncpasswd () {
             Y*|y*)
                 inform "Enter your password (at least six characters long, up to eight)"
                 read -s VNCPW
-                inform "Reenter your password to confirm" 
+                inform "Reenter your password to confirm"
                 read -s REVNCPW
-                if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then 
+                if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
-                    if [[ $? -ne 0 ]] ; then 
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
+                    if [[ $? -ne 0 ]] ; then
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
-                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ls \$HOME/.vnc/passwd" &>/dev/null ); then
+                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls \$HOME/.vnc/passwd" &>/dev/null ); then
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
-                    else 
+                    else
                         inform "VNCPASSWD SET!"
-                    fi 
-                else 
-                    die "FIRST AND SECOND PASSWORDS DIDN'T MATCH" 
+                    fi
+                else
+                    die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
-                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} ""ls -al \$HOME/.vnc/passwd"")
+                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ""ls -al \$HOME/.vnc/passwd"")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)
-                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED" 
+                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
             ;;
             *)
-                die "A password to use your vncserver on ${MACHINE} is required!" 
+                die "A password to use your vncserver on ${MACHINE} is required!"
             ;;
         esac
-    fi 
+    fi
 }
 
 #######################################
@@ -289,7 +332,7 @@ checkvncpasswd () {
 #######################################
 kill_vnc () {
     LOCAL_PORT=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} vncserver -kill :${LOCAL_PORT} 2>&1)
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} vncserver -kill :${LOCAL_PORT} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -307,7 +350,7 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
+    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -326,7 +369,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'"| awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
+    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'"| awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
@@ -387,7 +430,7 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "cat ~/.vnc/${MACHINE}*:*$PORT.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*$PORT.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}
 }
 
 #######################################
@@ -410,12 +453,11 @@ done
 
 OPTIND=1
 
-while getopts "c:m:n:p:u:w:dhrk" opt ; do
+while getopts "c:m:p:u:w:dhrk" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
-        n)  network="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "$network"                 ;;
         c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    ;;
         k)  KEEP_VNC_SERVER_ACTIVE=true                                                            ;;
         r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          ;;
@@ -426,18 +468,14 @@ while getopts "c:m:n:p:u:w:dhrk" opt ; do
 done
 #######################################
 
-# need to have a viable vncclient to use on the local machine
+# Check out the vncclient
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
-
-# ensure $MACHINE is set
-if [[ "${MACHINE}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
-
-# check the client works
-if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi 
-
-# vncclient version information
+if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
+
+# Ensure MACHINE is set
+if [[ "${MACHINE}"x == x ]] ; then usage; die "MACHINE must be specified to ${0/\*/}!" ; fi
 
 # uname output on local host
 CLIENTOS=$(clientOS)
@@ -452,25 +490,26 @@ WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # ensure we know what network requirements there are to connect to machine
-network=$(check_network)
+NETWORK=$(check_network)
+inform "CONNECTION:" "MACHINE: $MACHINE" "NETWORK: $NETWORK"
+
+# setup ssh options for reuse
+SSH_OPTS=$(setup_ssh_opts)
+debug "SSH_OPTS:" "$SSH_OPTS"
 
 # setup the appropriate ssh commands for the network
-if [[ "$network" =~ TURQUOISE ]] ; then
-    GATEWAY_SSH=$(setup_gateway_ssh)
-    debug "GATEWAY FOR $network:" "${GATEWAY_SSH}"
+if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
+    GATEWAY="wtrw1.lanl.gov"
+    GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
 else
-    NO_GATEWAY_SSH="ssh -o LogLevel=QUIET"
-    debug "GATEWAY FOR $network:" "${NO_GATEWAY_SSH}"
+    NO_GATEWAY_SSH=$(setup_nogateway_ssh)
 fi
-
-inform "NETWORK FOR ${MACHINE}:" "$network"
+debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
 # some client side logs, the second one is only in the event of a failure
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
 inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}"
 mkdir -p ${PWD}/log/${MACHINE}
-
-# TODO: some fixing to do with getting this in the event of a failure
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}"
 
@@ -483,7 +522,7 @@ inform "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-inform "$MACHUSER ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
+inform "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -515,7 +554,6 @@ if [[ "${RECONNECT}"x != x ]] ; then
 fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
-# KEEPING FOR NOW... if [[ "${port}"x == x ]] && [[ ${#active_vncserver_ports[@]} -ge 1 ]] ; then
 if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "${active_vncserver_ports[@]}"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
@@ -563,7 +601,7 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $MACHUSER@${MACHINE} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
@@ -588,26 +626,21 @@ else
     debug "VNCSERVER RUNNING AS $USER ALREADY on $port" "WILL USE THIS PORT $port"
 fi
 
-#TODO:# setup socket name
-#tunnel_socket="VNC2HPC-${MYDATE}-${MACHINE}"
+# get tunnel string
+TUNNEL_HOST=$(setup_tunnel_host)
 
 # need the tunnel to include the port as determined above
-if [[ "${network}" =~ TURQUOISE ]] ; then
-    GATEWAY_TUNNEL=$(setup_gateway_tunnel)
-    debug "GATEWAY_TUNNEL FOR $network:" "$GATEWAY_TUNNEL"
-#else
-#    NO_GATEWAY_TUNNEL=$(setup_nogateway_tunnel)
-#    debug "NO_GATEWAY_TUNNEL FOR $network:" "$NO_GATEWAY_TUNNEL"
-fi
-
-#port forwarding connection using zero padded port number
-if [[ ${GATEWAY_TUNNEL}x != x ]] ; then
-    debug "RUNNING:" "${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${MACHINE} &"
-    ${GATEWAY_TUNNEL} -L 59${PORT}:localhost:59${PORT} ${MACHINE} &>/dev/null &
+if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
+    GATEWAY="wtrw1.lanl.gov"
+    GATEWAY_TUNNEL=$(setup_gateway_tunnel ${GATEWAY})
 else
-    debug "RUNNING:" "${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE} &"
-    ${NO_GATEWAY_SSH} -fN -L 59${PORT}:localhost:59${PORT} ${MACHUSER}@${MACHINE} &>/dev/null &
+    NO_GATEWAY_TUNNEL=$(setup_nogateway_tunnel)
 fi
+debug "TUNNEL FOR ${NETWORK}:" "${NO_GATEWAY_TUNNEL} ${GATEWAY_TUNNEL}"
+
+# generic tunnel invocation
+debug "RUNNING:" "${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &"
+${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $MACHINE
@@ -615,18 +648,18 @@ debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT 59${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $port was instantiated
-remote_pid=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${MACHUSER}@${MACHINE} "ps aux" | awk -v exclude="awk" -v pat="Xvnc :${PORT#0}" '($0 !~ exclude) && $0~pat{print $12}')
+remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" | awk -v exclude="awk" -v pat="Xvnc :*${PORT#0} " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
 
-#f ail if not
-if [[ "${remote_pid}x" == x ]] ; then 
+# fail if not
+if [[ "${remote_pid}x" == x ]] ; then
     remotelog
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
 # connect client to localhost
-if [[ "${client}" =~ Tiger ]] ; then 
-    warning "Client: ${client}" "Redirecting ${client} stdout to ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}" 
+if [[ "${client}" =~ Tiger ]] ; then
+    warning "Client: ${client}" "Redirecting ${client} stdout to ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}"
     "$client" localhost:59${PORT} >> ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE} 2>&1
 else
     "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
