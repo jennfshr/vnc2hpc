@@ -74,6 +74,7 @@ check_network () {
 #   Writes $loc_ssh_opts to stdout
 #######################################
 setup_ssh_opts () {
+    mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
     loc_ssh_opts+="-tt"
     loc_ssh_opts+=" -N"
