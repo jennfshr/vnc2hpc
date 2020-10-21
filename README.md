@@ -69,7 +69,7 @@ $> exit
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
 
-Or to connect to a turquoise hosted system:
+##### To launch a session to Snow's turquoise frontend
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
@@ -155,7 +155,4 @@ userid for the remote system.  If you have different userids, you need to pass t
 ## What is VNC
 
 Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
-
-## In depth Explanation
-
 
