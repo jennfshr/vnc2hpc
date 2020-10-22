@@ -1,7 +1,7 @@
 # VNC2HPC
 
 [[_TOC_]]
-
+_____
 ## System Requirements
 This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted with RealVNC and TigerVNC.  Additionally, you'll need to have:
 
@@ -14,7 +14,7 @@ This software requires a VNC Client installation on the system where it is runni
 #### Downloadable clients urls
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
-
+_____
 ## Quickstart
 The usage output is available by running
 
@@ -83,20 +83,20 @@ $> vncpasswd
 >  A view-only password is not used
 $> exit
 ```
+_____
+## Basic usage
 
-#### Basic usage
-
-##### To launch a session to Snow’s sn-fey1:
+### To launch a session to Snow’s Yellow frontend
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
 
-##### To launch a session to Snow's turquoise frontend
+### To launch a session to Snow's Turquoise frontend
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
-### Arguments
+## Arguments
 
-#### [-m|--machine <machine>] (required)
+### [-m|--machine <machine>] (required)
 
 This flag specifies the front-end node's hostname you wish to connect to.  If you want to connect
 to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
@@ -107,7 +107,7 @@ When used, a remote /etc/hosts lookup will be performed in order to construct a 
 from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will 
 instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
 
-#### [-c|--client <vncclient>] (required)
+### [-c|--client <vncclient>] (required)
 
 The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
@@ -117,11 +117,11 @@ isn't in your $PATH.  To determine if the executable is in your path, in a termi
 *Note: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line
 to resolve the full path to the client is supported.* 
 
-#### [-d|--debug] (optional)
+### [-d|--debug] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
-#### [-k|--keep] (optional)
+### [-k|--keep] (optional)
 
 To preserve your vncserver session for later reuse, run the script with --keep or -k
 
@@ -136,7 +136,7 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 *Note: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and 
 provide you a chance to Kill it, Ignore It, or Reuse it, interactively.*
 
-#### [-p|--port <display port>] (optional)
+### [-p|--port <display port>] (optional)
 
 One can request a specific port, and that port will passed to the vncserver command.  However, if the 
 vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port.
@@ -161,23 +161,23 @@ If that port returns a conflict when the vncserver script is invoked, the vnc2hp
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
 
-#### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
+### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
 
-#### [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
+### [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
 
 
 ## Issues resolved for v0.0.2 tag
 
-- [ ] -- #2 xstartup script needs to be replicated to HOME before invoked
-- [ ] -- #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
-- [ ] -- #5 ssh -fN is suppressing remote commands
-- [ ] -- #3 xstartup script should use environment variable to set the window manager, rather than positional parameters
-- [ ] -- #4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
+- [ ]	#2 xstartup script needs to be replicated to HOME before invoked
+- [ ]	#1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
+- [ ]	#5 ssh -fN is suppressing remote commands
+- [ ]	#3 xstartup script should use environment variable to set the window manager, rather than positional parameters
+- [ ]	#4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
 
 _____
 
