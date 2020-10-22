@@ -1,5 +1,17 @@
 # VNC2HPC
 
+## VNC2HPC Description
+VNC2HPC is a custom series of scripts that utilize available utilities on a user's local machine and cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.
+
+### Production Status
+VNC2HPC is currently undergoing beta testing with a set of interested HPC customers at LANL. During this time, the software will be updated frequently to address requests and bug reports until hardened and ready for production.
+
+### Mailing list
+You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
+
+*LANL CryptoCard Authentication Required*
+[Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) vnc2hpc@lanl.gov
+
 [[_TOC_]]
 _____
 ## System Requirements
