@@ -112,7 +112,8 @@ check_machine () {
 setup_ssh_opts () {
     mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
-    loc_ssh_opts+="-tt"
+    loc_ssh_opts+="-x"
+    loc_ssh_opts+=" -tt"
     loc_ssh_opts+=" -N"
     loc_ssh_opts+=" -f"
     loc_ssh_opts+=" -o LogLevel=QUIET"
