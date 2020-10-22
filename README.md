@@ -3,7 +3,18 @@
 [[_TOC_]]
 
 ## System Requirements
-This software requires a VNC Client installation on the system where it is running. 
+This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted with RealVNC and TigerVNC.  Additionally, you'll need to have:
+
+### Requirements
+#### System packages
+* A terminal application (i.e., Xterm, Terminal) 
+* BASH >=v3.x
+* SSH client (where ssh is in your $PATH).
+
+#### Downloadable clients urls:
+* [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
+* [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
+
 ## Quickstart
 The usage output is available by running
 
@@ -140,9 +151,7 @@ The script will prompt for an action on the command line if a port is already ru
 `$ ./vnc2hpc -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
 
 `WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
-
 `WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
-
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         Y - yes, N - exit, R - reuse]?`
 
 Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
@@ -164,12 +173,13 @@ userid for the remote system.  If you have different userids, you need to pass t
 
 ## Issues resolved for v0.0.2 tag
 
-- [√] #2 xstartup script needs to be replicated to HOME before invoked
-- [√] #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
-- [√] #5 ssh -fN is suppressing remote commands
-- [√] #3 xstartup script should use environment variable to set the window manager, rather than positional parameters
-- [√] #4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
+- [ ] -- #2 xstartup script needs to be replicated to HOME before invoked
+- [ ] -- #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
+- [ ] -- #5 ssh -fN is suppressing remote commands
+- [ ] -- #3 xstartup script should use environment variable to set the window manager, rather than positional parameters
+- [ ] -- #4 feature request for fvwm support (os/arch specific builds- fix xstartup to find the right version)
 
+_____
 
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
