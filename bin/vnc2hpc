@@ -76,7 +76,7 @@ check_machine () {
     local loc_machines
     local loc_machine_index
     if [[ "${MACHINE}"x != x ]] ; then 
-        if ! [[ "$MACHINE" =~ [0-9] ]] ; then
+        if ! [[ "$MACHINE" =~ [0-9] ]] && ! [[ "${MACHINE}" =~ cp ]] && ! [[ "${MACHINE}" =~ th ]]  ; then
             case "${NETWORK}" in
                 YELLOW)    netpart="128.165" ;;
                 TURQUOISE) netpart="204.121" ;;
