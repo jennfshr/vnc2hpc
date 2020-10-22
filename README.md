@@ -2,6 +2,8 @@ VNC2HPC
 
 [[_TOC_]]
 
+## System Requirements
+This software requires a VNC Client installation on the system where it is running. 
 ## Quickstart
 The usage output is available by running
 
@@ -79,9 +81,14 @@ $> exit
 
 #### [-m|--machine <machine>] (required)
 
-This flag specifies the front-end node's short hostname you wish to connect to.  If you want to connect
-to a system on the turquoise network, just pass the front-end short hostname to the script and it will detect
+This flag specifies the front-end node's hostname you wish to connect to.  If you want to connect
+to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
 the network, and setup the gateway hop appropriately.
+
+*Note: LANL HPC Systems round-robin aliases (i.e., sn-fey > sn-fey1|sn-fey2) are permittable arguments.
+When used, a remote /etc/hosts lookup will be performed in order to construct a list of valid hosts,
+from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will 
+instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
 
 #### [-c|--client <vncclient>] (required)
 
@@ -90,13 +97,14 @@ It's a required option that will fail if not supplied.  A full path to the vncvi
 isn't in your $PATH.  To determine if the executable is in your path, in a terminal window, run `which vncviewer`.
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
-* note, it's not required to pass the client in double quotes to the script
+*Note: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line
+to resolve the full path to the client is supported.* 
 
 #### [-d|--debug] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
-#### --keep | -k
+#### [-k|--keep] (optional)
 
 To preserve your vncserver session for later reuse, run the script with --keep or -k
 
@@ -107,6 +115,9 @@ To reconnect to this, you can request a reconnect with later invocations with a 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --reconnect`
 
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
+
+*Note: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and 
+provide you a chance to Kill it, Ignore It, or Reuse it, interactively.*
 
 #### [-p|--port <display port>] (optional)
 
