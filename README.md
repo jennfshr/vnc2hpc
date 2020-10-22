@@ -142,7 +142,7 @@ If that port returns a conflict when the vncserver script is invoked, the vnc2hp
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
 
-#### --user | -u
+#### [-u|--user <hpcuserid> (required: if $USER is different on remote host)
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
