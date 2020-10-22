@@ -82,12 +82,14 @@ check_machine () {
                 TURQUOISE) netpart="204.121" ;;
                 RED)       netpart="10.160"  ;;
             esac
-            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" ) )
+            #loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" ) )
+            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f /etc/hosts ] && awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts 2>/dev/null || echo 'invalid'" ) )
             if [[ ${#loc_machines[@]} -gt 0 ]] ; then 
                 loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
                 loc_machine="${loc_machines[$loc_machine_index]}"
             else
-                loc_machine="invalid" 
+            # try to access "${MACHINE}1" before failing
+                loc_machine="${MACHINE}1" 
             fi 
         elif [[ "${MACHINE}" =~ wtrw ]] ; then
             loc_machine="invalid"
