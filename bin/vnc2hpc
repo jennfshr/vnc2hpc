@@ -229,7 +229,7 @@ message () {
         esac
     done
     shift $(($OPTIND -1))
-    printf "${color}%-10s %-50s %-50s\n" "$1" "$2" "$3" "$4"
+    printf "${color}%-10s %-50s %-50s %-50s\n" "$1" "$2" "$3" "$4"
     tput sgr0
 }
 
