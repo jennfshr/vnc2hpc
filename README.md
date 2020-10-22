@@ -163,7 +163,9 @@ The script will prompt for an action on the command line if a port is already ru
 `$ ./vnc2hpc -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
 
 `WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
+
 `WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
+
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         Y - yes, N - exit, R - reuse]?`
 
 Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
