@@ -1,4 +1,6 @@
-# vnc2hpc
+VNC2HPC
+
+[[_TOC_]]
 
 ## Quickstart
 The usage output is available by running
@@ -73,9 +75,15 @@ $> exit
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
-### Features
+### Arguments
 
-#### --client | -c
+#### [-m|--machine <machine>] (required)
+
+This flag specifies the front-end node's short hostname you wish to connect to.  If you want to connect
+to a system on the turquoise network, just pass the front-end short hostname to the script and it will detect
+the network, and setup the gateway hop appropriately.
+
+#### [-c|--client <vncclient>] (required)
 
 The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
@@ -84,15 +92,9 @@ isn't in your $PATH.  To determine if the executable is in your path, in a termi
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 * note, it's not required to pass the client in double quotes to the script
 
-#### --debug | -d
+#### [-d|--debug] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
-
-#### --machine | -m
-
-This flag specifies the front-end node's short hostname you wish to connect to.  If you want to connect
-to a system on the turquoise network, just pass the front-end short hostname to the script and it will detect
-the network, and setup the gateway hop appropriately.
 
 #### --keep | -k
 
@@ -106,9 +108,11 @@ To reconnect to this, you can request a reconnect with later invocations with a 
 
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
 
-#### --port | -p
+#### [-p|--port <display port>] (optional)
 
-One can request a specific port, and that port will be attempted to be connected to upon starting the vncserver
+One can request a specific port, and that port will passed to the vncserver command.  However, if the 
+vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port.
+That value then will be passed back to the client to use for connection to the machine. 
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
@@ -133,6 +137,9 @@ Sometimes the userid of the user running on the desktop system where vnc2hpc is 
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
+
+#### [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
+
 
 ### Issues resolved for v0.0.2 tag
 
