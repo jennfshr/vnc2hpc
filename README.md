@@ -26,6 +26,9 @@ This software requires a VNC Client installation on the system where it is runni
 #### Downloadable clients urls
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
+
+#### VNC2HPC tool
+* [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
 _____
 ## Quickstart
 The usage output is available by running
