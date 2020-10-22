@@ -15,7 +15,7 @@ The usage output is available by running
                             [-c|--client <vncclient>] (required)
                             [-d|--debug] (optional)
 	                    [-p|--port <display port>] (optional)
-			    [-u|--user <hpcuserid> (required: if $USER is different on remote host)
+			    [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
 			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
