@@ -146,7 +146,7 @@ If that port returns a conflict when the vncserver script is invoked, the vnc2hp
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
 
-#### [-u|--user <hpcuserid> (required: if $USER is different on remote host)
+#### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
@@ -156,7 +156,7 @@ userid for the remote system.  If you have different userids, you need to pass t
 #### [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
 
 
-### Issues resolved for v0.0.2 tag
+## Issues resolved for v0.0.2 tag
 
 - [√] #2 xstartup script needs to be replicated to HOME before invoked
 - [√] #1 initial passwd creation isn't implemented yet- start vncserver manually on the target machine, set a password, then use it to authenticate the connection when prompted.
