@@ -11,7 +11,7 @@ This software requires a VNC Client installation on the system where it is runni
 * BASH >=v3.x
 * SSH client (where ssh is in your $PATH).
 
-#### Downloadable clients urls:
+#### Downloadable clients urls
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
 
@@ -156,7 +156,7 @@ The script will prompt for an action on the command line if a port is already ru
 
 Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
 
-If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the newport.
+If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the vncserver selected port.
 
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
