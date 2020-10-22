@@ -1,4 +1,6 @@
-# vnc2hpc
+VNC2HPC
+
+[[_TOC_]]
 
 ## Quickstart
 The usage output is available by running
