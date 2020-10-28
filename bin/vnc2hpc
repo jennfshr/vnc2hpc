@@ -428,7 +428,7 @@ checkvncpasswd () {
             DISABLE_XTRACE="set +x"
             ENABLE_XTRACE="set -x"
         fi
-        $(${DISABLE_XTRACE})
+        ${DISABLE_XTRACE}
 
         inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
@@ -463,7 +463,7 @@ checkvncpasswd () {
                 die "A password to use your vncserver on ${MACHINE} is required!"
             ;;
         esac
-        $(${ENABLE_XTRACE})
+        ${ENABLE_XTRACE}
     fi
 }
 
