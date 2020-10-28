@@ -34,7 +34,7 @@ usage () {
 	                    [-p|--port <display port>]			(optional)
 			    [-k|--keep]					(optional)
 			    [-r|--reconnect]				(optional)
-			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>]	(optional)
+			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
