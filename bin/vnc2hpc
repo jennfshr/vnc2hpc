@@ -577,6 +577,7 @@ clientOS () {
 #   MACHUSER
 #   MACHINE
 #   PORT
+#   LOGDIR
 #   SERVER_LOG_FILE
 # Arguments:
 #   None
@@ -584,7 +585,7 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*${PORT#0}.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE} &>/dev/null
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*${PORT#0}.log" >> ${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
 }
 
 #######################################
@@ -696,11 +697,12 @@ if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
 fi
 
 # some client side logs, the second one is only in the event of a failure
+LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}"
-mkdir -p ${PWD}/log/${MACHINE}
+inform "VNC CLIENT ${client//*\//} LOGGING" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING" "${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}"
+inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check vncpasswd
 checkvncpasswd
@@ -848,10 +850,10 @@ fi
 
 # connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then
-    warning "Client: ${client}" "Redirecting ${client} stdout to ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE}"
-    "$client" localhost:59${PORT} >> ${PWD}/log/${MACHINE}/${CLIENT_LOG_FILE} 2>&1
+    warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
+    "$client" localhost:59${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${PWD}/log/${MACHINE} -LogFile=${CLIENT_LOG_FILE}
+    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
