@@ -352,6 +352,7 @@ die () {
     if kill -0 ${tunnel_pid} &>/dev/null ; then
         kill ${tunnel_pid} &>/dev/null
     fi
+    $(${CONTROL_KILL})
     message -r "ERROR" "$1" "$2" "$3" >&2
     exit 2
 }
@@ -583,7 +584,7 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*${PORT#0}.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE}
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*${PORT#0}.log" >> ${PWD}/log/${MACHINE}/${SERVER_LOG_FILE} &>/dev/null
 }
 
 #######################################
