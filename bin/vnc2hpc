@@ -853,7 +853,7 @@ if [[ "${client}" =~ Tiger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     "$client" localhost:59${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
