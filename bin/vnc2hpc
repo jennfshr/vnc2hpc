@@ -643,8 +643,8 @@ inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
 if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
-inform "CONNECTION:" "MACHINE: $MACHINE" 
-inform "CONNECTION:" "NETWORK: $NETWORK"
+inform "MACHINE:" "$MACHINE" 
+inform "NETWORK:" "$NETWORK"
 
 # setup initial ssh options for reuse
 SSH_OPTS=$(setup_ssh_opts)
