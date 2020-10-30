@@ -8,7 +8,7 @@ LOG="/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcso
 touch $LOG
 cp /usr/projects/hpcsoft/vnc2hpc/0.0.2/bin/xstartup $HOME/.vnc/xstartup
 export VNC2HPC_WM="$2" 
-/usr/bin/vncserver ${DISPLAYPORT} -name "$USER at `hostname -s`:$displayport $windowmanager" -autokill -depth 16 -xstartup "$HOME/.vnc/xstartup" &>$LOG
+/usr/bin/vncserver ${DISPLAYPORT} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill -depth 16 -xstartup "$HOME/.vnc/xstartup" &>$LOG
 
 if [[ $? -ne 0 ]] ; then 
    displayport=FAILURE
