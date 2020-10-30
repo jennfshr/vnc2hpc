@@ -17,7 +17,7 @@ README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
 MYDATE=$(date +%m-%d-%y"-"%H.%m.%S)
 
 # SSH Control Master Socket
-SSH_SOCKET="~/.ssh/connections/vnc2hpc-%r@%h:%p_${MYDATE}"
+SSH_SOCKET="~/.ssh/connections/vnc2hpc-%C"
 
 # Versioning approach
 # Feature updates signified by even numbers
