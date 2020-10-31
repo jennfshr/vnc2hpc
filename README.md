@@ -1,7 +1,8 @@
 # VNC2HPC
 
-## VNC2HPC Description
 VNC2HPC is a custom series of scripts that utilize available utilities on a user's local machine and cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.
+
+[[_TOC_]]
 
 ### Production Status
 VNC2HPC is currently undergoing beta testing with a set of interested HPC customers at LANL. During this time, the software will be updated frequently to address requests and bug reports until hardened and ready for production.
@@ -15,8 +16,6 @@ You can subscribe to the mailing list if you'd like to be more involved in the d
 
 #### Mailing List
 vnc2hpc@lanl.gov
-
-[[_TOC_]]
 _____
 ## System Requirements
 This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted with RealVNC and TigerVNC.  Additionally, you'll need to have:
