@@ -270,7 +270,7 @@ This flag specifies the front-end node's hostname you wish to connect to.  If yo
 to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
 the network, and setup the gateway hop appropriately.
 
-*Note: LANL HPC Systems round-robin aliases (i.e., sn-fey > sn-fey1|sn-fey2) are permittable arguments.
+*Note: LANL HPC Systems round-robin aliases are permittable arguments.
 When used, a remote /etc/hosts lookup will be performed in order to construct a list of valid hosts,
 from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will 
 instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
