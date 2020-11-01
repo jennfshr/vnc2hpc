@@ -148,7 +148,7 @@ The usage output is available by running
 			    [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
-			    [-w|--wm <fvwm|mwm|xfwm4|openbox-session>] (optional)
+			    [-w|--wm <fvwm|mwm|xfwm4] (optional)
 			    [-h|--help]
 
           Questions?        <vnc2hpc@lanl.gov> 
