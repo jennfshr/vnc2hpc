@@ -19,9 +19,9 @@ You can subscribe to the mailing list if you'd like to be more involved in the d
 [Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) 
 *LANL CryptoCard Authentication Required*
 
-**Mailing List**
+**Engage the Mailing List**
 
-vnc2hpc@lanl.gov
+*Have questions, requests, concerns?  Feel free to email: vnc2hpc@lanl.gov*
 
 _____
 
@@ -44,7 +44,8 @@ This software requires a VNC Client installation on the system where it is runni
 **Obtain VNC2HPC Tool**
 
 __Note: In the future, will be supplied via LANL Self Services Application Catalog__
-Two methods to obtain VNC2HPC
+
+**Two methods to obtain VNC2HPC**
 
 **Direct Download**
 
@@ -133,6 +134,7 @@ And if you add this line to your ~/.bashrc file, it will setup the $PATH to have
 Again, if you do this, be sure to adjust the `export PATH` command in your .bashrc to prepend PATH with the bin subdirectory of the repository, where the vnc2hpc script is in the repository. 
 
 </details>
+
 _____
 
 ### Usage Output to the command line
@@ -143,7 +145,7 @@ The usage output is available by running
 
 ```vnc2hpc v0.0.2
 
-          usage: vnc2hpc [-m|--machine <machine>] (required)
+          usage: vnc2hpc    [-m|--machine <machine>] (required)
                             [-c|--client <vncclient>] (required)
                             [-d|--debug] (optional)
 	                    [-p|--port <display port>] (optional)
@@ -156,7 +158,8 @@ The usage output is available by running
           Questions?        <vnc2hpc@lanl.gov> 
           Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md
 ```
-_____ 
+
+_____
 
 ## Machines Supported
 
@@ -256,6 +259,7 @@ jgreen@sn-fey1>  exit
 $>  vnc2hpc -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
 # walk through the password recreation process once again
 ```
+
 _____
 
 **Manually Set VNC Passwd**
@@ -271,6 +275,7 @@ $> vncpasswd
 >  A view-only password is not used
 $> exit
 ```
+
 _____
 
 ## Arguments
@@ -354,7 +359,7 @@ don't have localhost:port tunnel conflicts on the client side.
 
 _____
 
-** [-u|--user <hpcuserid>] (required: if $USER is different on remote host)**
+**[-u|--user <hpcuserid>] (required: if $USER is different on remote host)**
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
 userid for the remote system.  If you have different userids, you need to pass the remote userid (a.k.a. moniker) to the script
