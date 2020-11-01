@@ -4,41 +4,69 @@ VNC2HPC is a custom series of scripts that utilize available utilities on a user
 
 [[_TOC_]]
 
+----
+
 ### Production Status
 VNC2HPC is currently undergoing beta testing with a set of interested HPC customers at LANL. During this time, the software will be updated frequently to address requests and bug reports until hardened and ready for production.
+
+_____
 
 ### Mailing list
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
-#### Subscribe to vnc2hpc@lanl.gov mailing list
+### Subscribe to vnc2hpc@lanl.gov mailing list
+
 [Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) 
 *LANL CryptoCard Authentication Required*
 
-#### Mailing List
+**Mailing List**
+
 vnc2hpc@lanl.gov
+
 _____
+
+_____
+
 ## System Requirements
 This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted with RealVNC and TigerVNC.  Additionally, you'll need to have:
 
-### Requirements
-#### System packages
+**Requirements**
+
+**System packages**
+
 * A terminal application (i.e., Xterm, Terminal) 
 * BASH >=v3.x
 * SSH client (where ssh is in your $PATH).
 
-#### Downloadable clients urls
+**Downloadable VNC Viewer Clients Links**
+
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
 
-#### VNC2HPC tool
-* [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
+**Obtain VNC2HPC Tool**
+
+__Note: In the future, will be supplied via LANL Self Services Application Catalog__
+Two methods to obtain VNC2HPC
+
+**Direct Download**
+
+* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
+
+**Clone the project**
+* `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
+
+*Note:  as we beta test this product, a clone makes updating master as simple as `git pull`*
 _____
 ## Quickstart
 
-### Setup Software on your System
-#### Install a VNC Viewer
+**Setup Software on your System**
+
+**Install a VNC Viewer**
+
+VNC Viewer downloads are supplied as a DMG (disk image) installer on MacOS, and are supplied in various packaging system formats, or from source installs on Linux.
+
 <details>
-  <summary markdown="span">Install the VNC Viewer Software</summary>
+  <summary markdown="span">Expand for details on finding the install path on MacOS</summary>
 
 Install the viewer you prefer whichever way you desire to install it.  The criticl part is knowing the path to the vncviewer executable. 
 
@@ -74,9 +102,10 @@ Here's one way to do that:
 
 </details>
 
-#### Install the vnc2hpc script
+*Install the vnc2hpc script*
+
 <details>
-  <summary markdown="span">Install the vnc2hpc script</summary>
+  <summary markdown="span">Expand for guidance on setting up VNC2HPC</summary>
 
 You can download here: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
 
@@ -131,9 +160,10 @@ _____
 
 vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
 
-### Machines supported
+**Machines supported**
+
 <details>
-	<summary markdown="span">Machines VNC2HPC can connect to</summary>
+	<summary markdown="span">Expand to see LANL Machines VNC2HPC Supports</summary>
 
 Snow:
 * sn-fe
@@ -166,21 +196,24 @@ Trinity
 
 </details>
 
-### To launch a session to Snow’s Yellow frontend
+*To launch a session to Snow’s Yellow frontend*
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
 
-### To launch a session to Snow's Turquoise frontend
+*To launch a session to Snow's Turquoise frontend*
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
-### Round Robin Aliases
+**Round Robin Aliases**
+
 As our customers are aware, LANL HPC supplies round-robin aliases to make access to the clusters simpler for the customers, and the vnc2hpc tool supports their use, too.  
 
-### Reconnecting to a running VNCServer session
+
+**Reconnecting to a running VNCServer session**
+
 Additionally, you can direct the tool to a specific front-end node, which is especially important when re-connecting to a listening vncserver session.  The tool upon disconnecting to a session when run with the `-k` (keep alive) flag, will supply the hostname where the kept session is running.  To reconnect, use that for the machine parameter upon reconnection. 
 
-### First time running vncserver
+**VNCPasswd setup First time running vncserver**
 
 vncserver requires a vncpasswd to be set before a client>server connection is possible.  This password is housed on the server side by default at $HOME/.vnc/passwd.  
 
@@ -203,7 +236,7 @@ INFO       Reenter your password to confirm
 Once this is setup on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all
 remote hosts on that network thanks to common home directories on LANL networks.
 
-##### Whoops, I forgot my vncpasswd! Now what?
+**Whoops, I forgot my vncpasswd! Now what?**
 
 If you forget your password, it's easy enough to remove it; though the file itself isn't encrypted, it's not in a readable format:
 
@@ -215,7 +248,7 @@ $>  vnc2hpc -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
 # walk through the password recreation process once again
 ```
 
-##### Manually Set VNC Passwd
+**Manually Set VNC Passwd**
 
 ```bash
 ssh -l ${USER} <machine>
