@@ -14,7 +14,7 @@ _____
 ### Mailing list
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
-### Subscribe to vnc2hpc@lanl.gov mailing list
+**Subscribe to vnc2hpc@lanl.gov mailing list**
 
 [Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) 
 *LANL CryptoCard Authentication Required*
@@ -22,8 +22,6 @@ You can subscribe to the mailing list if you'd like to be more involved in the d
 **Mailing List**
 
 vnc2hpc@lanl.gov
-
-_____
 
 _____
 
@@ -56,7 +54,9 @@ Two methods to obtain VNC2HPC
 * `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
 
 *Note:  as we beta test this product, a clone makes updating master as simple as `git pull`*
+
 _____
+
 ## Quickstart
 
 **Setup Software on your System**
@@ -101,6 +101,8 @@ Here's one way to do that:
 	`./vnc2hpc -m tt-fey -c ${VNCV}` 
 
 </details>
+
+_____
 
 *Install the vnc2hpc script*
 
@@ -156,9 +158,7 @@ The usage output is available by running
 ```
 _____ 
 
-## Basic usage
-
-vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
+## Machines Supported
 
 **Machines supported**
 
@@ -195,6 +195,12 @@ Trinity
 * tr-fe
 
 </details>
+
+_____
+
+## Basic usage
+
+vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
 
 *To launch a session to Snow’s Yellow frontend*
 
@@ -236,10 +242,13 @@ INFO       Reenter your password to confirm
 Once this is setup on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all
 remote hosts on that network thanks to common home directories on LANL networks.
 
+_____
+
 **Whoops, I forgot my vncpasswd! Now what?**
 
 If you forget your password, it's easy enough to remove it; though the file itself isn't encrypted, it's not in a readable format:
 
+**Reset VNCPasswd**
 ```
 $>  ssh -l $USER sn-fey1
 jgreen@sn-fey1>  rm ~/.vnc/passwd
@@ -247,8 +256,11 @@ jgreen@sn-fey1>  exit
 $>  vnc2hpc -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
 # walk through the password recreation process once again
 ```
+_____
 
 **Manually Set VNC Passwd**
+
+The vnc2hpc software will help you set your password.  If you would like to do this outside the tool, it's pretty simple.  Here's how:
 
 ```bash
 ssh -l ${USER} <machine>
@@ -260,7 +272,6 @@ $> vncpasswd
 $> exit
 ```
 _____
-
 
 ## Arguments
 
@@ -275,6 +286,8 @@ When used, a remote /etc/hosts lookup will be performed in order to construct a 
 from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will 
 instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
 
+_____
+
 **[-c|--client <vncclient>] (required)**
 
 The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
@@ -285,9 +298,13 @@ isn't in your $PATH.  To determine if the executable is in your path, in a termi
 *Note: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line
 to resolve the full path to the client is supported.* 
 
+_____
+
 **[-d|--debug] (optional)**
 
 To have more visibility into the script's progression, you can run with --debug or -d
+
+_____
 
 **[-k|--keep] (optional)**
 
@@ -303,6 +320,8 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 
 *Note: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and 
 provide you a chance to Kill it, Ignore It, or Reuse it, interactively.*
+
+_____
 
 **[-p|--port <display port>] (optional)**
 
@@ -333,6 +352,8 @@ If that port returns a conflict when the vncserver script is invoked, the vnc2hp
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
 
+_____
+
 ** [-u|--user <hpcuserid>] (required: if $USER is different on remote host)**
 
 Sometimes the userid of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
@@ -340,13 +361,13 @@ userid for the remote system.  If you have different userids, you need to pass t
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
 
+_____
+
 **[-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)**
 
 Currently three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
 
 *Note: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
-
-
 
 _____
 
@@ -359,11 +380,13 @@ _____
 | v0.0.2 | Linux | UNTESTED | UNTESTED |
 | v0.0.2 | Windows | UNTESTED | UNTESTED |
 
+_____
+
 ## What is VNC
 
 Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
 
-### What does VNC2HPC do that isn't already supported by the VNCViewer utilities
+**What does VNC2HPC do that isn't already supported by the VNCViewer utilities**
 
 In order to use a VNC Viewer to connect to a headless server, such as that which we supply for Scientific Computing in HPC, there is a considerable amount of setup which is cumbersome and non-trivial to establish.  The point of this software is to automate the setup and abstract away from customers the complexity that can present itself with a manual client server connection.  We hope that this software helps you in your scientific endeavors on HPC systems, and encourge bug reports, issues, questions and feedback to be sent to consult@lanl.gov or the vnc2hpc@lanl.gov mailing list so that we can improve this product over time. 
 
