@@ -342,7 +342,9 @@ userid for the remote system.  If you have different userids, you need to pass t
 
 **[-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)**
 
-Currently three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll not that the gnome-session is unavailable under vnc2hpc.  Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.
+Currently three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
+
+*Note: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
 
 
 
