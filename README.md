@@ -244,7 +244,7 @@ remote hosts on that network thanks to common home directories on LANL networks.
 
 _____
 
-**Whoops, I forgot my vncpasswd! Now what?**
+**Whoops, I forgot my vncpasswd! Now what?!**
 
 If you forget your password, it's easy enough to remove it; though the file itself isn't encrypted, it's not in a readable format:
 
@@ -382,7 +382,7 @@ _____
 
 _____
 
-## What is VNC
+## What is VNC?
 
 Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
 
