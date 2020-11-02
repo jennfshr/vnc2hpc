@@ -25,16 +25,20 @@ VNC2HPC is currently undergoing beta testing with a set of interested HPC custom
 
 _____
 
-## Mailing list
+### Mailing list
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
 **Subscribe to vnc2hpc@lanl.gov mailing list**
 
-[Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) 
-*LANL CryptoCard Authentication Required*
+1. Click on link to register for the mailing list: [Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) (*LANL Weblogin Required*)
 
-**Engage with beta-testers and developers on the Mailing List**
-*Have questions, feature requests, concerns?  Email: vnc2hpc@lanl.gov*
+2. Enter: "vnc2hpc@lanl.gov" in the field
+
+3. Then click: "Subscribe" button
+
+**Engage the Mailing List**
+
+*Have questions, requests, concerns?  Feel free to email: vnc2hpc@lanl.gov*
 
 _____
 
