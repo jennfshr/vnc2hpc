@@ -69,7 +69,7 @@ VNC Viewer downloads are supplied as a DMG (disk image) installer on MacOS, and 
 <details>
   <summary markdown="span">Expand for details on finding the install path on MacOS</summary>
 
-Install the viewer you prefer whichever way you desire to install it.  The criticl part is knowing the path to the vncviewer executable. 
+Install the viewer you prefer whichever way you desire to install it.  The critical part is knowing the path to the vncviewer executable. 
 
 There are a couple options for finding this, for instance, on a Mac/Linux system you can use the find command on the command line.  
 
@@ -80,13 +80,14 @@ Here's one way to do that:
 1. Open the Finder app
 2. Navigate to the VNC Viewer Application you just installed
 * If you used a .dmg installation, it generally installs to Macintosh HD/Applications/VNC Viewer
-* If you have troubl, you can use the search bar to search for "VNC Viewer"
+* If you have trouble, you can use the search bar to search for "VNC Viewer"
 3. Right click your mouse on the VNC Viewer in Finder, then select "Show Package Contents" to expose the subdirectory structure of the application
-4. You can use Search again to find where vncviewer lives, Contents > MacOS > vncviewer
+4. You can use Search again to find where vncviewer lives under the application container. Generally, it's in a subdirectory path like: Contents > MacOS > vncviewer
 5. When you've found vncviewer in Finder, open another finder window, and click the Go button on the toolbar for Finder, then "Go to Folder" in the submenu.  In the window, drag the first Finder window's vncviewer file to the "Go to the Folder" field, and it will reveal the full path to the client, which you can then copy to your clipboard and use in the terminal for vnc2hpc.
 6. Once you have that path, you can set an environment variable in your shell to reuse it.
 
-* Note: spaces in file paths and filenames is common practice, and without escaping those paths when directing the vnc2hpc script to use them, it will fail to resolve the path.*
+*Note: spaces in file paths and filenames is common practice, and without escaping those paths when directing the vnc2hpc script to use them, it will fail to resolve the path.*
+
 *This is how one escapes spaces in the path to the viewer: `/Applications/VNC\ Viewer.app/Contents/MacOS`*
 
 7. Set a variable in your .bashrc file:
