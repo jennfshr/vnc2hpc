@@ -53,7 +53,7 @@ Additionally, you'll need to have:
 **System packages**
 
 * A terminal application (i.e., Xterm, Terminal) 
-* BASH >=v3.x
+* BASH >=v4.x
 * SSH client (where ssh is in your $PATH).
 
 _____
