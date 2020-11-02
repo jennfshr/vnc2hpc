@@ -41,6 +41,8 @@ _____
 ## System Requirements
 This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted against RealVNC and TigerVNC.  
 
+_____ 
+
 **Requirements**
 Additionally, you'll need to have:
 
@@ -50,10 +52,14 @@ Additionally, you'll need to have:
 * BASH >=v3.x
 * SSH client (where ssh is in your $PATH).
 
+_____
+
 **Downloadable VNC Viewer Clients Links**
 
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
+
+_____
 
 **Obtain VNC2HPC Tool**
 
@@ -75,6 +81,8 @@ _____
 ## Quickstart
 
 **Setup Software on your System**
+
+_____
 
 **Install a VNC Viewer**
 
