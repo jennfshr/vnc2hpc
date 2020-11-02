@@ -80,8 +80,7 @@ check_machine () {
                 TURQUOISE) netpart="204.121" ;;
                 RED)       netpart="10.160"  ;;
             esac
-            #loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" ) )
-            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f /etc/hosts ] && awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts 2>/dev/null || echo 'invalid'" ) )
+            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
             if [[ ${#loc_machines[@]} -gt 0 ]] ; then
                 loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
                 loc_machine="${loc_machines[$loc_machine_index]}"
@@ -499,7 +498,7 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>/dev/null ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
+    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>&- ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
