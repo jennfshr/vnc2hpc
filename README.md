@@ -1,17 +1,29 @@
-# VNC2HPC
-
-VNC2HPC is a custom series of scripts that utilize available utilities on a user's local machine and cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.
-
 [[_TOC_]]
 
-----
+_____
 
-### Production Status
+# VNC2HPC
+
+VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.
+
+_____
+
+## What is VNC?
+
+Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
+
+**What does VNC2HPC do that isn't already supported by the VNCViewer utilities**
+
+In order to use a VNC Viewer to connect to a headless server, such as that which we supply for Scientific Computing in HPC, there is a considerable amount of setup which is cumbersome and non-trivial to establish.  The point of this software is to automate the setup and abstract away from customers the complexity of establishing a manual client server connection.  We hope that this software helps you in your scientific endeavors on HPC systems. We encourage bug reports, issues, questions and feedback to be sent to consult@lanl.gov or the vnc2hpc@lanl.gov mailing list so that we can improve this product over time. 
+
+_____
+
+## Production Status
 VNC2HPC is currently undergoing beta testing with a set of interested HPC customers at LANL. During this time, the software will be updated frequently to address requests and bug reports until hardened and ready for production.
 
 _____
 
-### Mailing list
+## Mailing list
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
 **Subscribe to vnc2hpc@lanl.gov mailing list**
@@ -19,16 +31,16 @@ You can subscribe to the mailing list if you'd like to be more involved in the d
 [Register.lanl.gov](https://register.lanl.gov/lists/subscribe.php) 
 *LANL CryptoCard Authentication Required*
 
-**Engage the Mailing List**
-
-*Have questions, requests, concerns?  Feel free to email: vnc2hpc@lanl.gov*
+**Engage with beta-testers and developers on the Mailing List**
+*Have questions, feature requests, concerns?  Email: vnc2hpc@lanl.gov*
 
 _____
 
 ## System Requirements
-This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted with RealVNC and TigerVNC.  Additionally, you'll need to have:
+This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted against RealVNC and TigerVNC.  
 
 **Requirements**
+Additionally, you'll need to have:
 
 **System packages**
 
@@ -54,7 +66,7 @@ This software requires a VNC Client installation on the system where it is runni
 **Clone the project**
 * `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
 
-*Note:  as we beta test this product, a clone makes updating master as simple as `git pull`*
+*Note:  as we beta test this product, a clone makes updating master as simple as `git pull`, so it's probably the simplest way to keep an updated copy on your system*
 
 _____
 
@@ -64,10 +76,10 @@ _____
 
 **Install a VNC Viewer**
 
-VNC Viewer downloads are supplied as a DMG (disk image) installer on MacOS, and are supplied in various packaging system formats, or from source installs on Linux.
+VNC Viewer downloads are supplied as a *DMG* (disk image) installer on MacOS, and are supplied in various packaging system formats, or from source installs on Linux.
 
 <details>
-  <summary markdown="span">Expand for details on finding the install path on MacOS</summary>
+  <summary markdown="span">Expand section for details on finding the install path on MacOS</summary>
 
 Install the viewer you prefer whichever way you desire to install it.  The critical part is knowing the path to the vncviewer executable. 
 
@@ -88,7 +100,7 @@ Here's one way to do that:
 
 *Note: spaces in file paths and filenames is common practice, and without escaping those paths when directing the vnc2hpc script to use them, it will fail to resolve the path.*
 
-*This is how one escapes spaces in the path to the viewer: `/Applications/VNC\ Viewer.app/Contents/MacOS`*
+*Use '\ ' to escape spaces in the path to the viewer: `/Applications/VNC\ Viewer.app/Contents/MacOS`*
 
 7. Set a variable in your .bashrc file:
 
@@ -109,7 +121,7 @@ _____
 *Install the vnc2hpc script*
 
 <details>
-  <summary markdown="span">Expand for guidance on setting up VNC2HPC</summary>
+  <summary markdown="span">Expand section for guidance on setting up VNC2HPC</summary>
 
 You can download here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
 
@@ -153,7 +165,7 @@ The usage output is available by running
 			    [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
-			    [-w|--wm <fvwm|mwm|xfwm4] (optional)
+			    [-w|--wm <fvwm|mwm|xfwm4] (optional)  Default: [-w mwm] (Motif Window Manager)
 			    [-h|--help]
 
           Questions?        <vnc2hpc@lanl.gov> 
@@ -297,10 +309,8 @@ This flag specifies the front-end node's hostname you wish to connect to.  If yo
 to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
 the network, and setup the gateway hop appropriately.
 
-*Note: LANL HPC Systems round-robin aliases are permittable arguments.
-When used, a remote /etc/hosts lookup will be performed in order to construct a list of valid hosts,
-from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will 
-instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
+*NOTE: LANL HPC Systems round-robin aliases are permittable arguments.
+When used, a remote /etc/hosts lookup will be performed in order to construct a list of valid hosts, from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
 
 _____
 
@@ -311,8 +321,8 @@ It's a required option that will fail if not supplied.  A full path to the vncvi
 isn't in your $PATH.  To determine if the executable is in your path, in a terminal window, run `which vncviewer`.
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
-*Note: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line
-to resolve the full path to the client is supported.* 
+
+*NOTE: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line to resolve the full path to the client is supported.* 
 
 _____
 
@@ -334,8 +344,7 @@ To reconnect to this, you can request a reconnect with later invocations with a 
 
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
 
-*Note: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and 
-provide you a chance to Kill it, Ignore It, or Reuse it, interactively.*
+*NOTE: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and provide you a chance to `Kill it, Ignore It, or Reuse it`, interactively.*
 
 _____
 
@@ -347,15 +356,14 @@ That value then will be passed back to the client to use for connection to the m
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
-There is a limit of one vncserver service running per user per remote host, and the script will enforce this.
+*NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
 
 
 _____
 
 ### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
 
-Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
-user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
+Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
 
@@ -365,7 +373,7 @@ _____
 
 Currently, three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
 
-*Note: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
+*NOTE: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
 
 _____
 
@@ -393,12 +401,11 @@ The script will prompt for an action on the command line if a port is already ru
 
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         [Y - yes, N - exit, R - reuse]?`
 
-Note: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters
+*NOTE: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters*
 
 If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the vncserver selected port.
 
-Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
-don't have localhost:port tunnel conflicts on the client side.
+Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you don't have `localhost:$port` tunnel conflicts on the client side.
 
 _____
 
@@ -410,16 +417,3 @@ _____
 | v0.0.2 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4 |
 | v0.0.2 | Linux | UNTESTED | UNTESTED |
 | v0.0.2 | Windows | UNTESTED | UNTESTED |
-
-_____
-
-## What is VNC?
-
-Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
-
-**What does VNC2HPC do that isn't already supported by the VNCViewer utilities**
-
-In order to use a VNC Viewer to connect to a headless server, such as that which we supply for Scientific Computing in HPC, there is a considerable amount of setup which is cumbersome and non-trivial to establish.  The point of this software is to automate the setup and abstract away from customers the complexity of establishing a manual client server connection.  We hope that this software helps you in your scientific endeavors on HPC systems. We encourage bug reports, issues, questions and feedback to be sent to consult@lanl.gov or the vnc2hpc@lanl.gov mailing list so that we can improve this product over time. 
-
-
-
