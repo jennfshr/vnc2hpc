@@ -137,7 +137,7 @@ Again, if you do this, be sure to adjust the `export PATH` command in your .bash
 
 _____
 
-### Usage Output to the command line
+## Usage Output
 
 The usage output is available by running
 
@@ -217,7 +217,6 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 As our customers are aware, LANL HPC supplies round-robin aliases to make access to the clusters simpler for the customers, and the vnc2hpc tool supports their use, too.  
 
-
 **Reconnecting to a running VNCServer session**
 
 Additionally, you can direct the tool to a specific front-end node, which is especially important when re-connecting to a listening vncserver session.  The tool upon disconnecting to a session when run with the `-k` (keep alive) flag, will supply the hostname where the kept session is running.  To reconnect, use that for the machine parameter upon reconnection. 
@@ -234,16 +233,27 @@ vnc2hpc does some sanity testing when run, to ensure it has all it needs to succ
 If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user through the password creation for the vncserver:
 
 ```
-...
-INFO       VNC passwd not available on sn-fey1 for jgreen                                                       
-INFO       Do you want to setup a password now? [Y/N]                                                           
+$> vnc2hpc -m sn-fey -w fvwm -k -c "${VNCV}"
+INFO       VNC CLIENT INFO:                                   VNC(R)Viewer-6.20.529 
+INFO       LOCALHOST OS INFO:                                 pike.lanl.gov-Darwin
+INFO       REMOTE USER:                                       jgreen
+INFO       WINDOWMANAGER:                                     fvwm
+INFO       MACHINE:                                           sn-fey
+INFO       NETWORK:                                           YELLOW
+jgreen@sn-fey's password:
+jgreen@sn-fey1.lanl.gov's password:
+INFO       VNC CLIENT vncviewer LOGGING                       /Users/jgreen/.vnc2hpc/sn-fey1.lanl.gov/vncclient.log.11-02-20-06.11.26     
+INFO       VNC SERVER LOGGING                                 /Users/jgreen/.vnc2hpc/sn-fey1.lanl.gov/vncserver.log.11-02-20-06.11.26
+INFO       VNC passwd not available on sn-fey1.lanl.gov for jgreen
+INFO       Do you want to setup a password now? [Y/N]
 y
-INFO       Enter your password (at least six characters long, up to eight)                                                   
-INFO       Reenter your password to confirm                                          
+INFO       Enter your password (at least six characters long, up to eight)
+INFO       Reenter your password to confirm                                
+INFO       SETTING VNCPASSWD                                  sn-fey1.lanl.gov for jgreen                                                       
+INFO       VNCPASSWD SET!                                                       
 ```
 
-Once this password is set on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all
-remote hosts on that network thanks to common home directories on LANL networks.
+Once this password is set on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all remote hosts on that network due to the shared home directories on LANL networks.
 
 _____
 
@@ -280,7 +290,7 @@ _____
 
 ## Arguments
 
-**[-m|--machine <machine>] (required)**
+### [-m|--machine <machine>] (required)
 
 This flag specifies the front-end node's hostname you wish to connect to.  If you want to connect
 to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
@@ -293,7 +303,7 @@ instruct which hostname was used, as a reconnect to that vncserver will require 
 
 _____
 
-**[-c|--client <vncclient>] (required)**
+### [-c|--client <vncclient>] (required)
 
 The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
@@ -305,13 +315,13 @@ to resolve the full path to the client is supported.*
 
 _____
 
-**[-d|--debug] (optional)**
+### [-d|--debug] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
 _____
 
-**[-k|--keep] (optional)**
+### [-k|--keep] (optional)
 
 To preserve your vncserver session for later reuse, run the script with --keep or -k
 
@@ -328,7 +338,7 @@ provide you a chance to Kill it, Ignore It, or Reuse it, interactively.*
 
 _____
 
-**[-p|--port <display port>] (optional)**
+### [-p|--port <display port>] (optional)
 
 One can request a specific port, and that port will passed to the vncserver command.  However, if the 
 vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port.
@@ -338,7 +348,39 @@ That value then will be passed back to the client to use for connection to the m
 
 There is a limit of one vncserver service running per user per remote host, and the script will enforce this.
 
-**Session Management**
+
+_____
+
+### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
+
+Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
+user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
+
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
+
+_____
+
+### [-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)
+
+Currently, three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
+
+*Note: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
+
+_____
+
+## Window Managers
+
+The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, which this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
+
+| Product | Product Info | URL |
+| ------ | ------ | ------ |
+| Motif Window Manager (mwm) | X window manager based on the Motif toolkit. | http://motif.ics.com/ |
+| F ? Virtual Window Manager (fvwm) | ICCCM Compliant minimal WM | https://www.fvwm.org/ |
+| Xfce 4 Window Manager (xfwm4) | Part of the Xfce Desktop Environment | https://docs.xfce.org/xfce/xfwm4/start |
+
+_____
+
+## Session Management
 
 The script will prompt for an action on the command line if a port is already running for the user.
 
@@ -356,23 +398,6 @@ If that port returns a conflict when the vncserver script is invoked, the vnc2hp
 
 Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you
 don't have localhost:port tunnel conflicts on the client side.
-
-_____
-
-**[-u|--user <hpcuserid>] (required: if $USER is different on remote host)**
-
-Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding
-user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
-
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
-
-_____
-
-**[-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)**
-
-Currently three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
-
-*Note: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
 
 _____
 
