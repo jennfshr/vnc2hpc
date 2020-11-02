@@ -25,7 +25,7 @@ VNC2HPC is currently undergoing beta testing with a set of interested HPC custom
 
 _____
 
-### Mailing list
+## Mailing list
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
 **Subscribe to vnc2hpc@lanl.gov mailing list**
