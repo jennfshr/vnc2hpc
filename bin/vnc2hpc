@@ -1,16 +1,10 @@
 #!/bin/bash
 #
 # script that automates establishing vncclient>server connections to LANL HPC systems
-# This software is still in beta testing, when it's ready for production, minor version shall increment to 0.1, etc.
-# this script automates the creation of a ssh local tunnel connection to a LANL front-end
-# it waits for the vncserver to return success - potentially catching and handling conflicts
-# then it runs a vncviewer command that connects to the server via the tunnel to establish a window connection to the cluster
-
 # Basic VNC2HPC information
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
-VERSION="0.0.2"
-REPO="git@lanl.gov:hpcsoft/vnc2hpc.git"
+REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
 README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
 
 # Timestamp string for logs
@@ -22,6 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
+VERSION="0.0.2"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
