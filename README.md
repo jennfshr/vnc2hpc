@@ -43,7 +43,7 @@ This software requires a VNC Client installation on the system where it is runni
 
 **Obtain VNC2HPC Tool**
 
-__Note: In the future, will be supplied via LANL Self Services Application Catalog__
+*Note: In the future, will be supplied via LANL Self Services Application Catalog*
 
 **Two methods to obtain VNC2HPC**
 
