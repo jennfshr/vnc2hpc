@@ -12,7 +12,9 @@ _____
 
 Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
 
-**What does VNC2HPC do that isn't already supported by the VNCViewer utilities**
+_____
+
+## What does VNC2HPC do that isn't already supported by the VNCViewer utilities
 
 In order to use a VNC Viewer to connect to a headless server, such as that which we supply for Scientific Computing in HPC, there is a considerable amount of setup which is cumbersome and non-trivial to establish.  The point of this software is to automate the setup and abstract away from customers the complexity of establishing a manual client server connection.  We hope that this software helps you in your scientific endeavors on HPC systems. We encourage bug reports, issues, questions and feedback to be sent to consult@lanl.gov or the vnc2hpc@lanl.gov mailing list so that we can improve this product over time. 
 
