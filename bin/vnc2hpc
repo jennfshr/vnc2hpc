@@ -8,7 +8,7 @@ REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
 README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
 
 # Timestamp string for logs
-MYDATE=$(date +%m-%d-%y"-"%H.%m.%S)
+MYDATE=$(date +%m-%d-%y"-"%H.%M.%S)
 
 # SSH Control Master Socket
 SSH_SOCKET="~/.ssh/connections/%C"
@@ -343,6 +343,7 @@ warning () {
 #   red printf output
 #######################################
 die () {
+    remotelog
     if kill -0 ${tunnel_pid} &>/dev/null ; then
         kill ${tunnel_pid} &>/dev/null
     fi
@@ -579,7 +580,7 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE}*:*${PORT#0}.log" >> ${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
 }
 
 #######################################
@@ -770,7 +771,7 @@ if [[ "${port}"x == x ]] ; then
     port=0
     FLOOR=2
     RANGE=99
-    while [ "$port" -le $FLOOR ] || [ "$port" -gt $RANGE ] ; do
+    while ! [[ ${all_active_vncserver_ports[@]} =~ '${port}' ]] && ( [ "$port" -le $FLOOR ] || [ "$port" -gt $RANGE ] ) ; do
         port=$RANDOM
     done
 fi
@@ -787,11 +788,11 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
+    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
-        remotelog
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!"
     else
         # reassign port here to the actual port vncserver established
@@ -839,7 +840,6 @@ debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
 if [[ "${remote_pid}x" == x ]] ; then
-    remotelog
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
@@ -855,7 +855,6 @@ fi
 if [[ $? -ne 0 ]] ; then
     message -r "FAILURE CONNECTING $client TO 59$PORT"
 fi
-remotelog
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
@@ -871,6 +870,7 @@ if kill -0 ${tunnel_pid} &>/dev/null ; then
     kill ${tunnel_pid} &>/dev/null
 fi
 
+remotelog
 $(${CONTROL_KILL})
 
 exit
