@@ -240,13 +240,17 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
+**Stopping the Connection
+
+There are a couple ways to terminate your session, you can CTRL+C on the command line to kill the script, which will then kill your VNC Viewer connection to the tunnel, and terminate the session.  It's cleaner, however, to close the VNC Viewer window.  If you run the script with a `--keep` the session will remain on the targeted machine, so pointing vnc2hpc to use that machine subsequent to a 'kept' session will offer you the option to re-use that session.  Likewise, `--reconnect` will detect the vncserver session, and reuse that port, recreating the tunnel to re-attach to that same session. 
+
 **Round Robin Aliases**
 
 As our customers are aware, LANL HPC supplies round-robin aliases to make access to the clusters simpler for the customers, and the vnc2hpc tool supports their use, too.  
 
 **Reconnecting to a running VNCServer session**
 
-Additionally, you can direct the tool to a specific front-end node, which is especially important when re-connecting to a listening vncserver session.  The tool upon disconnecting to a session when run with the `-k` (keep alive) flag, will supply the hostname where the kept session is running.  To reconnect, use that for the machine parameter upon reconnection. 
+Additionally, you can direct the tool to a specific front-end node, which is especially important when re-connecting to a listening vncserver session.  The tool upon disconnecting to a session when run with the `-k` (keep alive) flag, will supply the hostname where the kept session is running.  To reconnect, use that same hostname for the machine parameter to auto-reconnect to a running vncserver. 
 
 **VNC Password Setup is Required the First Time Running `vncserver`**
 
