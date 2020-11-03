@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="next"
+VERSION="0.0.2"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
