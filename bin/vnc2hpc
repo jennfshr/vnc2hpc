@@ -30,7 +30,7 @@ usage () {
 			    [-k|--keep]					(optional)
 			    [-r|--reconnect]				(optional)
 			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
-                            [-g|--geometry <int>x<int>                  (optional) Default: xdpyinfo |grep dimensions | awk '{print \$2}'
+                            [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
@@ -605,7 +605,7 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:u:w:dhrk" opt ; do
+while getopts "c:m:p:u:w:g:dhrk" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
@@ -796,7 +796,7 @@ port=${port#0}
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
     debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PORT}\"\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\"" \"${PORT}\"" 2>&-)
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
