@@ -4,8 +4,12 @@ unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 [ -r /etc/profile ] && source /etc/profile
 [ -n "$BASH_ENV" ] && source "$BASH_ENV" 
-command -v xdpyinfo >/dev/null 2>&1 && \
+if [[ ${GEOMETRY} == "false" ]] ; then 
+    command -v xdpyinfo >/dev/null 2>&1 && \
     geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
+else
+    geometry="${GEOMETRY}"
+fi
 
 [ -r $HOME/.Xresources ] && \
     xrdb -merge $HOME/.Xresources
@@ -37,7 +41,7 @@ case $geometry in
         ;;
 esac
 SSH_AGENT=$(which ssh-agent)
-[ -n "$SSH_ASKPASS" ] && eval $($SSH_AGENT) && ssh-add &
+#[ -n "$SSH_ASKPASS" ] && eval $($SSH_AGENT) && ssh-add &
 # this establishes a default windowing env. 
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
