@@ -225,7 +225,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
-**Stopping the Connection
+**Stopping the Connection**
 
 There are a couple ways to terminate your session, you can CTRL+C on the command line to kill the script, which will then kill your VNC Viewer connection to the tunnel, and terminate the session.  It's cleaner, however, to close the VNC Viewer window.  If you run the script with a `--keep` the session will remain on the targeted machine, so pointing vnc2hpc to use that machine subsequent to a 'kept' session will offer you the option to re-use that session.  Likewise, `--reconnect` will detect the vncserver session, and reuse that port, recreating the tunnel to re-attach to that same session. 
 
