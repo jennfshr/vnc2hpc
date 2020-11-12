@@ -639,6 +639,10 @@ inform "REMOTE USER:" "$MACHUSER"
 WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
+# set GEOMETRY TO false if not otherwise set
+GEOMETRY=${GEOMETRY:="false"}
+inform "GEOMETRY:" "${GEOMETRY}" 
+
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
 if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
@@ -791,8 +795,8 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"" \"${GEOMETRY}\"" 2>&-)
+    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PORT}\"\""
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\"" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
