@@ -607,7 +607,7 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:u:w:g:dhrk" opt ; do
+while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
@@ -644,6 +644,7 @@ inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
 GEOMETRY=${GEOMETRY:="false"}
+if [[ "$GEOMETRY" != false ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
 inform "GEOMETRY:" "${GEOMETRY}" 
 
 # set PIXELDEPTH TO 24 default if not overridden
