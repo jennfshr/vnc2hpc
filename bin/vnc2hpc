@@ -520,7 +520,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'" 2>&- | awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
+    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' | awk '{ gsub(\":\",\"\",\$1); print \$1}'" 2>&- ; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
