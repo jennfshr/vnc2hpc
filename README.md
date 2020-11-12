@@ -180,6 +180,8 @@ The usage output is available by running
 			    [-k|--keep] (optional)
 			    [-r|--reconnect] (optional)
 			    [-w|--wm <fvwm|mwm|xfwm4] (optional)  Default: [-w mwm] (Motif Window Manager)
+                            [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
+                            [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
 			    [-h|--help]
 
           Questions?        <vnc2hpc@lanl.gov> 
