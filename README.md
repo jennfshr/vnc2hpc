@@ -195,34 +195,19 @@ _____
 <details>
 	<summary markdown="span">Expand to see LANL Machines VNC2HPC Supports</summary>
 
-Snow:
-* sn-fe
-* sn-fey
-Badger
-* ba-fe
-Capulin
-* cp-login
-* cp-loginy
-Grizzly
-* gr-fe
-* gr-fey
-Kodiak
-* ko-fe
-* ko-fey
-Fog
-* fg-fey
-Woodchuck
-* wc-fe
-Trinitite
-* tt-fey
-Fire
-* fi-fe
-Ice
-* ic-fe
-Cyclone
-* cy-fe
-Trinity
-* tr-fe
+| Machine | Front-ends (Round-Robin Aliases) | 
+| -- | -- | 
+| Snow | sn-fe, sn-fey |
+| Badger | ba-fe |
+| Capulin | cp-login, cp-loginy |
+| Grizzly | gr-fe, gr-fey |
+| Kodiak | ko-fe, ko-fey |
+| Fog | fg-fey |
+| Trinitite | tt-fey |
+| Fire | fi-fe |
+| Ice | ic-fe |
+| Cyclone | cy-fe |
+| Trinity | tr-fe |
 
 </details>
 
