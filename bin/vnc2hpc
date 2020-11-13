@@ -861,8 +861,8 @@ if [[ "${remote_pid}x" == x ]] ; then
 fi
 
 inform "$client connection to $MACHINE at 59$PORT"
-inform "KEEP THIS TERMINAL ACTIVE WHILE USING YOUR $CLIENT_VERSION VNC SESSION"
-inform "TERMINATE VNC VIEWER BY CLOSING THE $CLIENT_VERSION WINDOW"
+inform "KEEP THIS TERMINAL ACTIVE!" 
+inform "TO TERMINATE VNC VIEWER:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then
