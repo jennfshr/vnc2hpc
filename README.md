@@ -372,9 +372,8 @@ _____
 
 ### [-p|--port <display port>] (optional)
 
-One can request a specific port, and that port will passed to the vncserver command.  However, if the 
-vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port.
-That value then will be passed back to the client to use for connection to the machine. 
+VNC2HPC currently uses the VNC 5900 port range to establish VNC Servers listening on the front-end cluster nodes, to which the client (via the SSH tunnel) connects.  The port that one may pass to the vnc2hpc script via the `-p <int>` option can be a integer between 1-99, and the vncserver invocation will try to launch a server that listens on that particular display port, which.  The client, in fact, will prefix the display port with 59 upon connecting.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  Therefore, this `--port` option is not necessary, and may be deprecated in the future.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
+*NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
