@@ -173,29 +173,29 @@ The usage output is available by running
 
 `vnc2hpc v0.0.3`
 
-`				usage: vnc2hpc`
+`		usage: vnc2hpc`
 
-`					[-m|--machine <machine>]			(required)`
+`			[-m|--machine <machine>]			(required)`
 
-`					[-c|--client <vncclient>]			(required)`
+`			[-c|--client <vncclient>]			(required)`
 
-`					[-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost`
+`			[-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost`
 
-`					[-d|--debug]					(optional)`
+`			[-d|--debug]					(optional)`
 
-`					[-p|--port <display port>]			(optional)`
+`			[-p|--port <display port>]			(optional)`
 
-`					[-k|--keep]					(optional)`
+`			[-k|--keep]					(optional)`
 
-`					[-r|--reconnect]				(optional)`
+`			[-r|--reconnect]				(optional)`
 
-`					[-w|--wm <fvwm|mwm|xfwm4>]			(optional) Default: [-w mwm] (Motif Window Manager)`
+`			[-w|--wm <fvwm|mwm|xfwm4>]			(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`					[-g|--geometry <int>x<int>]			(optional) Default: xdpyinfo |grep dimensions`
+`			[-g|--geometry <int>x<int>]			(optional) Default: xdpyinfo |grep dimensions`
 
-`					[-P|--pixeldepth <int>]				(optional) Default: 24 - others: 8, 15, 16`
+`			[-P|--pixeldepth <int>]				(optional) Default: 24 - others: 8, 15, 16`
 
-`					[-h|--help]`
+`			[-h|--help]`
 
 `          Questions?        <vnc2hpc@lanl.gov>`
 
