@@ -170,22 +170,24 @@ The usage output is available by running
 
 `./vnc2hpc --help`
 
-```vnc2hpc v0.0.2
+```vnc2hpc v0.0.3
 
-          usage: vnc2hpc    [-m|--machine <machine>] (required)
-                            [-c|--client <vncclient>] (required)
-                            [-d|--debug] (optional)
-	                    [-p|--port <display port>] (optional)
-			    [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
-			    [-k|--keep] (optional)
-			    [-r|--reconnect] (optional)
-			    [-w|--wm <fvwm|mwm|xfwm4] (optional)  Default: [-w mwm] (Motif Window Manager)
+          usage: vnc2hpc
+                            [-m|--machine <machine>]			(required)
+                            [-c|--client <vncclient>]			(required)
+			    [-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost 
+                            [-d|--debug]				(optional)
+	                    [-p|--port <display port>]			(optional)
+			    [-k|--keep]					(optional)
+			    [-r|--reconnect]				(optional)
+			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
                             [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
 			    [-h|--help]
 
-          Questions?        <vnc2hpc@lanl.gov> 
+          Questions?        <vnc2hpc@lanl.gov>
           Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md
+
 ```
 
 _____
@@ -366,7 +368,7 @@ That value then will be passed back to the client to use for connection to the m
 
 _____
 
-### [-u|--user <hpcuserid>] (required: if $USER is different on remote host)
+### [-u|--user <hpcuserid>] (optional) Default: $USER on localhost
 
 Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
 
@@ -381,6 +383,18 @@ Currently, three window managers are supported.  The window manager supplies the
 *NOTE: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
 
 _____
+
+### [-g|--geometry <int>x<int>] (optional) Default: xdpyinfo |grep dimensions
+
+To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session, in the form <int>x<int>, where the first value is the X axis dimension, the second represents the Y axis dimension, in pixels.  If no argument is supplied to vnc2hpc, the default setting will be used. 
+
+-----
+
+### [-P|--pixeldepth <int>] (optional) Default: 24 - others: 8, 15, 16
+
+Pixel depth can be supplied, according to vncserver --help, the default value is 24, and other viable options are 8, 15, 16.  Other values' for -P may cause odd behavior with certain applications.
+
+-----
 
 ## Window Managers
 
