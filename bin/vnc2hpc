@@ -722,11 +722,11 @@ checkvncpasswd
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
-inform "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
+debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-inform "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
+debug "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -859,6 +859,10 @@ debug "XVNC PID IS:" "${remote_pid}"
 if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
+
+inform "$client connection to $MACHINE at 59$PORT"
+inform "KEEP THIS TERMINAL ACTIVE WHILE USING YOUR $CLIENT_VERSION VNC SESSION"
+inform "TERMINATE VNC VIEWER BY CLOSING THE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then
