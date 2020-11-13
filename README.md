@@ -171,25 +171,35 @@ The usage output is available by running
 
 `./vnc2hpc --help`
 
-```vnc2hpc v0.0.3
+`vnc2hpc v0.0.3`
 
-          usage: vnc2hpc
-                            [-m|--machine <machine>]			(required)
-                            [-c|--client <vncclient>]			(required)
-			    [-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost 
-                            [-d|--debug]				(optional)
-	                    [-p|--port <display port>]			(optional)
-			    [-k|--keep]					(optional)
-			    [-r|--reconnect]				(optional)
-			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
-                            [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
-                            [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
-			    [-h|--help]
+`				usage: vnc2hpc`
 
-          Questions?        <vnc2hpc@lanl.gov>
-          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md
+`					[-m|--machine <machine>]			(required)`
 
-```
+`					[-c|--client <vncclient>]			(required)`
+
+`					[-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost`
+
+`					[-d|--debug]					(optional)`
+
+`					[-p|--port <display port>]			(optional)`
+
+`					[-k|--keep]					(optional)`
+
+`					[-r|--reconnect]				(optional)`
+
+`					[-w|--wm <fvwm|mwm|xfwm4>]			(optional) Default: [-w mwm] (Motif Window Manager)`
+
+`					[-g|--geometry <int>x<int>]			(optional) Default: xdpyinfo |grep dimensions`
+
+`					[-P|--pixeldepth <int>]				(optional) Default: 24 - others: 8, 15, 16`
+
+`					[-h|--help]`
+
+`          Questions?        <vnc2hpc@lanl.gov>`
+
+`          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md`
 
 _____
 
