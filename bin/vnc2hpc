@@ -582,7 +582,9 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+    if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+    fi 
 }
 
 #######################################
@@ -626,7 +628,7 @@ done
 
 # Check out the vncclient
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
-if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
+if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
 
