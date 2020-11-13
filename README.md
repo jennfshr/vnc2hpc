@@ -140,6 +140,7 @@ _____
 You can download here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
 
 One you have done this, you'll need to change permissions to make the script executable:
+
 `chmod +x vnc2hpc`
 
 It's recommended to setup a directory to house this script, then set your user $PATH variable to point to that directory:
@@ -194,6 +195,8 @@ _____
 
 ## Machines Supported
 
+vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
+
 **Machines supported**
 
 <details>
@@ -219,7 +222,9 @@ _____
 
 ## Basic usage
 
-vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
+This project strives to make the connection command simple, with as few required arguments as possible.  The two required arguments are "machine" (front-end node of cluster you're connecting to), and "client" (path to the local VNC Viewer that will attach to the remote VNC Server session.)  Additional arguments are in place to allow better control of the behavior, so a user may wish to switch to a different Window Manager (-w fvwm), launch a "persisting" VNCServer session on the target machine (--keep), or reattach to a previously launched session (-r).  Controls to try different screen resolution of the VNCServer Display and pixel depth are available if you have a desire to change from the defaults.  
+
+Simple launch instructions follow.  As demonstrated below, the script is knowledgeable of LANL's various networks, and will match the requested front-end to the appropriate network to account for changes in the SSH command.  All you need to supply is the hostname (or round-robin alias) of the cluster's front-end where you wish to launch a VNC Session. 
 
 *To launch a session to Snow’s Yellow frontend*
 
