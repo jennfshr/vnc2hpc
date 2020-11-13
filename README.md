@@ -384,21 +384,21 @@ Currently, three window managers are supported.  The window manager supplies the
 
 _____
 
-### [-g|--geometry <int>x<int>] (optional) Default: xdpyinfo |grep dimensions
+### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
 
-To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session, in the form <int>x<int>, where the first value is the X axis dimension, the second represents the Y axis dimension, in pixels.  If no argument is supplied to vnc2hpc, the default setting will be used. 
+To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session. Supply as a argument to the -g flag a resolution in the form \<int\>x\<int\>, where the first value is the X-axis dimension (width), the second represents the Y-axis dimension (height).  If no argument is supplied to vnc2hpc, the default setting will be used, 1024x768. 
 
 -----
 
-### [-P|--pixeldepth <int>] (optional) Default: 24 - others: 8, 15, 16
+### [-P|--pixeldepth \<int\>] (optional) Default: 24 - others: 8, 15, 16
 
-Pixel depth can be supplied, according to vncserver --help, the default value is 24, and other viable options are 8, 15, 16.  Other values' for -P may cause odd behavior with certain applications.
+To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 8, 15, 16.  Other values of -P may cause odd behavior with certain applications.
 
 -----
 
 ## Window Managers
 
-The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, which this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
+The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, that this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
 
 | Product | Product Info | URL |
 | ------ | ------ | ------ |
