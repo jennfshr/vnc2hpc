@@ -24,7 +24,7 @@ usage () {
           usage: ${0//*\//}
                             [-m|--machine <machine>]			(required)
                             [-c|--client <vncclient>]			(required)
-			    [-u|--user <hpcuserid>] 			(required: if \$USER is different on remote host)
+			    [-u|--user <hpcuserid>] 			(optional) Default: \$USER on localhost 
                             [-d|--debug]				(optional)
 	                    [-p|--port <display port>]			(optional)
 			    [-k|--keep]					(optional)
