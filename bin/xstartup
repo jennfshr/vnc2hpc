@@ -22,6 +22,11 @@ fi
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
 case "$VNC2HPC_WM" in
+    berry)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry ] && /usr/projects/hpcsoft/common/berry/0.1.7
+    ;;
     fvwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &

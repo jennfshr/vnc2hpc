@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.3"
+VERSION="0.0.4"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
@@ -29,7 +29,7 @@ usage () {
 	                    [-p|--port <display port>]			(optional)
 			    [-k|--keep]					(optional)
 			    [-r|--reconnect]				(optional)
-			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
+			    [-w|--wm <berry|fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
                             [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
 			    [-h|--help]
