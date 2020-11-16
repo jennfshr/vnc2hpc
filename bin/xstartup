@@ -25,7 +25,12 @@ case "$VNC2HPC_WM" in
     berry)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry ] && /usr/projects/hpcsoft/common/berry/0.1.7
+        [ -x /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry ] && /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry
+    ;;
+    icewm)
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/projects/hpcsoft/common/icewm/1.9.2/bin/icewm] && /usr/projects/hpcsoft/common/icewm/1.9.2/bin/icewm
     ;;
     fvwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
