@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.3"
+VERSION="vncpassfix"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
@@ -421,8 +421,8 @@ checkvncpasswd () {
     if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d \$HOME/.vnc ]" 2>&- ); then
         ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
     fi
-    # if default passwd doesn't exist
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f  \$HOME/.vnc/passwd ]" 2>&- ); then
+    # test whether the vncpasswd file exists but is empty
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -s  \$HOME/.vnc/passwd ]" 2>&- ); then
 
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
@@ -431,7 +431,7 @@ checkvncpasswd () {
         fi
         ${DISABLE_XTRACE}
 
-        inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
+        inform "VNC passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
 
@@ -443,7 +443,7 @@ checkvncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo '${VNCPW}' | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
                     if [[ $? -ne 0 ]] ; then
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
                     elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \$HOME/.vnc/passwd ]" ); then
@@ -454,7 +454,7 @@ checkvncpasswd () {
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
-                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ""ls -al \$HOME/.vnc/passwd"")
+                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls -alhs \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)

@@ -6,9 +6,14 @@ clientOS="$4"
 geometry="$5"
 pixeldepth="$6"
 if [[ "${7}x" != x ]] ; then DISPLAYPORT=":${7}" ; fi 
-LOG="/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
-touch $LOG
 [ -d $HOME/.vnc2hpc ] || mkdir -p $HOME/.vnc2hpc
+if [[ -d "/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)" ]] ; then 
+   LOG="/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
+else
+   # this script shouldn't fail if the logtree structure doesn't exist, fall back to $HOME
+   LOG="~/.vnc2hpc/${USER}_`hostname -s`.$(date+%F'_'%H'.'%M'.'%S)"
+fi 
+touch $LOG
 cp /usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/bin/xstartup $HOME/.vnc2hpc/xstartup
 export VNC2HPC_WM="$windowmanager" 
 if [[ $geometry != "false" ]] ; then geoarg="-geometry ${geometry}" ; fi 
