@@ -23,19 +23,23 @@ fi
 # fall back to system defaults.
 case "$VNC2HPC_WM" in
     berry)
-        BERRY_PREFIX="/usr/projects/hpcsoft/common/berry/0.1.7"
+        BERRY_PREFIX="/usr/projects/hpcsoft/common/berry/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/0.17.1"
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_LIB}/lib"
+	export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
         export PATH=${BERRY_BIN}:${PATH}
         export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${BERRY_BIN}/berry ] && berry
     ;;
     ice*)
         ICEWM_PREFIX="/usr/projects/hpcsoft/common/icewm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/1.9.2"
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
+	ICEWM_SHARE="${ICEWM_SHARE}/share"
+	export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
         export PATH=${ICEWM_BIN}:${PATH}
         export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
@@ -46,6 +50,8 @@ case "$VNC2HPC_WM" in
         FVWM_PATH="/usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9"
         FVWM_BIN="${FVWM_PATH}/bin"
         FVWM_LIB="${FVWM_PATH}/lib"
+	FVWM_SHARE="${FVWM_SHARE}/share"
+	export XDG_DATA_DIRS=${FVWM_SHARE}:${XDG_DATA_DIRS}
         export PATH=${FVWM_BIN}:${PATH}
         export LD_LIBRARY_PATH=${FVWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
