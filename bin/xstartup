@@ -23,32 +23,41 @@ fi
 # fall back to system defaults.
 case "$VNC2HPC_WM" in
     berry)
+        BERRY_BIN="/usr/projects/hpcsoft/common/berry/0.1.7/bin"
+        export PATH=${BERRY_BIN}:${PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry ] && /usr/projects/hpcsoft/common/berry/0.1.7/bin/berry
+        [ -x ${BERRY_BIN}/berry ] && berry
     ;;
-    icewm)
+    ice*)
+        ICEWM_BIN="/usr/projects/hpcsoft/common/icewm/1.9.2/bin"
+        export PATH=${ICEWM_BIN}:${PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x /usr/projects/hpcsoft/common/icewm/1.9.2/bin/icewm ] && /usr/projects/hpcsoft/common/icewm/1.9.2/bin/icewm
+        [ -x ${ICEWM_BIN}/icewm ] && icewm
     ;;
-    fvwm)
+    fv*)
+        FVWM_BIN="/usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin"
+        export PATH=${FVWM_BIN}:${PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm ] && /usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9/bin/fvwm
+        [ -x ${FVWM_BIN}/fvwm ] && fvwm
     ;;
-    mwm)
+    mwm|motif*)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/bin/mwm ] && /usr/bin/mwm 
     ;; 
-    openbox-session)
+    openbox*)
+        OBX_BIN="/usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin"
+        export PATH=${OBX_BIN}:${PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         module load mesa 
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session
+        [ -x ${OBX_BIN}/openbox-session ] && openbox-session
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
