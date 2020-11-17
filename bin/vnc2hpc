@@ -584,7 +584,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log 2>&-" >>${LOGDIR}/${SERVER_LOG_FILE}
     fi 
 }
 
