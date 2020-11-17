@@ -11,7 +11,7 @@ touch $LOG
 [ -d $HOME/.vnc2hpc ] || mkdir -p $HOME/.vnc2hpc
 cp /usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/bin/xstartup $HOME/.vnc2hpc/xstartup
 export VNC2HPC_WM="$windowmanager" 
-if [[ $geometry != "false" ]] ; then geoarg="-geometry ${geometry}" ; fi 
+if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 pixeldeptharg="-depth ${pixeldepth}" 
 /usr/bin/vncserver ${DISPLAYPORT} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>$LOG
 
