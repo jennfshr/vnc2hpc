@@ -871,7 +871,7 @@ inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!"
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
-if [[ "${client}" =~ Tiger ]] ; then
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     "$client" localhost:59${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
