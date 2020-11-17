@@ -62,6 +62,8 @@ case "$VNC2HPC_WM" in
         OBX_PATH="/usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1"
         OBX_BIN="${OBX_PATH}/bin"
         OBX_LIB="${OBX_PATH}/lib"
+	OBX_SHARE="${OBX_PATH}/share"
+	export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
         export PATH=${OBX_BIN}:${PATH}
         export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
