@@ -727,7 +727,11 @@ debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-debug "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
+if [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
+    debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${MACHINE}"
+else
+    debug "DETECT ${#active_vncserver_ports[@]} VNCSERVERS:" "${MACHUSER}@${MACHINE}" "${active_vncserver_ports[@]}"
+fi 
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -760,7 +764,7 @@ fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
-    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "${active_vncserver_ports[@]}"
+    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -862,9 +866,9 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-inform "$client connection to $MACHINE at 59$PORT"
-inform "KEEP THIS TERMINAL ACTIVE!" 
-inform "TO TERMINATE VNC VIEWER:" "CLOSE $CLIENT_VERSION WINDOW"
+inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:59$PORT" 
+inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
+inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then
@@ -881,9 +885,9 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port"
+    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port"
     kill_vnc_output=$(kill_vnc $port)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
