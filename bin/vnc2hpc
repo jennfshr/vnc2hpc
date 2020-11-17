@@ -646,8 +646,8 @@ WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
-GEOMETRY=${GEOMETRY:="false"}
-if [[ "$GEOMETRY" != false ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
+GEOMETRY=${GEOMETRY:="default"}
+if [[ "$GEOMETRY" != default ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
 inform "GEOMETRY:" "${GEOMETRY}" 
 
 # set PIXELDEPTH TO 24 default if not overridden
