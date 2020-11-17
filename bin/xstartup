@@ -30,17 +30,20 @@ case "$VNC2HPC_WM" in
     mwm)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/bin/mwm ] && /usr/bin/mwm 
     ;; 
     openbox-session)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         module load mesa 
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session ] && /usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1/bin/openbox-session
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4
     ;;
     *)
