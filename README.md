@@ -175,25 +175,25 @@ The usage output is available by running
 
 `	usage: vnc2hpc`
 
-`		[-m|--machine <machine>]			(required)`
+`		[-m|--machine <machine>]					(required)`
 
-`		[-c|--client <vncclient>]			(required)`
+`		[-c|--client <vncclient>]					(required)`
 
-`		[-u|--user <hpcuserid>] 			(optional) Default: $USER on localhost`
+`		[-u|--user <hpcuserid>] 					(optional) Default: $USER on localhost`
 
-`		[-d|--debug]					(optional)`
+`		[-d|--debug]							(optional)`
 
-`		[-p|--port <display port>]			(optional)`
+`		[-p|--port <display port>]					(optional)`
 
-`		[-k|--keep]					(optional)`
+`		[-k|--keep]							(optional)`
 
-`		[-r|--reconnect]				(optional)`
+`		[-r|--reconnect]						(optional)`
 
-`		[-w|--wm <fvwm|mwm|xfwm4>]			(optional) Default: [-w mwm] (Motif Window Manager)`
+`		[-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]			(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`		[-g|--geometry <int>x<int>]			(optional) Default: xdpyinfo |grep dimensions`
+`		[-g|--geometry <int>x<int>]					(optional) Default: xdpyinfo |grep dimensions`
 
-`		[-P|--pixeldepth <int>]				(optional) Default: 24 - others: 8, 15, 16`
+`		[-P|--pixeldepth <int>]						(optional) Default: 24 - others: 8, 15, 16`
 
 `		[-h|--help]`
 
@@ -419,6 +419,10 @@ The motivation for the VNC2HPC product is to make a VNC setup accessible for the
 | Motif Window Manager (mwm) | X window manager based on the Motif toolkit. | http://motif.ics.com/ |
 | F ? Virtual Window Manager (fvwm) | ICCCM Compliant minimal WM | https://www.fvwm.org/ |
 | Xfce 4 Window Manager (xfwm4) | Part of the Xfce Desktop Environment | https://docs.xfce.org/xfce/xfwm4/start |
+| Openbox (openbox) | a highly configurable, next generation window manager with extensive standards support | https://openbox.org/wiki/Main_Page |
+| IceWM (icewm) | The goal is speed, simplicity, and not getting in the user’s way | https://ice-wm.org |
+| Berry (berry) | A healthy, bite-sized window manager written in C for unix systems | https://berrywm.org/ |
+
 
 _____
 
@@ -445,8 +449,9 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.3 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4 |
-| v0.0.3 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4 |
-| v0.0.3 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4 |
-| v0.0.3 | Linux | UNTESTED | UNTESTED |
-| v0.0.3 | Windows | UNTESTED | UNTESTED |
+| v0.0.4 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | Windows | UNTESTED | UNTESTED |

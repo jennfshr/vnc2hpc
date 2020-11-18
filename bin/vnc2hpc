@@ -16,22 +16,23 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.3"
+VERSION="0.0.4"
+REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
 
           usage: ${0//*\//}
-                            [-m|--machine <machine>]			(required)
-                            [-c|--client <vncclient>]			(required)
-			    [-u|--user <hpcuserid>] 			(optional) Default: \$USER on localhost 
-                            [-d|--debug]				(optional)
-	                    [-p|--port <display port>]			(optional)
-			    [-k|--keep]					(optional)
-			    [-r|--reconnect]				(optional)
-			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
-                            [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
-                            [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
+                            [-m|--machine <machine>]				(required)
+                            [-c|--client <vncclient>]				(required)
+			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
+                            [-d|--debug]					(optional)
+	                    [-p|--port <display port>]				(optional)
+			    [-k|--keep]						(optional)
+			    [-r|--reconnect]					(optional)
+			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
+                            [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
+                            [-P|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
@@ -117,6 +118,7 @@ setup_ssh_opts () {
     loc_ssh_opts+=" -tt"
     loc_ssh_opts+=" -N"
     loc_ssh_opts+=" -f"
+    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
@@ -140,6 +142,7 @@ setup_ssh_master_opts () {
     loc_ssh_opts+=" -N"
     loc_ssh_opts+=" -f"
     loc_ssh_opts+=" -o LogLevel=QUIET"
+    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     loc_ssh_opts+=" -o ControlPersist=yes"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
@@ -221,7 +224,7 @@ kill_nogateway_control_master_connection () {
 #######################################
 setup_gateway_ssh () {
     local loc_gateway="$1"
-    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
+    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
 }
 
 #######################################
@@ -583,7 +586,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log 2>&-" >>${LOGDIR}/${SERVER_LOG_FILE}
     fi 
 }
 
@@ -645,8 +648,8 @@ WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
-GEOMETRY=${GEOMETRY:="false"}
-if [[ "$GEOMETRY" != false ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
+GEOMETRY=${GEOMETRY:="default"}
+if [[ "$GEOMETRY" != default ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
 inform "GEOMETRY:" "${GEOMETRY}" 
 
 # set PIXELDEPTH TO 24 default if not overridden
@@ -726,7 +729,11 @@ debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-debug "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
+if [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
+    debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${MACHINE}"
+else
+    debug "DETECT ${#active_vncserver_ports[@]} VNCSERVERS:" "${MACHUSER}@${MACHINE}" "${active_vncserver_ports[@]}"
+fi 
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -759,7 +766,7 @@ fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
-    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "${active_vncserver_ports[@]}"
+    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -805,11 +812,12 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"" 2>&-)
+    debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"\""
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
-    if [[ "${newport}" =~ FAIL ]] ; then
+    if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
+        message -r "INVALID DISPLAY PORT" "DISPLAY PORT RETURNED BY ${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh" "newport=$newport"
         die "STARTUP SCRIPT FOR VNCSERVER" "FAILED!"
     else
         # reassign port here to the actual port vncserver established
@@ -843,7 +851,7 @@ fi
 debug "TUNNEL FOR ${NETWORK}:" "${NO_GATEWAY_TUNNEL} ${GATEWAY_TUNNEL}"
 
 # generic tunnel invocation
-debug "RUNNING:" "${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &"
+debug "RUNNING:" "${GATEWAY_TUNNEL}${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &"
 ${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &
 tunnel_pid=$!
 
@@ -860,12 +868,12 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-inform "$client connection to $MACHINE at 59$PORT"
-inform "KEEP THIS TERMINAL ACTIVE!" 
-inform "TO TERMINATE VNC VIEWER:" "CLOSE $CLIENT_VERSION WINDOW"
+inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:59$PORT" 
+inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
+inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
-if [[ "${client}" =~ Tiger ]] ; then
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     "$client" localhost:59${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
@@ -879,9 +887,9 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT PORT $port"
+    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port"
     kill_vnc_output=$(kill_vnc $port)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
