@@ -419,6 +419,10 @@ The motivation for the VNC2HPC product is to make a VNC setup accessible for the
 | Motif Window Manager (mwm) | X window manager based on the Motif toolkit. | http://motif.ics.com/ |
 | F ? Virtual Window Manager (fvwm) | ICCCM Compliant minimal WM | https://www.fvwm.org/ |
 | Xfce 4 Window Manager (xfwm4) | Part of the Xfce Desktop Environment | https://docs.xfce.org/xfce/xfwm4/start |
+| Openbox (openbox) | a highly configurable, next generation window manager with extensive standards support | https://openbox.org/wiki/Main_Page |
+| IceWM (icewm) | The goal is speed, simplicity, and not getting in the user’s way | https://ice-wm.org |
+| Berry (berry) | A healthy, bite-sized window manager written in C for unix systems | https://berrywm.org/ |
+
 
 _____
 
