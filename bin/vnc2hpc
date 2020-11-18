@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.2"
+VERSION="0.0.3"
 
 usage () {
     message -m "${0//*\//} v${VERSION}
@@ -24,12 +24,14 @@ usage () {
           usage: ${0//*\//}
                             [-m|--machine <machine>]			(required)
                             [-c|--client <vncclient>]			(required)
-			    [-u|--user <hpcuserid>] 			(required: if \$USER is different on remote host)
+			    [-u|--user <hpcuserid>] 			(optional) Default: \$USER on localhost 
                             [-d|--debug]				(optional)
 	                    [-p|--port <display port>]			(optional)
 			    [-k|--keep]					(optional)
 			    [-r|--reconnect]				(optional)
 			    [-w|--wm <fvwm|mwm|xfwm4>]          	(optional) Default: [-w mwm] (Motif Window Manager)
+                            [-g|--geometry <int>x<int>]                 (optional) Default: xdpyinfo |grep dimensions
+                            [-P|--pixeldepth <int>]                     (optional) Default: 24 - others: 8, 15, 16
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
@@ -419,8 +421,8 @@ checkvncpasswd () {
     if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d \$HOME/.vnc ]" 2>&- ); then
         ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
     fi
-    # if default passwd doesn't exist
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f  \$HOME/.vnc/passwd ]" 2>&- ); then
+    # test whether the vncpasswd file exists but is empty
+    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -s  \$HOME/.vnc/passwd ]" 2>&- ); then
 
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
@@ -429,7 +431,7 @@ checkvncpasswd () {
         fi
         ${DISABLE_XTRACE}
 
-        inform "VNC passwd not available on ${MACHINE} for $MACHUSER"
+        inform "VNC passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
 
@@ -441,7 +443,7 @@ checkvncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
+                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo '${VNCPW}' | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
                     if [[ $? -ne 0 ]] ; then
                         die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
                     elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \$HOME/.vnc/passwd ]" ); then
@@ -452,7 +454,7 @@ checkvncpasswd () {
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
-                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ""ls -al \$HOME/.vnc/passwd"")
+                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls -alhs \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)
@@ -518,7 +520,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$'" 2>&- | awk '{gsub(/\:/,"",$1); print $1}'; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
+    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' | awk '{ gsub(\":\",\"\",\$1); print \$1}'" 2>&- ; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
@@ -580,7 +582,9 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+    if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE}
+    fi 
 }
 
 #######################################
@@ -588,22 +592,24 @@ remotelog () {
 for arg in "$@"; do
     shift
     case "$arg" in
-        *client)    set -- "$@" "-c"   ;;
-        *debug)     set -- "$@" "-d"   ;;
-        *help)      set -- "$@" "-h"   ;;
-        *keep)      set -- "$@" "-k"   ;;
-        *machine)   set -- "$@" "-m"   ;;
-        *port)      set -- "$@" "-p"   ;;
-        *reconnect) set -- "$@" "-r"   ;;
-        *user)      set -- "$@" "-u"   ;;
-        *wmw)       set -- "$@" "-w"   ;;
-        *)          set -- "$@" "$arg" ;;
+        *client)      set -- "$@" "-c"   ;;
+        *debug)       set -- "$@" "-d"   ;;
+        *help)        set -- "$@" "-h"   ;;
+        *keep)        set -- "$@" "-k"   ;;
+        *machine)     set -- "$@" "-m"   ;;
+        *port)        set -- "$@" "-p"   ;;
+        *reconnect)   set -- "$@" "-r"   ;;
+        *user)        set -- "$@" "-u"   ;;
+        *wmw)         set -- "$@" "-w"   ;;
+        *geometry)    set -- "$@" "-g"   ;;
+        *pixeldepth)  set -- "$@" "-P"   ;; 
+        *)            set -- "$@" "$arg" ;;
     esac
 done
 
 OPTIND=1
 
-while getopts "c:m:p:u:w:dhrk" opt ; do
+while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
@@ -614,13 +620,15 @@ while getopts "c:m:p:u:w:dhrk" opt ; do
         h)  usage && exit 0                                                                        ;;
         u)  MACHUSER="${OPTARG}"                                                                   ;;
         w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
+        g)  GEOMETRY="${OPTARG}"                                                                   ;;
+        P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
     esac
 done
 #######################################
 
 # Check out the vncclient
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
-if ! $(client_check) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
+if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
 
@@ -635,6 +643,15 @@ inform "REMOTE USER:" "$MACHUSER"
 # ensure WINDOWMANAGER arg has a value
 WINDOWMANAGER=${WINDOWMANAGER:=mwm}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
+
+# set GEOMETRY TO false if not otherwise set
+GEOMETRY=${GEOMETRY:="false"}
+if [[ "$GEOMETRY" != false ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
+inform "GEOMETRY:" "${GEOMETRY}" 
+
+# set PIXELDEPTH TO 24 default if not overridden
+PIXELDEPTH=${PIXELDEPTH:="24"}
+inform "PIXELDEPTH:" "${PIXELDEPTH}"
 
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
@@ -705,11 +722,11 @@ checkvncpasswd
 
 # grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
-inform "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
+debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
-inform "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
+debug "${MACHUSER} ACTIVE VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${active_vncserver_ports[@]})"
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
@@ -788,8 +805,8 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${PORT}\"" 2>&-)
+    debug "Running: ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \"/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"\""
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "/usr/projects/hpcsoft/vnc2hpc/${VERSION}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] ; then
@@ -842,6 +859,10 @@ debug "XVNC PID IS:" "${remote_pid}"
 if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
+
+inform "$client connection to $MACHINE at 59$PORT"
+inform "KEEP THIS TERMINAL ACTIVE!" 
+inform "TO TERMINATE VNC VIEWER:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${client}" =~ Tiger ]] ; then
