@@ -454,4 +454,5 @@ _____
 | v0.0.4 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
 | v0.0.4 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
 | v0.0.4 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.4 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mxm xfwm4, berry, openbox icewm |
 | v0.0.4 | Windows | UNTESTED | UNTESTED |
