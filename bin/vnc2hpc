@@ -16,7 +16,8 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.4"
+VERSION="xvnccrash"
+#VERSION="0.0.4"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 usage () {
@@ -628,6 +629,9 @@ while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
     esac
 done
 #######################################
+
+# Inform vnc2hpc version used
+inform "VNC2HPC INFO: "v${VERSION}" 
 
 # Check out the vncclient
 if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
