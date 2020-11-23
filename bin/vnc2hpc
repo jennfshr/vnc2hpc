@@ -596,7 +596,7 @@ remotelog () {
 for arg in "$@"; do
     shift
     case "$arg" in
-        *client)      set -- "$@" "-c"   ;;
+        *cl*nt)      set -- "$@" "-c"   ;;
         *debug)       set -- "$@" "-d"   ;;
         *help)        set -- "$@" "-h"   ;;
         *keep)        set -- "$@" "-k"   ;;
@@ -604,9 +604,9 @@ for arg in "$@"; do
         *port)        set -- "$@" "-p"   ;;
         *reconnect)   set -- "$@" "-r"   ;;
         *user)        set -- "$@" "-u"   ;;
-        *wmw)         set -- "$@" "-w"   ;;
-        *geometry)    set -- "$@" "-g"   ;;
-        *pixeldepth)  set -- "$@" "-P"   ;; 
+        *wm*)         set -- "$@" "-w"   ;;
+        *geo*)        set -- "$@" "-g"   ;;
+        *depth*)      set -- "$@" "-P"   ;; 
         *)            set -- "$@" "$arg" ;;
     esac
 done
