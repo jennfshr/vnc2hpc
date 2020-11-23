@@ -545,6 +545,22 @@ client_check () {
 }
 
 #######################################
+# File tests ${WINDOWMANAGER} for viability
+# Globals:
+#   client
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+wm_check () {
+    WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
+    if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
+        return 2
+    fi
+}
+
+#######################################
 # Parses ${client} and version string
 # Globals:
 #   client
@@ -651,6 +667,7 @@ inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
 WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
+if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER:" "--wm $WINDOWMANAGER"  "This script accepts: \"berry\",\"icewm\",\"fvwm\",\"mwm\",\"openbox\", and \"xfwm4\"." ; fi 
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
