@@ -25,7 +25,7 @@ fi
 # Reusable arch/os variables:
 ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
 OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
-HPCSOFT=$(/usr/projects/hpcsoft/common/)
+HPCSOFT="/usr/projects/hpcsoft/common"
 case "$VNC2HPC_WM" in
     berry)
         # Setup installation variables for reuse
