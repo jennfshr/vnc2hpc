@@ -593,27 +593,28 @@ remotelog () {
 
 #######################################
 # Parse positional parameters passed to script
+echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
-        *cl*nt)      set -- "$@" "-c"   ;;
-        *debug)       set -- "$@" "-d"   ;;
-        *help)        set -- "$@" "-h"   ;;
-        *keep)        set -- "$@" "-k"   ;;
-        *machine)     set -- "$@" "-m"   ;;
-        *port)        set -- "$@" "-p"   ;;
-        *reconnect)   set -- "$@" "-r"   ;;
-        *user)        set -- "$@" "-u"   ;;
-        *wm*)         set -- "$@" "-w"   ;;
-        *geo*)        set -- "$@" "-g"   ;;
-        *depth*)      set -- "$@" "-P"   ;; 
-        *)            set -- "$@" "$arg" ;;
+        *-cl*nt)       set -- "$@" "-c"   ;;
+        *-debug)       set -- "$@" "-d"   ;;
+        *-help)        set -- "$@" "-h"   ;;
+        *-keep)        set -- "$@" "-k"   ;;
+        *-machine)     set -- "$@" "-m"   ;;
+        *-port)        set -- "$@" "-p"   ;;
+        *-reconnect)   set -- "$@" "-r"   ;;
+        *-user)        set -- "$@" "-u"   ;;
+        *-wm*)         set -- "$@" "-w"   ;;
+        *-geo*)        set -- "$@" "-g"   ;;
+        *-depth*)      set -- "$@" "-P"   ;;
+        *)             set -- "$@" "$arg" ;;
     esac
 done
 
 OPTIND=1
 
-while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
+while getopts "c:m:P:p:u:w:g:dhrk-" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
@@ -626,10 +627,11 @@ while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
         w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
         g)  GEOMETRY="${OPTARG}"                                                                   ;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
+        -)  continue                                                                               ;;
     esac
 done
-#######################################
 
+#######################################
 # Inform vnc2hpc version used
 inform "VNC2HPC INFO:" "Version v${VERSION}" 
 
@@ -648,7 +650,7 @@ MACHUSER=${MACHUSER:=$USER}
 inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
-WINDOWMANAGER=${WINDOWMANAGER:=mwm}
+WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
@@ -720,9 +722,9 @@ fi
 LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${LOGDIR}/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
+inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check vncpasswd
 checkvncpasswd
