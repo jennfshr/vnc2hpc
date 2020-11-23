@@ -667,7 +667,7 @@ inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
 WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
-if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER:" "--wm $WINDOWMANAGER"  "This script accepts: \"berry\",\"icewm\",\"fvwm\",\"mwm\",\"openbox\", and \"xfwm4\"." ; fi 
+if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER:" "--wm $WINDOWMANAGER"  "This script accepts: \"berry\",\"icewm\",\"fvwm\",\"mwm\",\"openbox\", and \"xfwm4\"." ; fi
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
