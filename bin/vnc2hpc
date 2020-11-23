@@ -631,10 +631,10 @@ done
 #######################################
 
 # Inform vnc2hpc version used
-inform "VNC2HPC INFO: "v${VERSION}" 
+inform "VNC2HPC INFO:" "Version v${VERSION}" 
 
 # Check out the vncclient
-if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
+if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
 if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
