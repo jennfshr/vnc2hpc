@@ -11,10 +11,10 @@ if [[ -d "/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/
    LOG="/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
 else
    # this script shouldn't fail if the logtree structure doesn't exist, fall back to $HOME
-   LOG="~/.vnc2hpc/${USER}_`hostname -s`.$(date+%F'_'%H'.'%M'.'%S)"
+   LOG="$HOME/.vnc2hpc/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
 fi 
 touch $LOG
-cp /usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/bin/xstartup $HOME/.vnc2hpc/xstartup
+cp -f /usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/bin/xstartup $HOME/.vnc2hpc/xstartup || echo  "FAILURE"
 export VNC2HPC_WM="$windowmanager" 
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 pixeldeptharg="-depth ${pixeldepth}" 
