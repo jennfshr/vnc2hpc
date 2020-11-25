@@ -118,9 +118,9 @@ setup_ssh_opts () {
     loc_ssh_opts+=" -tt"
     loc_ssh_opts+=" -N"
     loc_ssh_opts+=" -f"
+    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
     echo "$loc_ssh_opts"
 }
@@ -544,6 +544,22 @@ client_check () {
 }
 
 #######################################
+# File tests ${WINDOWMANAGER} for viability
+# Globals:
+#   client
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+wm_check () {
+    WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
+    if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
+        return 2
+    fi
+}
+
+#######################################
 # Parses ${client} and version string
 # Globals:
 #   client
@@ -592,28 +608,30 @@ remotelog () {
 
 #######################################
 # Parse positional parameters passed to script
+echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
-        *client)      set -- "$@" "-c"   ;;
-        *debug)       set -- "$@" "-d"   ;;
-        *help)        set -- "$@" "-h"   ;;
-        *keep)        set -- "$@" "-k"   ;;
-        *machine)     set -- "$@" "-m"   ;;
-        *port)        set -- "$@" "-p"   ;;
-        *reconnect)   set -- "$@" "-r"   ;;
-        *user)        set -- "$@" "-u"   ;;
-        *wmw)         set -- "$@" "-w"   ;;
-        *geometry)    set -- "$@" "-g"   ;;
-        *pixeldepth)  set -- "$@" "-P"   ;; 
-        *)            set -- "$@" "$arg" ;;
+        *-cl*nt)       set -- "$@" "-c"   ;;
+        *-debug)       set -- "$@" "-d"   ;;
+        *-help)        set -- "$@" "-h"   ;;
+        *-keep)        set -- "$@" "-k"   ;;
+        *-machine)     set -- "$@" "-m"   ;;
+        *-port)        set -- "$@" "-p"   ;;
+        *-reconnect)   set -- "$@" "-r"   ;;
+        *-user)        set -- "$@" "-u"   ;;
+        *-wm*)         set -- "$@" "-w"   ;;
+        *-geo*)        set -- "$@" "-g"   ;;
+        *-depth*)      set -- "$@" "-P"   ;;
+        *)             set -- "$@" "$arg" ;;
     esac
 done
 
 OPTIND=1
 
-while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
+while getopts "bc:m:P:p:u:w:g:dhrk-" opt ; do
     case "${opt}" in
+        b)  BACKDOOR=true                                                                          ;;
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
@@ -625,12 +643,16 @@ while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
         w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
         g)  GEOMETRY="${OPTARG}"                                                                   ;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
+        -)  continue                                                                               ;;
     esac
 done
+
 #######################################
+# Inform vnc2hpc version used
+inform "VNC2HPC INFO:" "Version v${VERSION}" 
 
 # Check out the vncclient
-if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
+if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
 if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
@@ -644,7 +666,8 @@ MACHUSER=${MACHUSER:=$USER}
 inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
-WINDOWMANAGER=${WINDOWMANAGER:=mwm}
+WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
+if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER:" "--wm $WINDOWMANAGER"  "This script accepts: \"berry\",\"icewm\",\"fvwm\",\"mwm\",\"openbox\", and \"xfwm4\"." ; fi
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
@@ -716,9 +739,9 @@ fi
 LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${LOGDIR}/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
+inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check vncpasswd
 checkvncpasswd
@@ -765,7 +788,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
 fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
-if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
+if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
