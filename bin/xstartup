@@ -4,12 +4,8 @@ unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 [ -r /etc/profile ] && source /etc/profile
 [ -n "$BASH_ENV" ] && source "$BASH_ENV"
-if [[ ${GEOMETRY} == "false" ]] ; then
-    command -v xdpyinfo >/dev/null 2>&1 && \
+command -v xdpyinfo >/dev/null 2>&1 && \
     geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
-else
-    geometry="${GEOMETRY}"
-fi
 
 [ -r $HOME/.Xresources ] && \
     xrdb -merge $HOME/.Xresources
@@ -90,7 +86,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x /usr/bin/mwm ] && /usr/bin/mwm
-    ;; 
+    ;;
     openbox*)
         # Setup installation variables for reuse
         PRODUCT="openbox"

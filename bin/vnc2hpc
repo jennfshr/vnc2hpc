@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# script that automates establishing vncclient>server connections to LANL HPC systems
+# vnc2hpc is a script that automates establishing vncclient>server connections to LANL HPC systems
 # Basic VNC2HPC information
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
@@ -504,7 +504,7 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>&- ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -523,7 +523,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' | awk '{ gsub(\":\",\"\",\$1); print \$1}'" 2>&- ; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
+    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
@@ -769,7 +769,7 @@ fi
 
 # test connecting to remote and scraping vncserver -list output for user specific displays
 if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
-    die "FAILURE CONNECTING TO:" "${MACHINE}"
+    die "FAILURE CONNECTING TO:" "${MACHINE}" "active_vncserver_ports: ${active_vncserver_ports[@]}"
 else
     debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi
