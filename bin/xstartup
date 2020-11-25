@@ -1,10 +1,10 @@
 #!/bin/sh
-if [[ ! -n $VNC2HPC_WM ]] ; then exit -1; fi 
+if [[ ! -n $VNC2HPC_WM ]] ; then exit -1; fi
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 [ -r /etc/profile ] && source /etc/profile
-[ -n "$BASH_ENV" ] && source "$BASH_ENV" 
-if [[ ${GEOMETRY} == "false" ]] ; then 
+[ -n "$BASH_ENV" ] && source "$BASH_ENV"
+if [[ ${GEOMETRY} == "false" ]] ; then
     command -v xdpyinfo >/dev/null 2>&1 && \
     geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
 else
@@ -18,7 +18,7 @@ fi
 
 #SSH_AGENT=$(which ssh-agent)
 #[ -n "$SSH_ASKPASS" ] && eval $($SSH_AGENT) && ssh-add &
-# this establishes a default windowing env. 
+# this establishes a default windowing env.
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
 
@@ -35,13 +35,13 @@ case "$VNC2HPC_WM" in
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
-        
+
         # Set path to use WM
         export PATH=${BERRY_BIN}:${PATH}
         # Test that the directories exist before modifying environment
 	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
         [ -d ${BERRY_LIB} ] && export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
-        
+
         # test executables before invoking them
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
@@ -73,10 +73,10 @@ case "$VNC2HPC_WM" in
         FVWM_BIN="${FVWM_PREFIX}/bin"
         FVWM_LIB="${FVWM_PREFIX}/lib"
 	FVWM_SHARE="${FVWM_PREFIX}/share"
-
         # Set path to use WM
+
         export PATH=${FVWM_BIN}:${PATH}
-        
+
         # Set path to use WM
 	[ -d ${FVWM_SHARE} ] && export XDG_DATA_DIRS=${FVWM_SHARE}:${XDG_DATA_DIRS}
         [ -d ${FVWM_LIB} ] && export LD_LIBRARY_PATH=${FVWM_LIB}:${LD_LIBRARY_PATH}
@@ -89,7 +89,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x /usr/bin/mwm ] && /usr/bin/mwm 
+        [ -x /usr/bin/mwm ] && /usr/bin/mwm
     ;; 
     openbox*)
         # Setup installation variables for reuse
