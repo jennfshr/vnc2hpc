@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# script that automates establishing vncclient>server connections to LANL HPC systems
+# vnc2hpc is a script that automates establishing vncclient>server connections to LANL HPC systems
 # Basic VNC2HPC information
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
@@ -16,8 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="tcshproblem"
-#VERSION="0.0.4"
+VERSION="0.0.4"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 usage () {
