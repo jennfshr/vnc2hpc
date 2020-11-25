@@ -16,8 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="xvnccrash"
-#VERSION="0.0.4"
+VERSION="0.0.4"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 usage () {
@@ -119,9 +118,9 @@ setup_ssh_opts () {
     loc_ssh_opts+=" -tt"
     loc_ssh_opts+=" -N"
     loc_ssh_opts+=" -f"
+    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
     echo "$loc_ssh_opts"
 }
@@ -630,8 +629,9 @@ done
 
 OPTIND=1
 
-while getopts "c:m:P:p:u:w:g:dhrk-" opt ; do
+while getopts "bc:m:P:p:u:w:g:dhrk-" opt ; do
     case "${opt}" in
+        b)  BACKDOOR=true                                                                          ;;
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
@@ -788,7 +788,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
 fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
-if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
+if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
