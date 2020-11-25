@@ -540,7 +540,7 @@ list_vncservers () {
 #   None
 #######################################
 client_check () {
-	( [ ! -d "${client}" ] && [ -x "${client}" ] ) || [ -x "$(which ${client})" ] || exit 1
+    ( [ ! -d "${client}" ] && [ -x "${client}" ] ) || [ -x "$(which ${client})" ] || exit 1
 }
 
 #######################################
