@@ -19,6 +19,9 @@ SSH_SOCKET="~/.ssh/connections/%C"
 VERSION="0.0.4"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
+# Window managers supported:
+WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
+
 usage () {
     message -m "${0//*\//} v${VERSION}
 
@@ -553,7 +556,6 @@ client_check () {
 #   None
 #######################################
 wm_check () {
-    WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
     if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
         return 2
     fi
@@ -667,7 +669,7 @@ inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
 WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
-if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER:" "--wm $WINDOWMANAGER"  "This script accepts: \"berry\",\"icewm\",\"fvwm\",\"mwm\",\"openbox\", and \"xfwm4\"." ; fi
+if ! $(wm_check 2>&-) ; then die "INVALID WINDOWMANAGER: --wm $WINDOWMANAGER" "Valid values: $(echo ${WMS[@]})" ; fi
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
