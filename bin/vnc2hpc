@@ -135,9 +135,6 @@ setup_ssh_opts () {
             loc_ssh_opts+=" -N"
             loc_ssh_opts+=" -f"
         ;;
-        vncpasswd)
-            continue
-        ;;
     esac 
     echo "$loc_ssh_opts"
 }
