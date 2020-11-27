@@ -32,4 +32,4 @@ else
    RESULT="PASS"
 fi 
 echo $displayport
-echo "$(date +%F' '%H':'%M':'$S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${CLIENT} CLIENTOS=${CLIENTOS} $MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=$(which vncserver) DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geoarg} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
+echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientos} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=$(which vncserver) DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
