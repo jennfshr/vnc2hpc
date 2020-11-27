@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.5"
+VERSION="ports"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -391,10 +391,10 @@ warning () {
 #######################################
 die () {
     remotelog
-    if kill -0 ${tunnel_pid} &>/dev/null ; then
-        kill ${tunnel_pid} &>/dev/null
-    fi
-    $(${CONTROL_KILL})
+#    if kill -0 ${tunnel_pid} &>/dev/null ; then
+#        kill ${tunnel_pid} &>/dev/null
+#    fi
+#    $(${CONTROL_KILL})
     message -r "ERROR" "$1" "$2" "$3" >&2
     exit 2
 }
@@ -917,7 +917,7 @@ debug "TUNNEL FOR ${NETWORK}:" "${NO_GATEWAY_TUNNEL} ${GATEWAY_TUNNEL}"
 
 # generic tunnel invocation
 debug "RUNNING:" "${GATEWAY_TUNNEL}${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &"
-${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &
+${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} &>/dev/null &
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $MACHINE
@@ -941,9 +941,9 @@ inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$client" localhost:${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    "$client" localhost::${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost:${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$client" localhost::${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
@@ -956,16 +956,16 @@ if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
     inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port Active"
 else
     inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port"
-    kill_vnc_output=$(kill_vnc $port)
+#    kill_vnc_output=$(kill_vnc $port)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
 # killing the tunnel to $MACHINE
-if kill -0 ${tunnel_pid} &>/dev/null ; then
-    kill ${tunnel_pid} &>/dev/null
-fi
+#if kill -0 ${tunnel_pid} &>/dev/null ; then
+#    kill ${tunnel_pid} &>/dev/null
+#fi
 
 remotelog
-$(${CONTROL_KILL})
+#$(${CONTROL_KILL})
 
 exit
