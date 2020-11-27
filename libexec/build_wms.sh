@@ -1,4 +1,5 @@
 #!/bin/bash
+REBUILD="true"
 #This is a simple automation for building out the non-system window manager installations
 
 fix_perms () {
@@ -89,7 +90,6 @@ module unload gcc
 popd #pop back out of source
 popd #revert pushd from mkclean_change
 
-exit 
 # Build berry
 if [[ $REBUILD == "true" ]] ; then
    [ -d $BERRY_PREFIX ] && rm -Rf $BERRY_PREFIX
@@ -111,6 +111,7 @@ date &>>${BERRY_BUILD_LOG}
 popd #pop back out of source
 popd #revert pushd from mkclean_change
 
+exit
 # Build openbox
 if [[ $REBUILD == "true" ]] ; then
    [ -d $OPENBOX_PREFIX ] && rm -Rf $OPENBOX_PREFIX
