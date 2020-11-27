@@ -151,7 +151,7 @@ setup_ssh_opts () {
 #   Writes $TUNNELHOST to stdout
 #######################################
 setup_tunnel_host () {
-    echo "-L 59${PORT}:localhost:59${PORT}"
+    echo "-L ${PORT}:localhost:${PORT}"
 }
 
 #######################################
@@ -823,7 +823,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
     elif ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
         die "PORT $port NOT RUNNING VNCSERVER PORT FOR" "$MACHUSER on ${MACHINE}"
     else
-        inform "ATTEMPTING CONNECTION TO REQUESTED PORT" "localhost:59$port"
+        inform "ATTEMPTING CONNECTION TO REQUESTED PORT" "localhost:$port"
     fi
 fi
 
@@ -856,8 +856,8 @@ fi
 # generate a random port number between 5901 5999
 if [[ "${port}"x == x ]] ; then
     port=0
-    FLOOR=2
-    RANGE=99
+    FLOOR=1025
+    RANGE=65535
     while ! [[ ${all_active_vncserver_ports[@]} =~ '${port}' ]] && ( [ "$port" -le $FLOOR ] || [ "$port" -gt $RANGE ] ) ; do
         port=$RANDOM
     done
@@ -921,7 +921,7 @@ ${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} sleep 25 &>/dev/null &
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $MACHINE
-debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT 59${PORT}"
+debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT ${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $port was instantiated
@@ -934,21 +934,21 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:59$PORT" 
+inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$PORT" 
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$client" localhost:59${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    "$client" localhost:${PORT} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost:59${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$client" localhost:${PORT} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
 if [[ $? -ne 0 ]] ; then
-    message -r "FAILURE CONNECTING $client TO 59$PORT"
+    message -r "FAILURE CONNECTING $client TO $PORT"
 fi
 
 # if -k is passed to the script, don't kill the process
