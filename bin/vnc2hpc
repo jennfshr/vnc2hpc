@@ -193,7 +193,6 @@ setup_nogateway_ssh_control_master () {
 #   Writes ssh cmd to stdout
 #######################################
 setup_nogateway_vncpasswd () {
-    #echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
     echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${MACHINE}"
 }
 
