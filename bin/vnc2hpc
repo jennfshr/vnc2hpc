@@ -5,7 +5,11 @@
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
 REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
-README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md"
+# Versioning approach
+# Feature updates signified by even numbers
+# Bugfix updates signified by odd numbers
+VERSION="0.0.4"
+README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
 
 # Timestamp string for logs
 MYDATE=$(date +%m-%d-%y"-"%H.%M.%S)
@@ -13,10 +17,6 @@ MYDATE=$(date +%m-%d-%y"-"%H.%M.%S)
 # SSH Control Master Socket
 SSH_SOCKET="~/.ssh/connections/%C"
 
-# Versioning approach
-# Feature updates signified by even numbers
-# Bugfix updates signified by odd numbers
-VERSION="0.0.4"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 usage () {
