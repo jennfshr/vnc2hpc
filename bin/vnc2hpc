@@ -180,6 +180,24 @@ setup_nogateway_ssh () {
 }
 
 #######################################
+# Ssh command
+# Globals:
+#   SSH_OPTS
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   FILE
+#   DEST
+# Outputs:
+#   Writes scp cmd to stdout
+#######################################
+setup_nogateway_scp () {
+    local loc_file="${1}"
+    local loc_dest="${2}"
+    echo "scp ${SSH_OPTS} ${loc_file} ${MACHUSER}@${MACHINE}:${loc_dest}"
+}
+
+#######################################
 # Ssh command check control master
 # Globals:
 #   SSH_OPTS
@@ -227,6 +245,25 @@ setup_gateway_ssh () {
     echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
 }
 
+#######################################
+# Scp command via wtrw
+# Globals:
+#   SSH_OPTS
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   GATEWAY
+#   FILE
+#   DEST
+# Outputs:
+#   Writes scp via wtrw to stdout
+#######################################
+setup_gateway_scp () {
+    local loc_gateway="$1"
+    local loc_file="$2"
+    local loc_dest="$3"
+    echo "scp ${SSH_OPTS} ${loc_file} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}:${loc_dest}"
+}
 #######################################
 # Ssh command check gateway control master
 # Globals:
@@ -809,6 +846,8 @@ fi
 
 # strip leading zeros from lower-case port
 port=${port#0}
+
+#TODO test that there exists a vnc2hpc at /usr/projects/hpcsoft/vnc2hpc/${VERSION}, otherwise stage it
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
