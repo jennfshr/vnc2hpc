@@ -14,6 +14,7 @@ get_package() {
 grab () {
    local _URL="${1}"
    local _METHOD="${2}"
+   echo "Grabbing ${_URL} using ${_METHOD} from ${DOWNLOAD_DIR}"
    if [[ "${_METHOD}" == "download" ]] ; then
       wget "${_URL}"
    elif [[ "${_METHOD}" == "copy" ]] ; then
@@ -55,24 +56,22 @@ build () {
    if [[ $REBUILD == "true" ]] ; then
             [ -d $_prefix ] && rm -Rf $_prefix
    fi
+   echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
    module load gcc && CC=gcc
    mkclean_change ${_build_dir}
    grab ${_url} ${_method} || echo "FAILURE AT: ${LINENO}"
    local _tar_name=$(ls)
    local _dirname=$(tardir $_tar_name)
-   echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH" &> ${_build_log}
-   tar xfz ${_tar_name} && pushd ${_dirname} && pwd &>> ${_build_log}
-   date &>> ${_build_log}
+   tar xfz ${_tar_name} && pushd ${_dirname} &> /dev/null && pwd &>> ${_build_log}
    [ -x ./bootstrap ] && ./bootstrap &>> ${_build_log} || echo "No boostrap for ${_product_name} at ${LINENO}" &>> ${_build_log}
    [ -x ./autogen.sh ] && ./autogen.sh &>> ${_build_log} || echo "No autogen for ${_product_name} at ${LINENO}" &>> ${_build_log}
    [ -x ./configure ] &&  ./configure --prefix=${_prefix} &>> ${_build_log} || echo "No configure for ${_product_name} at ${LINENO}" &>> ${_build_log}
    make -j CC=$CC PREFIX=${_prefix} install &>> ${_build_log} || echo "Make failed for ${_product_name} at ${LINENO}" &>> ${_build_log}
    fix_perms ${_prefix} &>> ${_build_log} || echo "FAILURE AT: ${LINENO}" &>> ${_build_log}
-   ( [ -d ${_prefix} ] && echo "**** Finished installation of ${_product_name}-${_version} at ${_prefix}" &>> ${_build_log} ) || echo "****  Failed installation of ${_product_name}-${_version} at ${_prefix}" &>> ${_build_log}
-   date &>> ${_build_log}
+   ( [ -d ${_prefix} ] && echo "**** Finished installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log} ) || echo "****  Failed installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log}
    module unload gcc
-   popd #pop back out of source
-   popd #revert pushd from mkclean_change
+   popd &>/dev/null #pop back out of source
+   popd &>/dev/null #revert pushd from mkclean_change
 }
 
 usage () {
@@ -80,8 +79,8 @@ usage () {
 
           usage: build-wms.sh
                             [-d|--debug]                                        (optional)
-                            [-D|--downlods]					(optional) Default: wget <package>
-                            [-s|--stage]					(optional) Stages Downloads directory: -s </fullpath/to/dir>
+                            [-D|--download-dir]					(optional) Default: wget <package>
+                            [-s|--stage]					(optional) Stages downloads directory: -s </fullpath/to/dir>
 			    [-w|--wm <icewm|berry|fvwm|fvwm3|openbox>]          (required) For multiple: -w <wm> -w <wm>
                             [-p|--prefix <string>]                     	        (optional) Default: ${HPCSOFT_COMMON}
 			    [-h|--help]
@@ -113,14 +112,13 @@ VERSION="wmbuilder"
 OPTIND=1
 
 while getopts "dD:p:w:hs:-" opt ; do
-    echo "${opt} ${OPTARG}"
     case "${opt}" in
         d)  DEBUG="true"					;;
         h)  usage && exit 0					;;
         w)  WINDOWMANAGER=( "${OPTARG}" "${WINDOWMANAGER[@]}" )				;;
         p)  TOP_PREFIX="${OPTARG}"				;;
         D)  DOWNLOAD_DIR="${OPTARG}"				;;
-        s)  [ -x "${OPTARG%\/*}" ] && STAGEDIR="${OPTARG}"      ;;
+        s)  [ -x "${OPTARG%\/*}" ] && STAGE_DIR="${OPTARG}"      ;;
         -)  continue						;;
     esac
 done
@@ -149,9 +147,9 @@ FVWM3_URL="https://github.com/fvwmorg/fvwm3/archive/1.0.1.tar.gz"
 #   DBG="&>>"
 #fi
 
-# Test STAGEDIR and use it
-if [[ "${STAGEDIR}x" != x ]] ; then
-   mkdir -p ${STAGEDIR}
+# Test STAGE_DIR and use it
+if [[ "${STAGE_DIR}x" != x ]] ; then
+   mkdir -p ${STAGE_DIR}
 fi
 
 if [[ "${DOWNLOAD_DIR}x" == x ]] ; then
@@ -161,61 +159,59 @@ else
    METHOD="copy"
 fi
 
-echo "${WINDOWMANAGER[@]}"
-
 for wm in "${WINDOWMANAGER[@]}"; do
    case "$wm" in
       icewm)
          # WMs to build: icewm, berry, openbox, fvwm
          ICEWM_VERSION="1.9.2"
          ICEWM_PRODUCT_NAME="icewm"
-         if [[ "${STAGEDIR}x" != x ]] ; then
-            get_package ${STAGEDIR} ${ICEWM_URL}
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${ICEWM_URL}
          else
             ICEWM_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${ICEWM_PRODUCT_NAME}-${ICEWM_VERSION}"
             ICEWM_PREFIX="${INSTALL_PATH}/${ICEWM_PRODUCT_NAME}/${ICEWM_VERSION}"
             ICEWM_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${ICEWM_PRODUCT_NAME}-${ICEWM_VERSION}/build.log"
             build ${ICEWM_URL} ${ICEWM_VERSION} ${ICEWM_PRODUCT_NAME} ${ICEWM_BUILD_DIR} ${ICEWM_PREFIX} ${ICEWM_BUILD_LOG} ${METHOD}
-            cat ${ICEWM_BUILD_LOG}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${ICEWM_BUILD_LOG} ; fi
          fi
       ;;
       berry)
          BERRY_VERSION="0.1.7"
          BERRY_PRODUCT_NAME="berry"
-         if [[ "${STAGEDIR}x" != x ]] ; then
-            get_package ${STAGEDIR} ${BERRY_URL}
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${BERRY_URL}
          else
             BERRY_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${BERRY_PRODUCT_NAME}-${BERRY_VERSION}" && mkdir -p ${BERRY_BUILD_DIR}
             BERRY_PREFIX="${INSTALL_PATH}/${BERRY_PRODUCT_NAME}/${BERRY_VERSION}"
             BERRY_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${BERRY_PRODUCT_NAME}-${BERRY_VERSION}/build.log"
             build ${BERRY_URL} ${BERRY_VERSION} ${BERRY_PRODUCT_NAME} ${BERRY_BUILD_DIR} ${BERRY_PREFIX} ${BERRY_BUILD_LOG} ${METHOD}
-            cat ${BERRY_BUILD_LOG}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${BERRY_BUILD_LOG} ; fi
          fi
       ;;
       openbox)
          OPENBOX_VERSION="3.6.1"
          OPENBOX_PRODUCT_NAME="openbox"
-         if [[ "${STAGEDIR}x" != x ]] ; then
-            get_package ${STAGEDIR} ${OPENBOX_URL}
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${OPENBOX_URL}
          else
             OPENBOX_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${OPENBOX_PRODUCT_NAME}-${OPENBOX_VERSION}" && mkdir -p ${OPENBOX_BUILD_DIR}
             OPENBOX_PREFIX="${INSTALL_PATH}/${OPENBOX_PRODUCT_NAME}/${OPENBOX_VERSION}"
             OPENBOX_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${OPENBOX_PRODUCT_NAME}-${OPENBOX_VERSION}/build.log"
             build ${OPENBOX_URL} ${OPENBOX_VERSION} ${OPENBOX_PRODUCT_NAME} ${OPENBOX_BUILD_DIR} ${OPENBOX_PREFIX} ${OPENBOX_BUILD_LOG} ${METHOD}
-            cat ${OPENBOX_BUILD_LOG}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${OPENBOX_BUILD_LOG} ; fi
          fi 
       ;;
       fvwm)
          FVWM_VERSION="2.6.9"
          FVWM_PRODUCT_NAME="fvwm"
-         if [[ "${STAGEDIR}x" != x ]] ; then
-            get_package ${STAGEDIR} ${FVWM_URL}
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${FVWM_URL}
          else
             FVWM_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${FVWM_PRODUCT_NAME}-${FVWM_VERSION}" && mkdir -p ${FVWM_BUILD_DIR}
             FVWM_PREFIX="${INSTALL_PATH}/${FVWM_PRODUCT_NAME}/${FVWM_VERSION}"
             FVWM_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${FVWM_PRODUCT_NAME}-${FVWM_VERSION}/build.log"
             build ${FVWM_URL} ${FVWM_VERSION} ${FVWM_PRODUCT_NAME} ${FVWM_BUILD_DIR} ${FVWM_PREFIX} ${FVWM_BUILD_LOG} ${METHOD}
-            cat ${FVWM_BUILD_LOG}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${FVWM_BUILD_LOG} ; fi
          fi
       ;;
       ##TODO <jgreen> needs newer libbson - this doesn't work
@@ -234,7 +230,7 @@ for wm in "${WINDOWMANAGER[@]}"; do
          FVWM3_PREFIX="${INSTALL_PATH}/${FVWM3_PRODUCT_NAME}/${FVWM3_VERSION}"
          FVWM3_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${FVWM3_PRODUCT_NAME}-${FVWM3_VERSION}/build.log"
          build ${FVWM3_URL} ${FVWM3_VERSION} ${FVWM3_PRODUCT_NAME} ${FVWM3_BUILD_DIR} ${FVWM3_PREFIX} ${FVWM3_BUILD_LOG} ${METHOD}
-         cat ${FVWM3_BUILD_LOG}
+         if [[ "${DEBUG}x" != x ]] ; then cat ${FVWM3_BUILD_LOG} ; fi
          #[ -x ./configure ] && libbson_CFLAGS="-I${LIBBSON_PREFIX}/include/${LIBBSON_PRODUCT_NAME}-1.0" libbson_LDFLAGS="-L${LIBBSON_PREFIX}/lib/ -lbson" LDFLAGS="-L${LIBBSON_PREFIX}/lib -lbson-1.0" ./configure --prefix=${FVWM3_PREFIX} |& tee -a ${FVWM3_BUILD_LOG} || echo "FAILURE AT: ${LINENO}"
       ;;
    esac
