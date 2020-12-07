@@ -1,14 +1,11 @@
 #!/bin/bash
 #
-# script that automates establishing vncclient>server connections to LANL HPC systems
+# vnc2hpc is a script that automates establishing vncclient>server connections to LANL HPC systems
+
 # Basic VNC2HPC information
 AUTHOR_EMAIL="jgreen@lanl.gov"
 CONTACT="vnc2hpc@lanl.gov"
 REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
-# Versioning approach
-# Feature updates signified by even numbers
-# Bugfix updates signified by odd numbers
-VERSION="wmbuilder"
 README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
 
 # Timestamp string for logs
@@ -17,7 +14,13 @@ MYDATE=$(date +%m-%d-%y"-"%H.%M.%S)
 # SSH Control Master Socket
 SSH_SOCKET="~/.ssh/connections/%C"
 
+# Feature updates signified by even numbers
+# Bugfix updates signified by odd numbers
+VERSION="wmbuilder"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
+
+# Window managers supported:
+WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
 
 usage () {
     message -m "${0//*\//} v${VERSION}
@@ -84,7 +87,8 @@ check_machine () {
                 TURQUOISE) netpart="204.121" ;;
                 RED)       netpart="10.160"  ;;
             esac
-            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
+            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
+                "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE}.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
             if [[ ${#loc_machines[@]} -gt 0 ]] ; then
                 loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
                 loc_machine="${loc_machines[$loc_machine_index]}"
@@ -104,11 +108,11 @@ check_machine () {
 }
 
 #######################################
-# Setup ssh options
+# Setup ssh options for control master
 # Globals:
 #   SSH_SOCKET
 # Arguments:
-#   None
+#   type (master, command, vncpasswd)
 # Outputs:
 #   Writes $loc_ssh_opts to stdout
 #######################################
@@ -116,13 +120,23 @@ setup_ssh_opts () {
     mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
     loc_ssh_opts+="-x"
-    loc_ssh_opts+=" -tt"
-    loc_ssh_opts+=" -N"
-    loc_ssh_opts+=" -f"
+    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
+    case "$1" in
+        master)
+            loc_ssh_opts+=" -M"
+            loc_ssh_opts+=" -N"
+            loc_ssh_opts+=" -f"
+            loc_ssh_opts+=" -o ControlPersist=yes"
+        ;;
+        command)
+            loc_ssh_opts+=" -tt"
+            loc_ssh_opts+=" -N"
+            loc_ssh_opts+=" -f"
+        ;;
+    esac 
     echo "$loc_ssh_opts"
 }
 
@@ -150,22 +164,31 @@ setup_ssh_scp_opts () {
 # Globals:
 #   SSH_SOCKET
 # Arguments:
-#   None
+#   type (master, command, vncpasswd)
 # Outputs:
 #   Writes $loc_ssh_opts to stdout
 #######################################
-setup_ssh_master_opts () {
+setup_ssh_opts () {
     mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
-    loc_ssh_opts+="-M"
-    loc_ssh_opts+=" -x"
-    loc_ssh_opts+=" -N"
-    loc_ssh_opts+=" -f"
+    loc_ssh_opts+="-x"
     loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o ControlPersist=yes"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
+    case "$1" in
+        master)
+            loc_ssh_opts+=" -M"
+            loc_ssh_opts+=" -N"
+            loc_ssh_opts+=" -f"
+            loc_ssh_opts+=" -o ControlPersist=yes"
+        ;;
+        command)
+            loc_ssh_opts+=" -tt"
+            loc_ssh_opts+=" -N"
+            loc_ssh_opts+=" -f"
+        ;;
+    esac
     echo "$loc_ssh_opts"
 }
 
@@ -187,7 +210,6 @@ setup_tunnel_host () {
 #######################################
 # Ssh command
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -196,7 +218,35 @@ setup_tunnel_host () {
 #   Writes ssh cmd to stdout
 #######################################
 setup_nogateway_ssh () {
-    echo "ssh ${SSH_OPTS} ${MACHUSER}@${MACHINE}"
+    echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
+}
+
+#######################################
+# Ssh command
+# Globals:
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh cmd to stdout
+#######################################
+setup_nogateway_ssh_control_master () {
+    echo "ssh $(setup_ssh_opts master) ${MACHUSER}@${MACHINE}"
+}
+
+#######################################
+# Ssh command
+# Globals:
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh cmd to stdout
+#######################################
+setup_nogateway_vncpasswd () {
+    echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${MACHINE}"
 }
 
 #######################################
@@ -220,7 +270,6 @@ setup_nogateway_scp () {
 #######################################
 # Ssh command check control master
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -229,14 +278,13 @@ setup_nogateway_scp () {
 #   Writes ssh cmd to stdout
 #######################################
 check_nogateway_control_master_connection () {
-    local loc_control_check="ssh -O check ${SSH_OPTS} ${MACHUSER}@${MACHINE}"
+    local loc_control_check="ssh -O check $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
     echo "${loc_control_check}"
 }
 
 #######################################
 # Ssh command kill control master
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -245,14 +293,13 @@ check_nogateway_control_master_connection () {
 #   Writes ssh cmd to stdout
 #######################################
 kill_nogateway_control_master_connection () {
-    local loc_control_kill="ssh -O exit ${SSH_OPTS} ${MACHUSER}@${MACHINE}"
+    local loc_control_kill="ssh -O exit $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
     echo "${loc_control_kill}"
 }
 
 #######################################
 # Ssh command via wtrw
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -262,7 +309,38 @@ kill_nogateway_control_master_connection () {
 #######################################
 setup_gateway_ssh () {
     local loc_gateway="$1"
-    echo "ssh ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+}
+
+#######################################
+# Ssh command
+# Globals:
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   Writes ssh cmd to stdout
+#######################################
+setup_gateway_ssh_control_master () {
+    local loc_gateway="$1"
+    echo "ssh $(setup_ssh_opts master) ${MACHUSER}@{loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+}
+
+#######################################
+# Ssh command via wtrw
+# Globals:
+#   MACHUSER
+#   MACHINE
+# Arguments:
+#   GATEWAY
+# Outputs:
+#   Writes ssh via wtrw to stdout
+#######################################
+setup_gateway_vncpasswd () {
+    local loc_gateway="$1"
+    local loc_opts="$2"
+    echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
 }
 
 #######################################
@@ -287,7 +365,6 @@ setup_gateway_scp () {
 #######################################
 # Ssh command check gateway control master
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -297,14 +374,13 @@ setup_gateway_scp () {
 #######################################
 check_gateway_control_master_connection () {
     local loc_gateway="$1"
-    local loc_control_check="ssh -O check ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
+    local loc_control_check="ssh -O check $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
     echo "${loc_control_check}"
 }
 
 #######################################
 # Ssh command kill gateway control master
 # Globals:
-#   SSH_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -314,14 +390,13 @@ check_gateway_control_master_connection () {
 #######################################
 kill_gateway_control_master_connection () {
     local loc_gateway="$1"
-    local loc_control_kill="ssh -O exit ${SSH_OPTS} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
+    local loc_control_kill="ssh -O exit $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}"
     echo "${loc_control_kill}"
 }
 
 #######################################
 # Tunnel to host
 # Globals:
-#   SSH_OPTS
 #   PORT
 #   MACHUSER
 #   MACHINE
@@ -332,7 +407,7 @@ kill_gateway_control_master_connection () {
 #   Writes ssh tunnel cmd to stdout
 #######################################
 setup_nogateway_tunnel () {
-    echo "ssh ${SSH_OPTS} ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
 }
 
 #######################################
@@ -341,7 +416,6 @@ setup_nogateway_tunnel () {
 #   PORT
 #   MACHUSER
 #   MACHINE
-#   SSH_OPTS
 #   TUNNEL_HOST
 # Arguments:
 #   GATEWAY
@@ -350,7 +424,7 @@ setup_nogateway_tunnel () {
 #######################################
 setup_gateway_tunnel () {
     local loc_gateway="$1"
-    echo "ssh ${SSH_OPTS} ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
 }
 
 #######################################
@@ -453,12 +527,11 @@ debug () {
 #   control_master_ssh
 #######################################
 control_master_connection () {
-    SSH_OPTS=$(setup_ssh_master_opts)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         local local_gateway="wtrw1.lanl.gov"
-        local local_gateway_ssh=$(setup_gateway_ssh ${local_gateway})
+        local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
     else
-        local local_nogateway_ssh=$(setup_nogateway_ssh)
+        local local_nogateway_ssh=$(setup_nogateway_ssh_control_master)
     fi
     local local_control_master_ssh="${local_gateway_ssh} ${local_nogateway_ssh}"
     echo "${local_control_master_ssh}"
@@ -478,12 +551,11 @@ control_master_connection () {
 #######################################
 checkvncpasswd () {
     # need a $HOME/.vnc directory if the first use
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d \$HOME/.vnc ]" 2>&- ); then
-        ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
+    if ! $( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "[ -d \$HOME/.vnc ]" 2>&- ); then
+        ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
     fi
     # test whether the vncpasswd file exists but is empty
-    if ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -s  \$HOME/.vnc/passwd ]" 2>&- ); then
-
+    if ! $( ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "[ -s  \$HOME/.vnc/passwd ] || exit 1" ); then
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
             DISABLE_XTRACE="set +x"
@@ -503,18 +575,13 @@ checkvncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "echo '${VNCPW}' | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd"
-                    if [[ $? -ne 0 ]] ; then
-                        die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
-                    elif ! $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \$HOME/.vnc/passwd ]" ); then
-                        die "SOMETHING WENT WRONG SETTING YOUR VNCPASSWD"
-                    else
-                        inform "VNCPASSWD SET!"
-                    fi
+                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
+echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
+EOF'
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
-                perms=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ls -alhs \$HOME/.vnc/passwd")
+                perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
             ;;
             N*|n*)
@@ -561,7 +628,8 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'" 2>&- ; then die "FAILURE CONNECTING TO:" "${MACHINE}" ; fi); do
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" \
+                                                   | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -579,7 +647,8 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' | awk '{ gsub(\":\",\"\",\$1); print \$1}'" 2>&- ; then die "FAILURE CONNECTING TO" "${MACHINE}" ; fi) )
+    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' \
+                                                          | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
     done
@@ -596,7 +665,22 @@ list_vncservers () {
 #   None
 #######################################
 client_check () {
-    [ ! -d "${client}" ] && [ -x "${client}" ] || exit 1
+    ( [ ! -d "${client}" ] && [ -x "${client}" ] ) || [ -x "$(which ${client})" ] || exit 1
+}
+
+#######################################
+# File tests ${WINDOWMANAGER} for viability
+# Globals:
+#   client
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+wm_check () {
+    if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
+        return 2
+    fi
 }
 
 #######################################
@@ -664,31 +748,33 @@ remotelog () {
 
 #######################################
 # Parse positional parameters passed to script
+echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
-        *client)      set -- "$@" "-c"   ;;
-        *debug)       set -- "$@" "-d"   ;;
-        *help)        set -- "$@" "-h"   ;;
-        *keep)        set -- "$@" "-k"   ;;
-        *machine)     set -- "$@" "-m"   ;;
-        *port)        set -- "$@" "-p"   ;;
-        *reconnect)   set -- "$@" "-r"   ;;
-        *user)        set -- "$@" "-u"   ;;
-        *wmw)         set -- "$@" "-w"   ;;
-        *geometry)    set -- "$@" "-g"   ;;
-        *pixeldepth)  set -- "$@" "-P"   ;; 
-        *source)      set -- "$@" "-s"   ;;
-        *)            set -- "$@" "$arg" ;;
+        *-cl*nt)       set -- "$@" "-c"   ;;
+        *-debug)       set -- "$@" "-d"   ;;
+        *-help)        set -- "$@" "-h"   ;;
+        *-keep)        set -- "$@" "-k"   ;;
+        *-machine)     set -- "$@" "-m"   ;;
+        *-port)        set -- "$@" "-p"   ;;
+        *-reconnect)   set -- "$@" "-r"   ;;
+        *-user)        set -- "$@" "-u"   ;;
+        *-wm*)         set -- "$@" "-w"   ;;
+        *-geo*)        set -- "$@" "-g"   ;;
+        *-depth*)      set -- "$@" "-P"   ;;
+        *-source)      set -- "$@" "-s"   ;;
+        *)             set -- "$@" "$arg" ;;
     esac
 done
 
 OPTIND=1
 
-while getopts "c:m:P:p:u:w:g:dhrks:" opt ; do
+while getopts "bc:m:P:p:u:w:g:dhrks:-" opt ; do
     case "${opt}" in
+        b)  BACKDOOR=true                                                                          ;;
         d)  DEBUG=true                                                                             ;;
-        p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
+        p)  port="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"    ;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
         c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    ;;
         k)  KEEP_VNC_SERVER_ACTIVE=true                                                            ;;
@@ -699,12 +785,16 @@ while getopts "c:m:P:p:u:w:g:dhrks:" opt ; do
         g)  GEOMETRY="${OPTARG}"                                                                   ;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
         s)  SOURCE="${OPTARG}"                                                                     ;;
+        -)  continue                                                                               ;;
     esac
 done
+
 #######################################
+# Inform vnc2hpc version used
+inform "VNC2HPC INFO:" "Version v${VERSION}" 
 
 # Check out the vncclient
-if [[ "${client}"x == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
+if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
 if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
@@ -718,12 +808,18 @@ MACHUSER=${MACHUSER:=$USER}
 inform "REMOTE USER:" "$MACHUSER"
 
 # ensure WINDOWMANAGER arg has a value
-WINDOWMANAGER=${WINDOWMANAGER:=mwm}
+WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
+if ! $(wm_check 2>&-) ; then
+    die "INVALID WINDOWMANAGER: --wm $WINDOWMANAGER" "Valid values: $(echo ${WMS[@]})"
+fi
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
 # set GEOMETRY TO false if not otherwise set
 GEOMETRY=${GEOMETRY:="default"}
-if [[ "$GEOMETRY" != default ]] && [[ ! "$GEOMETRY" =~ x ]] ; then usage; die "--geometry should be expressed as two integers delimited by an \"x\"" ; fi 
+if [[ "$GEOMETRY" != default ]] && [[ ! "$GEOMETRY" =~ x ]] ; then
+    usage
+    die "--geometry should be expressed as two integers delimited by an \"x\""
+fi 
 inform "GEOMETRY:" "${GEOMETRY}" 
 
 # set PIXELDEPTH TO 24 default if not overridden
@@ -745,15 +841,23 @@ debug "SSH_OPTS:" "$SSH_OPTS"
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
     GATEWAY="wtrw1.lanl.gov"
     GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+    GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
     CONTROL_KILL=$(kill_gateway_control_master_connection ${GATEWAY})
 else
     NO_GATEWAY_SSH=$(setup_nogateway_ssh)
+    NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
     CONTROL_CHECK=$(check_nogateway_control_master_connection)
     CONTROL_KILL=$(kill_nogateway_control_master_connection)
 fi
-debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
+debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
+debug "SSH CMD FOR VNCPW ${NETWORK}:" "${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}"
+
+# check vncpasswd
+checkvncpasswd
+
+# establish ssh control socket master connection
 $(control_master_connection) || die "Control Master Connection Attempt Failed!"
 $(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!" 
 
@@ -764,15 +868,14 @@ if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
     debug "MACHINE CHECK:" "$REAL_MACHINE NOT EQUAL TO" "$MACHINE"
     # setup the appropriate ssh commands for the network
     MACHINE="${REAL_MACHINE}"
-    # setup ssh options for reuse
-    SSH_OPTS=$(setup_ssh_opts)
-    debug "SSH_OPTS:" "$SSH_OPTS"
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw1.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     else
         $(${CONTROL_KILL}) || die "Can't kill control socket"
         NO_GATEWAY_SSH=$(setup_nogateway_ssh)
+        NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
         CONTROL_CHECK=$(check_nogateway_control_master_connection)
         CONTROL_KILL=$(kill_nogateway_control_master_connection)
         $(control_master_connection) || die "Control Master Reset Attempt Failed!"
@@ -791,7 +894,7 @@ fi
 LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${client//*\//} LOGGING" "${LOGDIR}/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
 
@@ -859,10 +962,6 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     fi
 fi   
     
-# check vncpasswd
-checkvncpasswd
-
-# grab all Xvnc pid running, parse out the ports
 all_active_vncserver_ports=( $(get_vnc_connections) )
 debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 
@@ -885,7 +984,7 @@ fi
 
 # test connecting to remote and scraping vncserver -list output for user specific displays
 if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
-    die "FAILURE CONNECTING TO:" "${MACHINE}"
+    die "FAILURE CONNECTING TO:" "${MACHINE}" "active_vncserver_ports: ${active_vncserver_ports[@]}"
 else
     debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi
@@ -904,7 +1003,7 @@ if [[ "${RECONNECT}"x != x ]] ; then
 fi
 
 # ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
-if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] ; then
+if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
     warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
@@ -949,12 +1048,12 @@ fi
 # strip leading zeros from lower-case port
 port=${port#0}
 
-#TODO test that there exists a vnc2hpc at /usr/projects/hpcsoft/vnc2hpc/${VERSION}, otherwise stage it
-
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\"" 2>&-)
+    debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\""
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
@@ -1001,7 +1100,8 @@ debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT 59${PORT}"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $port was instantiated
-remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- | awk -v exclude="awk" -v pat="Xvnc :*${PORT#0} " '($0 !~ exclude) && $0~pat{print $2}' )
+remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
+              | awk -v exclude="awk" -v pat="Xvnc :*${PORT#0} " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
