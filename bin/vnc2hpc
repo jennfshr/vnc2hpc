@@ -832,7 +832,7 @@ if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ;
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
-[ -n ${SOURCE} ] && inform "SOURCE:" "$SOURCE"
+[[ "${SOURCE}x" != x ]] && inform "SOURCE:" "$SOURCE"
 # setup initial ssh options for reuse
 SSH_OPTS=$(setup_ssh_opts)
 debug "SSH_OPTS:" "$SSH_OPTS"
@@ -908,7 +908,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     FILE="${REPO_URL//*\/}"
     FULL_FILE_PATH="/tmp/${FILE}"
     debug "DOWNLOAD TO FILE:" "${FULL_FILE_PATH}"
-    DEST="~/.vnc2hpc/."
+    DEST="\$HOME/.vnc2hpc/."
     debug "SCP-ING TO:" "$DEST"
     export no_proxy=lanl.gov
     # get the repo locally
@@ -956,7 +956,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xvfz ${FILE}" ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
-        REMOTE_INSTALL_PATH="${DEST}/${DEST_TOPLEVEL_DIR}"
+        REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"
         inform "BACKEND SCRIPTS STAGED TO:" "${DEST}"
         inform "RESETTING REMOTE_INSTALL_PATH:" "$REMOTE_INSTALL_PATH"
     fi
