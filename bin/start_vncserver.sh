@@ -12,7 +12,7 @@ if [[ -d "/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/
    LOG="/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
 else
    # this script shouldn't fail if the logtree structure doesn't exist, fall back to $HOME
-   LOG="~/.vnc2hpc/${USER}_`hostname -s`.$(date+%F'_'%H'.'%M'.'%S)"
+   LOG="~/.vnc2hpc/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
 fi 
 touch $LOG
 cp ${remote_install_path}/bin/xstartup $HOME/.vnc2hpc/xstartup
