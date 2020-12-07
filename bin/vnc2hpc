@@ -8,7 +8,7 @@ REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
 # Versioning approach
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.4"
+VERSION="wmbuilder"
 README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
 
 # Timestamp string for logs
@@ -33,6 +33,7 @@ usage () {
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-P|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
+                            [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
@@ -126,6 +127,25 @@ setup_ssh_opts () {
 }
 
 #######################################
+# Setup ssh options for scp
+# Globals:
+#   SSH_SOCKET
+# Arguments:
+#   None
+# Outputs:
+#   Writes $loc_ssh_opts to stdout
+#######################################
+setup_ssh_scp_opts () {
+    mkdir -p ~/.ssh/connections
+    local loc_ssh_opts=""
+    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
+    loc_ssh_opts+=" -o StrictHostKeyChecking=no"
+    loc_ssh_opts+=" -o LogLevel=QUIET"
+    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
+    echo "$loc_ssh_opts"
+}
+
+#######################################
 # Setup ssh options for control master
 # Globals:
 #   SSH_SOCKET
@@ -182,7 +202,7 @@ setup_nogateway_ssh () {
 #######################################
 # Ssh command
 # Globals:
-#   SSH_OPTS
+#   SSH_SCP_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -194,7 +214,7 @@ setup_nogateway_ssh () {
 setup_nogateway_scp () {
     local loc_file="${1}"
     local loc_dest="${2}"
-    echo "scp ${SSH_OPTS} ${loc_file} ${MACHUSER}@${MACHINE}:${loc_dest}"
+    echo "scp ${SSH_SCP_OPTS} ${loc_file} ${MACHUSER}@${MACHINE}:${loc_dest}"
 }
 
 #######################################
@@ -248,7 +268,7 @@ setup_gateway_ssh () {
 #######################################
 # Scp command via wtrw
 # Globals:
-#   SSH_OPTS
+#   SSH_SCP_OPTS
 #   MACHUSER
 #   MACHINE
 # Arguments:
@@ -262,7 +282,7 @@ setup_gateway_scp () {
     local loc_gateway="$1"
     local loc_file="$2"
     local loc_dest="$3"
-    echo "scp ${SSH_OPTS} ${loc_file} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}:${loc_dest}"
+    echo "scp ${SSH_SCP_OPTS} ${loc_file} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}:${loc_dest}"
 }
 #######################################
 # Ssh command check gateway control master
@@ -552,7 +572,6 @@ get_vnc_connections () {
 # Globals:
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
-#   MACHUSER
 #   MACHINE
 # Arguments:
 #   None
@@ -591,6 +610,22 @@ client_check () {
 #######################################
 client_version () {
     "${client}" -help 2>&1 | head -n 2 | awk '/./ {print $1$2"-"$3}' |head -n 1
+}
+
+#######################################
+# Checks REMOTE_INSTALL_PATH
+# Globals:
+#   REMOTE_INSTALL_PATH
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+#   MACHINE
+# Arguments:
+#   None
+# Outputs:
+#   BOOL (True|False)
+#######################################
+check_remote_install_path () {
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d ${REMOTE_INSTALL_PATH} ]"
 }
 
 #######################################
@@ -643,13 +678,14 @@ for arg in "$@"; do
         *wmw)         set -- "$@" "-w"   ;;
         *geometry)    set -- "$@" "-g"   ;;
         *pixeldepth)  set -- "$@" "-P"   ;; 
+        *source)      set -- "$@" "-s"   ;;
         *)            set -- "$@" "$arg" ;;
     esac
 done
 
 OPTIND=1
 
-while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
+while getopts "c:m:P:p:u:w:g:dhrks:" opt ; do
     case "${opt}" in
         d)  DEBUG=true                                                                             ;;
         p)  port="$OPTARG"  ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"   ;;
@@ -662,6 +698,7 @@ while getopts "c:m:P:p:u:w:g:dhrk" opt ; do
         w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
         g)  GEOMETRY="${OPTARG}"                                                                   ;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
+        s)  SOURCE="${OPTARG}"                                                                     ;;
     esac
 done
 #######################################
@@ -699,6 +736,7 @@ if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ;
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
+[ -n ${SOURCE} ] && inform "SOURCE:" "$SOURCE"
 # setup initial ssh options for reuse
 SSH_OPTS=$(setup_ssh_opts)
 debug "SSH_OPTS:" "$SSH_OPTS"
@@ -757,6 +795,70 @@ inform "VNC CLIENT ${client//*\//} LOGGING" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
 
+# check remote install path for vnc2hpc backend
+check_remote_install_path || NO_BACKEND="true"
+
+# setup NO_GATEWAY_SCP or GATEWAY_SCP commands to get server side setup
+if [[ "${NO_BACKEND}" == "true" ]] ; then
+    REPO_URL="https://git.lanl.gov/hpcsoft/vnc2hpc/-/archive/${VERSION}/vnc2hpc-${VERSION}.tar.gz"
+    debug "REPO_URL:" "${REPO_URL}"
+    FILE="${REPO_URL//*\/}"
+    FULL_FILE_PATH="/tmp/${FILE}"
+    debug "DOWNLOAD TO FILE:" "${FULL_FILE_PATH}"
+    DEST="~/.vnc2hpc/."
+    debug "SCP-ING TO:" "$DEST"
+    export no_proxy=lanl.gov
+    # get the repo locally
+    if [[ "${SOURCE}x" != x ]] ; then
+        FILE="${SOURCE//*\/}"
+        FULL_FILE_PATH="{SOURCE}"
+    else
+        if $(which curl &>/dev/null) ; then
+            debug "CURL CMD: curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
+            curl -sL ${REPO_URL} >${FULL_FILE_PATH}
+            if [[ $? -ne 0 ]] ; then 
+                die "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH} FAILED"
+            fi
+        elif $(which wget &>/dev/null); then
+            debug "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH}"
+            wget ${REPO_URL} -O ${FULL_FILE_PATH}
+            if [[ $? -ne 0 ]] ; then 
+                die "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH} FAILED"
+            fi
+        else
+            die "EITHER INSTALL CURL OR WGET, or DOWNLOAD $REPO_URL AND POINT THIS TOOL TO THE TARBALL: $0 -s /path/to/tar.gz <etc>"
+        fi
+    fi
+    [ -f ${FULL_FILE_PATH} ] || inform "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
+    DEST_TOPLEVEL_DIR=$(tar tf ${FULL_FILE_PATH} | head -n1 | sed 's/\///g')
+    debug "DEST_TOPLEVEL_DIR:" "$DEST_TOPLEVEL_DIR"
+    ${GATEWAY_SSH}${NO_GATEWAY_SSH} "mkdir -p ${DEST%\/\.}"
+    if [[ $? -ne 0 ]] ; then
+        die "$HOME/.vnc2hpc doesn't exist on $MACHINE"
+    else
+        inform "ENSURED \$HOME/.vnc2hpc exists"
+    fi
+    SSH_SCP_OPTS=$(setup_ssh_scp_opts)
+    if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
+        GATEWAY_SCP=$(setup_gateway_scp ${GATEWAY} ${FULL_FILE_PATH} ${DEST})
+        if ! $GATEWAY_SCP ; then
+            die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
+        fi
+    else
+        NO_GATEWAY_SCP=$(setup_nogateway_scp ${FULL_FILE_PATH} ${DEST})
+        if ! $NO_GATEWAY_SCP ; then
+            die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
+        fi 
+    fi 
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xvfz ${FILE}" ; then
+        die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
+    else
+        REMOTE_INSTALL_PATH="${DEST}/${DEST_TOPLEVEL_DIR}"
+        inform "BACKEND SCRIPTS STAGED TO:" "${DEST}"
+        inform "RESETTING REMOTE_INSTALL_PATH:" "$REMOTE_INSTALL_PATH"
+    fi
+fi   
+    
 # check vncpasswd
 checkvncpasswd
 
@@ -851,8 +953,8 @@ port=${port#0}
 
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-    debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"\""
-    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\"" 2>&-)
+    debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\" \"${REMOTE_INSTALL_PATH}\""
+    newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${PORT}\" \"${REMOTE_INSTALL_PATH}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then

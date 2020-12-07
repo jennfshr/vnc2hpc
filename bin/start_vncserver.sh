@@ -5,6 +5,7 @@ client="$3"
 clientOS="$4"
 geometry="$5"
 pixeldepth="$6"
+remote_install_path="$7"
 if [[ "${7}x" != x ]] ; then DISPLAYPORT=":${7}" ; fi 
 [ -d $HOME/.vnc2hpc ] || mkdir -p $HOME/.vnc2hpc
 if [[ -d "/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)" ]] ; then 
@@ -14,7 +15,7 @@ else
    LOG="~/.vnc2hpc/${USER}_`hostname -s`.$(date+%F'_'%H'.'%M'.'%S)"
 fi 
 touch $LOG
-cp /usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/bin/xstartup $HOME/.vnc2hpc/xstartup
+cp ${remote_install_path}/bin/xstartup $HOME/.vnc2hpc/xstartup
 export VNC2HPC_WM="$windowmanager" 
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 pixeldeptharg="-depth ${pixeldepth}" 
