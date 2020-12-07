@@ -6,6 +6,7 @@ clientOS="$4"
 geometry="$5"
 pixeldepth="$6"
 remote_install_path="$7"
+export VNC2HPC_INSTALL_PATH=${remote_install_path}
 if [[ "${8}x" != x ]] ; then DISPLAYPORT=":${8}" ; fi 
 [ -d $HOME/.vnc2hpc ] || mkdir -p $HOME/.vnc2hpc
 if [[ -d "/usr/projects/hpcsoft/vnc2hpc/${vnc2hpc_version}/logs/$(/usr/projects/hpcsoft/utilities/bin/sys_name)" ]] ; then 
