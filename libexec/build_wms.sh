@@ -98,9 +98,9 @@ else
 fi
 
 if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_arch ]] ; then
-   ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch
-else
    ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
+else
+   ARCH=$(uname -p)
 fi
 
 VERSION="wmbuilder"
