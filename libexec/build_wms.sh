@@ -1,4 +1,5 @@
 #!/bin/bash
+source /etc/profile
 REBUILD="true"
 #This is a simple automation for building out the non-system window manager installations
 
