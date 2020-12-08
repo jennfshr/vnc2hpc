@@ -42,7 +42,7 @@ case "$VNC2HPC_WM" in
     berry)
         # Setup installation variables for reuse
         PRODUCT="berry"
-        VERSION="0.17.1"
+        VERSION="0.1.7"
         BERRY_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
         ls -al ${BERRY_PREFIX}
         BERRY_BIN="${BERRY_PREFIX}/bin"
