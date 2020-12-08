@@ -32,8 +32,8 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if [[ -d /foochangeme/usr/projects/hpcsoft/common ]] ; then
-    INSTALL_PATH="/usr/projects/hpcsoft/common"
+if [[ -d /usr/projects/hpcsoft ]] ; then
+    INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
 fi
@@ -43,7 +43,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="berry"
         VERSION="0.1.7"
-        BERRY_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
+        BERRY_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         echo "$BERRY_PREFIX" && ls -al ${BERRY_PREFIX}/bin/berry
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
@@ -65,7 +65,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="icewm"
         VERSION="1.9.2"
-        ICEWM_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
+        ICEWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
 	ICEWM_SHARE="${ICEWM_PREFIX}/share"
@@ -82,7 +82,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="fvwm"
         VERSION="2.6.9"
-        FVWM_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
+        FVWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         FVWM_BIN="${FVWM_PREFIX}/bin"
         FVWM_LIB="${FVWM_PREFIX}/lib"
 	FVWM_SHARE="${FVWM_PREFIX}/share"
@@ -106,7 +106,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="openbox"
         VERSION="3.6.1"
-        OBX_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
+        OBX_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         OBX_BIN="${OBX_PREFIX}/bin"
         OBX_LIB="${OBX_PREFIX}/lib"
 	OBX_SHARE="${OBX_PREFIX}/share"
