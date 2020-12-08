@@ -21,7 +21,12 @@ backstore="-bs"
 export VNC2HPC_INSTALL_PATH=${remote_install_path}
 export VNC2HPC_WM="$windowmanager" 
 HPCSOFT_PATH="/usr/projects/hpcsoft"
-SPLUNK_LOG="${HPCSOFT_PATH}/usage_logs/vnc2hpc.log"
+if [[ -d ${HPCSOFT_PATH} ]] ; then 
+   SPLUNK_LOG="${HPCSOFT_PATH}/usage_logs/vnc2hpc.log"
+else
+   SPLUNK_LOG="{remote_install_path}/vnc2hpc.log"
+   touch ${SPLUNK_LOG}
+fi
 
 # generic setup if utilities aren't present
 if [[ -x ${HPCSOFT_PATH}/utilities/bin/sys_os ]] ; then
@@ -67,8 +72,7 @@ if ! [[ -d /usr/projects/hpcsoft/${OS}/${ARCH}/${VNC2HPC_WM} ]] ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
 fi
 
-echo "RUNNING: /usr/bin/vncserver ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \
-               \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
+echo "RUNNING: /usr/bin/vncserver ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
 /usr/bin/vncserver ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
 if [[ $? -ne 0 ]] ; then 
