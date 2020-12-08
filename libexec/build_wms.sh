@@ -24,8 +24,8 @@ grab () {
 
 fix_perms () {
    local _PREFIX_PATH="${1}"
-   chgrp -Rf hpcsoft ${_PREFIX_PATH} || exit 2
-   chmod -Rf g+wrX,a+rX ${_PREFIX_PATH} || exit 2
+   chgrp -Rf hpcsoft ${_PREFIX_PATH%\/*} || exit 2
+   chmod -Rf g+wrX,a+rX ${_PREFIX_PATH%\/*} || exit 2
 }
 
 mk_change () {
@@ -54,7 +54,9 @@ build () {
    local _build_log="${6}"
    local _method="${7}"
    if [[ $REBUILD == "true" ]] ; then
-            [ -d $_prefix ] && rm -Rf $_prefix
+      [ -d $_prefix ] && rm -Rf $_prefix
+   else
+      [ -d $_prefix ] && echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"      
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
    module load gcc && CC=gcc
