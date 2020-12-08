@@ -20,19 +20,19 @@ command -v xdpyinfo >/dev/null 2>&1 && \
 # fall back to system defaults.
 
 # Reusable arch/os variables:
-if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_arch ]] ; then 
+if /usr/projects/hpcsoft/utilities/bin/sys_arch &>/dev/null ; then 
     ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
 else
     ARCH=$(uname -p)
 fi
 
-if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_os ]] ; then 
+if /usr/projects/hpcsoft/utilities/bin/sys_os &>/dev/null ; then 
     OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
 else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if [[ -d /usr/projects/hpcsoft ]] ; then
+if [[ -d /usr/projects/hpcsoft/vnc2hpc ]] ; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"

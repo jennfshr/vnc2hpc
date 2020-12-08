@@ -21,7 +21,7 @@ backstore="-bs"
 export VNC2HPC_INSTALL_PATH=${remote_install_path}
 export VNC2HPC_WM="$windowmanager" 
 HPCSOFT_PATH="/usr/projects/hpcsoft"
-if [[ -d ${HPCSOFT_PATH} ]] ; then 
+if touch ${HPCSOFT_PATH}/usage_logs/vnc2hpc.log &>/dev/null ; then 
    SPLUNK_LOG="${HPCSOFT_PATH}/usage_logs/vnc2hpc.log"
 else
    SPLUNK_LOG="{remote_install_path}/vnc2hpc.log"
@@ -29,21 +29,21 @@ else
 fi
 
 # generic setup if utilities aren't present
-if [[ -x ${HPCSOFT_PATH}/utilities/bin/sys_os ]] ; then
+if ${HPCSOFT_PATH}/utilities/bin/sys_os &>/dev/null ; then
    OS=$(${HPCSOFT_PATH}/utilities/bin/sys_os)
 else
    OS=$(uname -o | sed 's/\//_/g')
 fi
 
 # generic setup if utilities aren't present
-if [[ -x ${HPCSOFT_PATH}/utilities/bin/sys_arch ]] ; then
+if ${HPCSOFT_PATH}/utilities/bin/sys_arch &>/dev/null ; then
    ARCH=$(${HPCSOFT_PATH}/utilities/bin/sys_arch)
 else
    ARCH=$(uname -p)
 fi
 
 # generic setup if utilities aren't present
-if [[ -x ${HPCSOFT_PATH}/utilities/bin/sys_name ]] ; then
+if ${HPCSOFT_PATH}/utilities/bin/sys_name &>/dev/null ; then
    SYSNAME=$(${HPCSOFT_PATH}/utilities/bin/sys_name)
 else
    SYSNAME=$(hostname -s)

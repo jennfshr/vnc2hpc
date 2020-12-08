@@ -94,13 +94,13 @@ usage () {
 
 # Some global variables
 TOP_PREFIX="/usr/projects/hpcsoft"
-if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_os ]] ; then
+if /usr/projects/hpcsoft/utilities/bin/sys_os &>/dev/null ; then
    OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
 else
    OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_arch ]] ; then
+if /usr/projects/hpcsoft/utilities/bin/sys_arch &>/dev/null ; then
    ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
 else
    ARCH=$(uname -p)
