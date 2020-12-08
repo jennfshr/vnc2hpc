@@ -1,6 +1,5 @@
 #!/bin/bash
 source /etc/profile
-REBUILD="true"
 #This is a simple automation for building out the non-system window manager installations
 
 get_package() {
@@ -85,6 +84,7 @@ usage () {
 			    [-w|--wm <icewm|berry|fvwm|fvwm3|openbox>]          (required) For multiple: -w <wm> -w <wm>
                             [-p|--prefix <string>]                     	        (optional) Default: ${TOP_PREFIX}
 			    [-h|--help]
+                            [-r|--rebuild]					(optional) Default: FALSE
 
           Questions?        <vnc2hpc@lanl.gov>
           Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
@@ -121,19 +121,20 @@ VERSION="wmbuilder"
 
 OPTIND=1
 
-while getopts "dD:p:w:hs:-" opt ; do
+while getopts "rdD:p:w:hs:-" opt ; do
     case "${opt}" in
         d)  DEBUG="true"					;;
+        r)  REBUILD="true"					;;
         h)  usage && exit 0					;;
-        w)  WINDOWMANAGER=( "${OPTARG}" "${WINDOWMANAGER[@]}" )				;;
+        w)  WINDOWMANAGER=( "${OPTARG}" "${WINDOWMANAGER[@]}" )	;;
         p)  TOP_PREFIX="${OPTARG}"				;;
         D)  DOWNLOAD_DIR="${OPTARG}"				;;
-        s)  [ -x "${OPTARG%\/*}" ] && STAGE_DIR="${OPTARG}"      ;;
+        s)  [ -x "${OPTARG%\/*}" ] && STAGE_DIR="${OPTARG}"     ;;
         -)  continue						;;
     esac
 done
 
-INSTALL_PATH=${TOP_PREFIX}/${OS}/${ARCH}
+INSTALL_PATH=${TOP_PREFIX}/${OS}/common/${ARCH}
 
 # temp build dir
 mkdir -p ${TEMP_INSTALL_LOCATION:="/tmp/vnc2hpc-deps"}
