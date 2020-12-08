@@ -82,7 +82,7 @@ usage () {
                             [-D|--download-dir]					(optional) Default: wget <package>
                             [-s|--stage]					(optional) Stages downloads directory: -s </fullpath/to/dir>
 			    [-w|--wm <icewm|berry|fvwm|fvwm3|openbox>]          (required) For multiple: -w <wm> -w <wm>
-                            [-p|--prefix <string>]                     	        (optional) Default: ${HPCSOFT_COMMON}
+                            [-p|--prefix <string>]                     	        (optional) Default: ${TOP_PREFIX}
 			    [-h|--help]
 
           Questions?        <vnc2hpc@lanl.gov>
@@ -90,10 +90,19 @@ usage () {
 }
 
 # Some global variables
-HPCSOFT_COMMON="/usr/projects/hpcsoft/common"
-OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
-ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
-INSTALL_PATH=${HPCSOFT_COMMON}/${OS}/${ARCH}
+TOP_PREFIX="/usr/projects/hpcsoft/common"
+if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_os ]] ; then
+   OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
+else
+   OS=$(uname -o | sed 's/\//_/g')
+fi
+
+if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_arch ]] ; then
+   ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch
+else
+   ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
+fi
+
 VERSION="wmbuilder"
 
 # Parse positional parameters passed to script
@@ -122,6 +131,8 @@ while getopts "dD:p:w:hs:-" opt ; do
         -)  continue						;;
     esac
 done
+
+INSTALL_PATH=${TOP_PREFIX}/${OS}/${ARCH}
 
 # temp build dir
 mkdir -p ${TEMP_INSTALL_LOCATION:="/tmp/vnc2hpc-deps"}
