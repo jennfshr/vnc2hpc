@@ -939,7 +939,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     if [[ $? -ne 0 ]] ; then
         die "$HOME/.vnc2hpc doesn't exist on $MACHINE"
     else
-        inform "ENSURED \$HOME/.vnc2hpc exists"
+        inform "TESTING $HOME/.vnc2hpc" "ENSURED \$HOME/.vnc2hpc exists"
     fi
     SSH_SCP_OPTS=$(setup_ssh_scp_opts)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
@@ -985,6 +985,8 @@ fi
 # test connecting to remote and scraping vncserver -list output for user specific displays
 if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
     die "FAILURE CONNECTING TO:" "${MACHINE}" "active_vncserver_ports: ${active_vncserver_ports[@]}"
+elif [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
+    debug "NOT FINDING OTHER XVNC SESSIONS RUNNING ON" "${MACHINE}"
 else
     debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi
