@@ -44,7 +44,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="berry"
         VERSION="0.1.7"
         BERRY_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
-        ls -al ${BERRY_PREFIX}
+        echo "$BERRY_PREFIX" && ls -al ${BERRY_PREFIX}/bin/berry
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
