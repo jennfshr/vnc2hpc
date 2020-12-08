@@ -35,7 +35,7 @@ fi
 if [[ -d /foochangeme/usr/projects/hpcsoft/common ]] ; then
     INSTALL_PATH="/usr/projects/hpcsoft/common"
 else
-    INSTALL_PATH"$HOME/.vnc2hpc"
+    INSTALL_PATH="$HOME/.vnc2hpc"
 fi
 
 case "$VNC2HPC_WM" in
