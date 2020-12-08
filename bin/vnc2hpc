@@ -917,7 +917,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         FULL_FILE_PATH="{SOURCE}"
     else
         if $(which curl &>/dev/null) ; then
-            debug "CURL CMD: curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
+            debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
             curl -sL ${REPO_URL} >${FULL_FILE_PATH}
             if [[ $? -ne 0 ]] ; then 
                 die "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH} FAILED"
@@ -944,16 +944,16 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     SSH_SCP_OPTS=$(setup_ssh_scp_opts)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY_SCP=$(setup_gateway_scp ${GATEWAY} ${FULL_FILE_PATH} ${DEST})
-        if ! $GATEWAY_SCP ; then
+        if ! $GATEWAY_SCP &>/dev/null ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi
     else
         NO_GATEWAY_SCP=$(setup_nogateway_scp ${FULL_FILE_PATH} ${DEST})
-        if ! $NO_GATEWAY_SCP ; then
+        if ! $NO_GATEWAY_SCP &>/dev/null ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi 
     fi 
-    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xvfz ${FILE}" ; then
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} &>/dev/null && tar xfz ${FILE}" ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
         REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"
