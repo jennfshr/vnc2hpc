@@ -90,7 +90,7 @@ usage () {
 }
 
 # Some global variables
-TOP_PREFIX="/usr/projects/hpcsoft/common"
+TOP_PREFIX="/usr/projects/hpcsoft"
 if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_os ]] ; then
    OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
 else
