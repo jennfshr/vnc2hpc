@@ -37,7 +37,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="berry"
         VERSION="0.17.1"
         BERRY_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${BERRY_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w berry -p ${INSTALL_PATH}
+        [ -d ${BERRY_PREFIX} ] || bash -x ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w berry -p ${INSTALL_PATH}
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
@@ -59,7 +59,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="icewm"
         VERSION="1.9.2"
         ICEWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${ICEWM_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w icewm -p ${INSTALL_PATH}
+        [ -d ${ICEWM_PREFIX} ] | bash -x ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w icewm -p ${INSTALL_PATH} &>$HOME/.vnc2hpc/wmbuilder
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
 	ICEWM_SHARE="${ICEWM_PREFIX}/share"
