@@ -1,5 +1,6 @@
 #!/bin/sh
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
+echo "vnc2hpc install path: ${VNC2HPC_INSTALL_PATH}"
 [[ "${VNC2HPC_WM}x" != x ]] || exit -1 
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
@@ -58,7 +59,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="icewm"
         VERSION="1.9.2"
         ICEWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${ICEWM_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w icewm -p ${INSTALL_PATH} &>$HOME/.vnc2hpc/wmbuilder.log
+        [ -d ${ICEWM_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w icewm -p ${INSTALL_PATH}
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
 	ICEWM_SHARE="${ICEWM_PREFIX}/share"
