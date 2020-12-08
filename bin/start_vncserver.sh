@@ -20,6 +20,25 @@ fi
 cp -f ${remote_install_path}/bin/xstartup $HOME/.vnc2hpc/xstartup || echo "FAILURE"
 touch $LOG
 export VNC2HPC_WM="$windowmanager" 
+if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_os ]] ; then
+   OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
+else
+   OS=$(uname -o | sed 's/\//_/g')
+fi
+if [[ -x /usr/projects/hpcsoft/utilities/bin/sys_arch ]] ; then
+   ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
+else
+   ARCH=$(uname -p)
+fi
+case ${VNC2HPC_WM} in
+   berry*)	WM="berry"	;;
+   ice*)	WM="icewm"	;;
+   fvwm)	WM="fvwm"	;;
+   openbox)	WM="openbox"	;;
+esac
+if ! [[ -d /usr/projects/hpcsoft/${OS}/${ARCH}/${VNC2HPC_WM} ]] ; then
+   ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc
+fi
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 pixeldeptharg="-depth ${pixeldepth}" 
 echo "RUNNING: /usr/bin/vncserver ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG

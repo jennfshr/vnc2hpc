@@ -37,7 +37,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="berry"
         VERSION="0.17.1"
         BERRY_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${BERRY_PREFIX} ] || bash -x ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w berry -p ${INSTALL_PATH}
+        [ -d ${BERRY_PREFIX} ]
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
@@ -59,7 +59,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="icewm"
         VERSION="1.9.2"
         ICEWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${ICEWM_PREFIX} ] | bash -x ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w icewm -p ${INSTALL_PATH} &>$HOME/.vnc2hpc/wmbuilder
+        [ -d ${ICEWM_PREFIX} ]
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
 	ICEWM_SHARE="${ICEWM_PREFIX}/share"
@@ -77,7 +77,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="fvwm"
         VERSION="2.6.9"
         FVWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${FVWM_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w fvwm -p ${INSTALL_PATH}
+        [ -d ${FVWM_PREFIX} ]
         FVWM_BIN="${FVWM_PREFIX}/bin"
         FVWM_LIB="${FVWM_PREFIX}/lib"
 	FVWM_SHARE="${FVWM_PREFIX}/share"
@@ -102,7 +102,7 @@ case "$VNC2HPC_WM" in
         PRODUCT="openbox"
         VERSION="3.6.1"
         OBX_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
-        [ -d ${OBX_PREFIX} ] || ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w openbox -p ${INSTALL_PATH}
+        [ -d ${OBX_PREFIX} ]
         OBX_BIN="${OBX_PREFIX}/bin"
         OBX_LIB="${OBX_PREFIX}/lib"
 	OBX_SHARE="${OBX_PREFIX}/share"
