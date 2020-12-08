@@ -68,7 +68,7 @@ case ${VNC2HPC_WM} in
    openbox)	WM="openbox"	;;
 esac
 
-if ! [[ -d /usr/projects/hpcsoft/${OS}/${ARCH}/${VNC2HPC_WM} ]] ; then
+if ! [[ -d /usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM} ]] ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
 fi
 
