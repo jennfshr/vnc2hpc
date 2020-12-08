@@ -35,7 +35,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="berry"
         VERSION="0.17.1"
-        BERRY_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
+        BERRY_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
         [ -d ${BERRY_PREFIX} ]
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
@@ -57,7 +57,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="icewm"
         VERSION="1.9.2"
-        ICEWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
+        ICEWM_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
         [ -d ${ICEWM_PREFIX} ]
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
@@ -75,7 +75,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="fvwm"
         VERSION="2.6.9"
-        FVWM_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
+        FVWM_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
         [ -d ${FVWM_PREFIX} ]
         FVWM_BIN="${FVWM_PREFIX}/bin"
         FVWM_LIB="${FVWM_PREFIX}/lib"
@@ -100,7 +100,7 @@ case "$VNC2HPC_WM" in
         # Setup installation variables for reuse
         PRODUCT="openbox"
         VERSION="3.6.1"
-        OBX_PREFIX="${INSTALL_PATH}/${PRODUCT}/${OS}/${ARCH}/${VERSION}"
+        OBX_PREFIX="${INSTALL_PATH}/${OS}/${ARCH}/${PRODUCT}/${VERSION}"
         [ -d ${OBX_PREFIX} ]
         OBX_BIN="${OBX_PREFIX}/bin"
         OBX_LIB="${OBX_PREFIX}/lib"
