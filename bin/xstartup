@@ -1,6 +1,5 @@
 #!/bin/sh
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
-echo "vnc2hpc install path: ${VNC2HPC_INSTALL_PATH}"
 [[ "${VNC2HPC_WM}x" != x ]] || exit -1 
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
