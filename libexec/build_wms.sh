@@ -57,6 +57,7 @@ build () {
       [ -d $_prefix ] && rm -Rf $_prefix
    else
       [ -d $_prefix ] && echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"      
+      exit 0
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
    module load gcc && CC=gcc
