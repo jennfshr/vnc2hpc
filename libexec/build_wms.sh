@@ -53,11 +53,15 @@ build () {
    local _prefix="${5}"
    local _build_log="${6}"
    local _method="${7}"
-   if [[ ${REBUILD} == "true" ]] ; then
-      stat ${_prefix} &>/dev/null && rm -Rf $_prefix
+   if [[ "${REBUILD}x" != "x" ]] ; then
+      rm -Rf $_prefix
    else
-      stat ${_prefix} &>/dev/null && echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"      
-      exit 0
+      if [[ -d ${_prefix} ]] ; then
+         echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"
+         exit 0
+      else
+         echo "Installation at ${_prefix} doesn't exist- will build it"
+      fi
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
    module load gcc && CC=gcc
