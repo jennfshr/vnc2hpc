@@ -1057,7 +1057,7 @@ fi
 if [[ "${port}"x == x ]] ; then
     port=0
     FLOOR=1025
-    RANGE=65535
+    RANGE=$(( 65535-5900 ))
     while ! [[ ${all_active_vncserver_ports[@]} =~ '${port}' ]] && ( [ "$port" -le $FLOOR ] || [ "$port" -gt $RANGE ] ) ; do
         port=$RANDOM
     done
@@ -1126,7 +1126,7 @@ debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $port was instantiated
 remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
-              | awk -v exclude="awk" -v pat="Xvnc :*${PORT#0} " '($0 !~ exclude) && $0~pat{print $2}' )
+              | awk -v exclude="awk" -v pat="Xvnc :*$(( $PORT-5900 )) " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
