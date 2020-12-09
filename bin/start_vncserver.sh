@@ -10,7 +10,7 @@ remote_install_path="$7"
 vncserver_path="$8"
 
 # some conditionals
-if [[ "${9}x" != x ]] ; then DISPLAYPORT=":${9}" ; fi 
+if [[ "${9}x" != x ]] ; then DISPLAYPORT=":$(( 5900+${9} ))" ; fi 
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 
 # setup pixeldepth arg
