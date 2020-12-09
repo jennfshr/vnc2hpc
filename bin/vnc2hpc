@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="wmbuilder"
+VERSION="0.0.5"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
