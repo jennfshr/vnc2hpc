@@ -113,7 +113,7 @@ else
    ARCH=$(uname -p)
 fi
 
-VERSION="wmbuilder"
+VERSION="0.0.5"
 
 # Parse positional parameters passed to script
 #for arg in "$@"; do
