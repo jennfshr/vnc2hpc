@@ -24,7 +24,8 @@ grab () {
 
 fix_perms () {
    local _PREFIX_PATH="${1}"
-   chgrp -Rf hpcsoft ${_PREFIX_PATH%\/*} || exit 2
+   local _group="${2}"
+   chgrp -Rf ${_group} ${_PREFIX_PATH%\/*} || exit 2
    chmod -Rf g+wrX,a+rX ${_PREFIX_PATH%\/*} || exit 2
 }
 
@@ -74,7 +75,7 @@ build () {
    [ -x ./autogen.sh ] && ./autogen.sh &>> ${_build_log} || echo "No autogen for ${_product_name} at ${LINENO}" &>> ${_build_log}
    [ -x ./configure ] &&  ./configure --prefix=${_prefix} &>> ${_build_log} || echo "No configure for ${_product_name} at ${LINENO}" &>> ${_build_log}
    make -j CC=$CC PREFIX=${_prefix} install &>> ${_build_log} || echo "Make failed for ${_product_name} at ${LINENO}" &>> ${_build_log}
-   fix_perms ${_prefix} &>> ${_build_log} || echo "FAILURE AT: ${LINENO}" &>> ${_build_log}
+   if [[ "${GROUP}x" != "x" ]] ; then fix_perms ${_prefix} ${GROUP} &>> ${_build_log} ; fi || echo "FAILURE AT: ${LINENO}" &>> ${_build_log}
    ( [ -d ${_prefix} ] && echo "**** Finished installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log} ) || echo "****  Failed installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log}
    module unload gcc
    popd &>/dev/null #pop back out of source
@@ -92,6 +93,7 @@ usage () {
                             [-p|--prefix <string>]                     	        (optional) Default: ${TOP_PREFIX}
 			    [-h|--help]
                             [-r|--rebuild]					(optional) Default: FALSE
+                            [-g|--group]					(optional)
 
           Questions?        <vnc2hpc@lanl.gov>
           Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
@@ -128,9 +130,10 @@ VERSION="wmbuilder"
 
 OPTIND=1
 
-while getopts "rdD:p:w:hs:-" opt ; do
+while getopts "rdg:D:p:w:hs:-" opt ; do
     case "${opt}" in
         d)  DEBUG="true"					;;
+        g)  GROUP="${OPTARG}"					;;
         r)  REBUILD="true"					;;
         h)  usage && exit 0					;;
         w)  WINDOWMANAGER=( "${OPTARG}" "${WINDOWMANAGER[@]}" )	;;
