@@ -69,8 +69,12 @@ case ${VNC2HPC_WM} in
    openbox)	WM="openbox"	;;
 esac
 
-if ! [[ -d /usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM} ]] ; then
+if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
+   if [ $? -ne 0 ] then
+      echo "Build of $WM failed on $(hostname)"
+      exit 1
+   fi
 fi
 
 echo "RUNNING: ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
