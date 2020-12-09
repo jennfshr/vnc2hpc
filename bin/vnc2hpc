@@ -122,7 +122,7 @@ check_machine () {
 check_vncserver () {
     local loc_vncserver_path
     loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-        "which vncserver 2>/dev/null || find /opt/ -name \"vncserver\" -executable 2>/dev/null")
+        "which vncserver || find /opt/ -name \"vncserver\" -executable 2>/dev/null" &>/dev/null)
     echo "$loc_vncserver_path"
 }
 
@@ -976,7 +976,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi 
     fi 
-    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} &>/dev/null && tar xfz ${FILE}" ; then
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
         REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"

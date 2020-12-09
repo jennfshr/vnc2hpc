@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # process positional parameters
 vnc2hpc_version="$1"
 windowmanager="$2"
