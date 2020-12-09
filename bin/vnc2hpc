@@ -664,7 +664,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|TigerVNC|^$' \
+    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
                                                           | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
@@ -1007,7 +1007,7 @@ fi
 if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
     die "FAILURE CONNECTING TO:" "${MACHINE}" "active_vncserver_ports: ${active_vncserver_ports[@]}"
 elif [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
-    debug "NOT FINDING OTHER XVNC SESSIONS RUNNING ON" "${MACHINE}"
+    debug "NOT FINDING OTHER XVNC SESSIONS RUNNING FOR $MACHUSER" "${MACHINE}"
 else
     debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
 fi
