@@ -71,7 +71,7 @@ esac
 
 if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
-   if [ $? -ne 0 ] then
+   if [ $? -ne 0 ] ; then
       echo "Build of $WM failed on $(hostname)"
       exit 1
    fi
