@@ -77,7 +77,7 @@ echo "RUNNING: ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixelde
 ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
 if [[ $? -ne 0 ]] ; then 
-   displayport=FAILURE
+   displayport="FAILURE: $(tail -n 1 ${LOG})"
    RESULT="FAIL"
 else  
    displayport=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
