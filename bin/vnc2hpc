@@ -645,7 +645,7 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"/usr/bin/Xvnc :([0-9]+)\" \
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" \
                                                    | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
