@@ -44,7 +44,6 @@ case "$VNC2HPC_WM" in
         PRODUCT="berry"
         VERSION="0.1.7"
         BERRY_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
-        echo "$BERRY_PREFIX" && ls -al ${BERRY_PREFIX}/bin/berry
         BERRY_BIN="${BERRY_PREFIX}/bin"
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
@@ -83,7 +82,6 @@ case "$VNC2HPC_WM" in
         PRODUCT="fvwm"
         VERSION="2.6.9"
         FVWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
-        echo "FVWM_PREFIX is ${FVWM_PREFIX}"
         FVWM_BIN="${FVWM_PREFIX}/bin"
         FVWM_LIB="${FVWM_PREFIX}/lib"
 	FVWM_SHARE="${FVWM_PREFIX}/share"
