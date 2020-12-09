@@ -87,5 +87,6 @@ else
    displayport=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
    RESULT="PASS"
 fi 
-echo $(( $displayport+5900 ))
+PORT=$(( $displayport+5900 ))
+echo $PORT
 echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientos} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
