@@ -56,10 +56,10 @@ usage () {
 check_network () {
     local loc_network
     case "${MACHINE}" in
-        *loginy*|*fey*)        loc_network="YELLOW"        ;;
-        ic*|fi*|cy*|tr*|vm*)   loc_network="RED"           ;;
-        wtrw*)                 loc_network="invalid"       ;;
-	*)                     loc_network="TURQUOISE"     ;;
+        *loginy*|*fey*|*darwin*)	loc_network="YELLOW"        ;;
+        ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           ;;
+        wtrw*)                 		loc_network="invalid"       ;;
+	*)                     		loc_network="TURQUOISE"     ;;
     esac
     echo "${loc_network}"
 }
@@ -105,6 +105,23 @@ check_machine () {
         loc_machine="invalid"
     fi
     echo "$loc_machine"
+}
+
+#######################################
+# Check vncserver on remote
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+# Arguments:
+#   None
+# Outputs:
+#   Writes "/path/to/vncserver" to stdout
+#######################################
+check_vncserver () {
+    local loc_vncserver_path
+    loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
+        "which vncserver 2>/dev/null || find /opt/ -name \"vncserver\" -executable 2>/dev/null")
+    echo "$loc_vncserver_path"
 }
 
 #######################################
@@ -610,7 +627,7 @@ EOF'
 #######################################
 kill_vnc () {
     LOCAL_PORT=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} vncserver -kill :${LOCAL_PORT} 2>&1)
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${LOCAL_PORT} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -647,7 +664,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_vncservers () {
-    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "vncserver -list|egrep -v 'DISPLAY|TigerVNC|^$' \
+    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|TigerVNC|^$' \
                                                           | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
     for item in ${vncservers_list[@]} ; do
         VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
@@ -898,6 +915,10 @@ inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
 
+# check remote vncserver install path
+VNCSERVER_PATH=$(check_vncserver)
+debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
+
 # check remote install path for vnc2hpc backend
 check_remote_install_path || NO_BACKEND="true"
 
@@ -1053,9 +1074,9 @@ port=${port#0}
 # if the port requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\"\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${PORT}\"" 2>&-)
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
