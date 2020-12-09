@@ -76,12 +76,12 @@ fi
 echo "RUNNING: ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
 ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
-if [[ $? -ne 0 ]] ; then 
-   displayport=FAILURE
-   RESULT="FAIL"
-else  
+#if [[ $? -ne 0 ]] ; then 
+#   displayport=FAILURE
+#   RESULT="FAIL"
+#else  
    displayport=$(awk -F: '/^New/ {print $NF}' $LOG) 
    RESULT="PASS"
-fi 
+#fi 
 echo $displayport
 echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientos} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=$(which vncserver) DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
