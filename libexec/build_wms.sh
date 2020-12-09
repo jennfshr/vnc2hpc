@@ -53,10 +53,10 @@ build () {
    local _prefix="${5}"
    local _build_log="${6}"
    local _method="${7}"
-   if [[ $REBUILD == "true" ]] ; then
-      [ -d $_prefix ] && rm -Rf $_prefix
+   if [[ ${REBUILD} == "true" ]] ; then
+      stat ${_prefix} && rm -Rf $_prefix
    else
-      [ -d $_prefix ] && echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"      
+      stat ${_prefix} && echo "Installation at $_prefix already exists- to rebuild, pass the -r flag to the script"      
       exit 0
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
