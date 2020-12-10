@@ -568,7 +568,7 @@ control_master_connection () {
 # Outputs:
 #   None
 #######################################
-checkvncpasswd () {
+check_vncpasswd () {
     # need a $HOME/.vnc directory if the first use
     if ! $( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "[ -d \$HOME/.vnc ]" 2>&- ); then
         ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
@@ -810,7 +810,7 @@ done
 
 #######################################
 # Inform vnc2hpc version used
-inform "VNC2HPC INFO:" "Version v${VERSION}" 
+inform "VNC2HPC INFO:" "Version ${VERSION}" 
 
 # Check out the vncclient
 if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
@@ -901,8 +901,9 @@ fi
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
 # check vncpasswd
-checkvncpasswd
-
+set -x 
+check_vncpasswd
+set +x
 # sanity check Machine arg after running check_machine
 if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
     usage
