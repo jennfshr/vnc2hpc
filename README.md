@@ -122,7 +122,7 @@ Here's one way to do that:
 
 	`source ~/.bashrc`
 
-	`echo ${VNCV}`
+	`echo "${VNCV}"`
 
 * Note: this variable should be now set to be exported in your shell environment whenever you login to the system. If you set your environment up this way, you can simply use the variable to access the path to your viewer, rather than supplying the full path*
 
