@@ -132,6 +132,23 @@ check_vncserver () {
 }
 
 #######################################
+# Check remote SHELL
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+# Arguments:
+#   None
+# Outputs:
+#   Writes "SHELL" to stdout
+######################################
+check_remote_shell () {
+    local loc_remote_shell
+    loc_remote_shell=$( ${GATEWAY_SSH}${NO_GATEWAY_SSH} \
+        "echo \$SHELL")
+    echo "${loc_remote_shell}"
+}
+
+#######################################
 # Setup ssh options for control master
 # Globals:
 #   SSH_SOCKET
@@ -543,35 +560,41 @@ check_vncpasswd () {
         ${DISABLE_XTRACE}
 
         inform "VNC passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
-        inform "Do you want to setup a password now? [Y/N]"
-        read PWREPLY
+        if [[ ! "${REMOTE_SHELL}" =~ tcsh ]] ; then
+            inform "Do you want to setup a password now? [Y/N]"
+            read PWREPLY
 
-        case $PWREPLY in
-            Y*|y*)
-                inform "Enter your password (at least six characters long, up to eight)"
-                read -s VNCPW
-                inform "Reenter your password to confirm"
-                read -s REVNCPW
-                if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
-                    inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-#                    echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
-                eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
+            case $PWREPLY in
+                Y*|y*)
+                    inform "Enter your password (at least six characters long, up to eight)"
+                    read -s VNCPW
+                    inform "Reenter your password to confirm"
+                    read -s REVNCPW
+                    if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
+                        inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
+#                        echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
+                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
 echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
 EOF'
-                else
-                    die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
-                fi
-                perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
-                debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
-            ;;
-            N*|n*)
-                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
-            ;;
-            *)
-                die "A password to use your vncserver on ${MACHINE} is required!"
-            ;;
-        esac
-        ${ENABLE_XTRACE}
+                    else
+                        die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
+                    fi
+                    perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
+                    debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
+                ;;
+                N*|n*)
+                    die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
+                ;;
+                *)
+                    die "A password to use your vncserver on ${MACHINE} is required!"
+                ;;
+            esac
+            ${ENABLE_XTRACE}
+        else
+            message -r "TCSH USERS NEED TO SET THEIR PASSWORD MANUALLY!"
+            message -r "LOGIN TO ${MACHINE} AND RUN vncpasswd"
+            die "${REMOTE_SHELL} VNCPASSWD SETTING IS NOT SUPPORTED"
+        fi
     fi
 }
 
@@ -721,7 +744,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*$(( ${PORT#0}-5900 )).log" >>${LOGDIR}/${SERVER_LOG_FILE}
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*$(( ${PORT#0}-5900 )).log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
     fi 
 }
 
@@ -807,7 +830,7 @@ inform "PIXELDEPTH:" "${PIXELDEPTH}"
 
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
-if [[ "${NETWORK,,}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
+if [[ "${NETWORK}" =~ INVALID ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
@@ -868,6 +891,10 @@ inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
 
+# check the remote shell
+REMOTE_SHELL=$(check_remote_shell)
+debug "$MACHINE $MACHUSER SHELL:" "${REMOTE_SHELL}"
+
 # check vncpasswd
 set -x 
 check_vncpasswd
@@ -893,7 +920,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     FULL_FILE_PATH="/tmp/${FILE}"
     debug "DOWNLOAD TO FILE:" "${FULL_FILE_PATH}"
     DEST="\$HOME/.vnc2hpc/."
-    debug "SCP-ING TO:" "$DEST"
+    debug "COPYING ${FULL_FILE_PATH} TO:" "$DEST"
     export no_proxy=lanl.gov
     # get the repo locally
     if [[ "${SOURCE}x" != x ]] ; then
