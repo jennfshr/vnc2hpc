@@ -158,9 +158,10 @@ check_remote_shell () {
 #   Writes $loc_ssh_opts to stdout
 #######################################
 setup_ssh_opts () {
+    # first glance, -x is easily abstracted to the common settings, but that prevents scp from working
     mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
-    loc_ssh_opts+=" -o LogLevel=QUIET"
+    loc_ssh_opts+="-o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
@@ -320,7 +321,7 @@ setup_gateway_ssh () {
 #######################################
 setup_gateway_ssh_control_master () {
     local loc_gateway="$1"
-    echo "ssh $(setup_ssh_opts master) ${MACHUSER}@{loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    echo "ssh $(setup_ssh_opts master) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
 }
 
 #######################################
@@ -356,7 +357,7 @@ setup_gateway_scp () {
     local loc_gateway="$1"
     local loc_file="$2"
     local loc_dest="$3"
-    echo "scp ${SSH_SCP_OPTS} ${loc_file} ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE}:${loc_dest}"
+    echo "scp ${SSH_SCP_OPTS} ${loc_file} ${MACHUSER}@${loc_gateway}:${MACHINE}:${loc_dest}"
 }
 #######################################
 # Ssh command check gateway control master
@@ -554,47 +555,43 @@ check_vncpasswd () {
     if ! $( ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "[ -s  \$HOME/.vnc/passwd ] || exit 1" ); then
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
-            DISABLE_XTRACE="set +x"
+            #DISABLE_XTRACE="set +x"
             ENABLE_XTRACE="set -x"
         fi
         ${DISABLE_XTRACE}
 
         inform "VNC passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
-        if [[ ! "${REMOTE_SHELL}" =~ tcsh ]] ; then
-            inform "Do you want to setup a password now? [Y/N]"
-            read PWREPLY
+        inform "Do you want to setup a password now? [Y/N]"
+        read PWREPLY
 
-            case $PWREPLY in
-                Y*|y*)
-                    inform "Enter your password (at least six characters long, up to eight)"
-                    read -s VNCPW
-                    inform "Reenter your password to confirm"
-                    read -s REVNCPW
-                    if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
-                        inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-#                        echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
-                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
+        case $PWREPLY in
+            Y*|y*)
+                inform "Enter your password (at least six characters long, up to eight)"
+                read -s VNCPW
+                inform "Reenter your password to confirm"
+                read -s REVNCPW
+                if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
+                    inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
+                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} /bin/bash <<EOF
 echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
 EOF'
-                    else
-                        die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
-                    fi
-                    perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
-                    debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
-                ;;
-                N*|n*)
-                    die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
-                ;;
-                *)
-                    die "A password to use your vncserver on ${MACHINE} is required!"
-                ;;
-            esac
-            ${ENABLE_XTRACE}
-        else
-            message -r "TCSH USERS NEED TO SET THEIR PASSWORD MANUALLY!"
-            message -r "LOGIN TO ${MACHINE} AND RUN vncpasswd"
-            die "${REMOTE_SHELL} VNCPASSWD SETTING IS NOT SUPPORTED"
-        fi
+                else
+                    die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
+                fi
+                if ! ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd" &>/dev/null; then
+                    die "SETTING VNCPASSWD FAILED!"
+                fi 
+                perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
+                debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
+            ;;
+            N*|n*)
+                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
+            ;;
+            *)
+                die "A password to use your vncserver on ${MACHINE} is required!"
+            ;;
+        esac
+        ${ENABLE_XTRACE}
     fi
 }
 
@@ -631,7 +628,8 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" \
+                                                   | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -1066,7 +1064,6 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
            \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
            \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"")
-           #\"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"" 2>&-)
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then

@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+set -x
 # process positional parameters
 vnc2hpc_version="$1"
 windowmanager="$2"
@@ -85,7 +86,11 @@ if [[ $? -ne 0 ]] ; then
    RESULT="FAIL"
 else  
    displayport=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
-   RESULT="PASS"
+   if [[ "${displayport}" =~ ^[0-9]+$ ]] ; then
+      RESULT="PASS"
+   else
+      RESULT="FAIL"
+   fi
 fi 
 PORT=$(( $displayport+5900 ))
 echo $PORT
