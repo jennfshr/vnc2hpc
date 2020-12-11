@@ -59,8 +59,9 @@ check_network () {
         *loginy*|*fey*)			loc_network="YELLOW"    	;;
         *darwin*)			loc_network="DARWIN"		;;
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
-        wtrw*)                 		loc_network="invalid"       	;;
-	*)                     		loc_network="TURQUOISE"     	;;
+        wtrw*)                 		loc_network="INVALID"       	;;
+	gr*|ba*|cp-login*|ko*|sn*)	loc_network="TURQUOISE"     	;;
+        *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
 }
@@ -99,7 +100,7 @@ check_machine () {
                 loc_machine="${MACHINE}1"
             fi
         elif [[ "${MACHINE}" =~ wtrw ]] ; then
-            loc_machine="invalid"
+            loc_machine="INVALID"
         else
             loc_machine="${MACHINE}"
         fi
@@ -165,25 +166,6 @@ setup_ssh_opts () {
     esac 
     echo "$loc_ssh_opts"
 }
-
-########################################
-## Setup ssh options for scp
-## Globals:
-##   SSH_SOCKET
-## Arguments:
-##   None
-## Outputs:
-##   Writes $loc_ssh_opts to stdout
-########################################
-#setup_ssh_scp_opts () {
-#    mkdir -p ~/.ssh/connections
-#    local loc_ssh_opts=""
-#    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
-#    loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-#    loc_ssh_opts+=" -o LogLevel=QUIET"
-#    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
-#    echo "$loc_ssh_opts"
-#}
 
 #######################################
 # Setup port/host string for tunnels
@@ -473,10 +455,10 @@ warning () {
 #######################################
 die () {
     remotelog
-#    if kill -0 ${tunnel_pid} &>/dev/null ; then
-#        kill ${tunnel_pid} &>/dev/null
-#    fi
-#    $(${CONTROL_KILL})
+    if kill -0 ${tunnel_pid} &>/dev/null ; then
+        kill ${tunnel_pid} &>/dev/null
+    fi
+    $(${CONTROL_KILL})
     message -r "ERROR" "$1" "$2" "$3" >&2
     exit 2
 }
@@ -568,9 +550,7 @@ check_vncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} <<EOF
-echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
-EOF'
+                    echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
