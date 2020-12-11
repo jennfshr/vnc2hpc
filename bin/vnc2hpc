@@ -138,78 +138,52 @@ check_vncserver () {
 setup_ssh_opts () {
     mkdir -p ~/.ssh/connections
     local loc_ssh_opts=""
-    loc_ssh_opts+="-x"
     loc_ssh_opts+=" -o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
     case "$1" in
         master)
+            loc_ssh_opts+=" -x"
             loc_ssh_opts+=" -M"
             loc_ssh_opts+=" -N"
             loc_ssh_opts+=" -f"
             loc_ssh_opts+=" -o ControlPersist=yes"
         ;;
         command)
+            loc_ssh_opts+=" -x"
             loc_ssh_opts+=" -tt"
             loc_ssh_opts+=" -N"
             loc_ssh_opts+=" -f"
+        ;;
+        vncpasswd)
+            loc_ssh_opts+=" -x"
+        ;;
+        *)
+            loc_ssh_opts+=""
         ;;
     esac 
     echo "$loc_ssh_opts"
 }
 
-#######################################
-# Setup ssh options for scp
-# Globals:
-#   SSH_SOCKET
-# Arguments:
-#   None
-# Outputs:
-#   Writes $loc_ssh_opts to stdout
-#######################################
-setup_ssh_scp_opts () {
-    mkdir -p ~/.ssh/connections
-    local loc_ssh_opts=""
-    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
-    loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o LogLevel=QUIET"
-    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
-    echo "$loc_ssh_opts"
-}
-
-#######################################
-# Setup ssh options for control master
-# Globals:
-#   SSH_SOCKET
-# Arguments:
-#   type (master, command, vncpasswd)
-# Outputs:
-#   Writes $loc_ssh_opts to stdout
-#######################################
-setup_ssh_opts () {
-    mkdir -p ~/.ssh/connections
-    local loc_ssh_opts=""
-    loc_ssh_opts+="-x"
-    loc_ssh_opts+=" -o LogLevel=QUIET"
-    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
-    loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
-    case "$1" in
-        master)
-            loc_ssh_opts+=" -M"
-            loc_ssh_opts+=" -N"
-            loc_ssh_opts+=" -f"
-            loc_ssh_opts+=" -o ControlPersist=yes"
-        ;;
-        command)
-            loc_ssh_opts+=" -tt"
-            loc_ssh_opts+=" -N"
-            loc_ssh_opts+=" -f"
-        ;;
-    esac
-    echo "$loc_ssh_opts"
-}
+########################################
+## Setup ssh options for scp
+## Globals:
+##   SSH_SOCKET
+## Arguments:
+##   None
+## Outputs:
+##   Writes $loc_ssh_opts to stdout
+########################################
+#setup_ssh_scp_opts () {
+#    mkdir -p ~/.ssh/connections
+#    local loc_ssh_opts=""
+#    loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
+#    loc_ssh_opts+=" -o StrictHostKeyChecking=no"
+#    loc_ssh_opts+=" -o LogLevel=QUIET"
+#    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
+#    echo "$loc_ssh_opts"
+#}
 
 #######################################
 # Setup port/host string for tunnels
@@ -571,7 +545,7 @@ control_master_connection () {
 check_vncpasswd () {
     # need a $HOME/.vnc directory if the first use
     if ! $( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "[ -d \$HOME/.vnc ]" 2>&- ); then
-        ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc &>/dev/null" 2>&-
+        ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc" 2>&-
     fi
     # test whether the vncpasswd file exists but is empty
     if ! $( ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "[ -s  \$HOME/.vnc/passwd ] || exit 1" ); then
@@ -594,8 +568,8 @@ check_vncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
-echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
+                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} <<EOF
+echo ${VNCPW} | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
 EOF'
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
@@ -761,7 +735,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat ~/.vnc/${MACHINE//\.*/}*\:*${PORT#0}.log 2>&-" >>${LOGDIR}/${SERVER_LOG_FILE}
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*$(( ${PORT#0}-5900 )).log" >>${LOGDIR}/${SERVER_LOG_FILE}
     fi 
 }
 
@@ -804,7 +778,7 @@ while getopts "bc:m:P:p:u:w:g:dhrks:-" opt ; do
         g)  GEOMETRY="${OPTARG}"                                                                   ;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
         s)  SOURCE="${OPTARG}"                                                                     ;;
-        -)  continue                                                                               ;;
+        -)                                                                                         ;;
     esac
 done
 
@@ -900,16 +874,6 @@ fi
 
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
-# check vncpasswd
-set -x 
-check_vncpasswd
-set +x
-# sanity check Machine arg after running check_machine
-if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
-    usage
-    die "PASS -m <frontend> TO ${0//\.\\/}!" "RECEIVED:${MACHINE}"
-fi
-
 # some client side logs, the second one is only in the event of a failure
 LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
@@ -917,6 +881,16 @@ CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
 inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
+
+# check vncpasswd
+set -x 
+check_vncpasswd
+
+# sanity check Machine arg after running check_machine
+if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
+    usage
+    die "PASS -m <frontend> TO ${0//\.\\/}!" "RECEIVED:${MACHINE}"
+fi
 
 # check remote vncserver install path
 VNCSERVER_PATH=$(check_vncserver)
@@ -965,7 +939,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     else
         inform "TESTING $HOME/.vnc2hpc" "ENSURED \$HOME/.vnc2hpc exists"
     fi
-    SSH_SCP_OPTS=$(setup_ssh_scp_opts)
+    SSH_SCP_OPTS=$(setup_ssh_opts scp)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY_SCP=$(setup_gateway_scp ${GATEWAY} ${FULL_FILE_PATH} ${DEST})
         if ! $GATEWAY_SCP &>/dev/null ; then
