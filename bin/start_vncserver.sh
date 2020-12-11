@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 # process positional parameters
 vnc2hpc_version="$1"
 windowmanager="$2"
@@ -70,7 +69,7 @@ case ${VNC2HPC_WM} in
    openbox)	WM="openbox"	;;
 esac
 
-if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] ; then
+if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || ! $(which $VNC2HPC_WM) &>/dev/null ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
    if [ $? -ne 0 ] ; then
       echo "Build of $WM FAILURE on $(hostname)"
@@ -92,6 +91,6 @@ else
       RESULT="FAIL"
    fi
 fi 
-PORT=$(( $displayport+5900 ))
+PORT=$displayport
 echo $PORT
-echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientos} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
+echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
