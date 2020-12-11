@@ -84,26 +84,30 @@ check_machine () {
     local loc_machine_index
     if [[ "${MACHINE}"x != x ]] ; then
         if ! [[ "$MACHINE" =~ [0-9] ]] && ! [[ "${MACHINE}" =~ cp ]] && ! [[ "${MACHINE}" =~ th ]]  ; then
+            IGNORE="false"
             case "${NETWORK}" in
                 YELLOW)    netpart="128.165" ;;
                 DARWIN)    netpart="192.168" ;;
                 TURQUOISE) netpart="204.121" ;;
                 RED)       netpart="10.160"  ;;
+                UNKNOWN)   IGNORE="true"     ;;
             esac
-            loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-                "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE//-*}-fe*.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
-            if [[ ${#loc_machines[@]} -gt 0 ]] ; then
-                loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
-                loc_machine="${loc_machines[$loc_machine_index]}"
+            if [[ "${IGNORE}" != "true" ]] ; then
+                loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
+                    "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE//-*}-fe*.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
+                if [[ ${#loc_machines[@]} -gt 0 ]] ; then
+                    loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
+                    loc_machine="${loc_machines[$loc_machine_index]}"
+                else
+                # try to access "${MACHINE}1" before failing
+                    loc_machine="${MACHINE}1"
+                fi
+            elif [[ "${MACHINE}" =~ wtrw ]] ; then
+                loc_machine="INVALID"
             else
-            # try to access "${MACHINE}1" before failing
-                loc_machine="${MACHINE}1"
+                loc_machine="${MACHINE}"
             fi
-        elif [[ "${MACHINE}" =~ wtrw ]] ; then
-            loc_machine="INVALID"
-        else
-            loc_machine="${MACHINE}"
-        fi
+        fi 
     else
         loc_machine="invalid"
     fi
@@ -550,7 +554,10 @@ check_vncpasswd () {
                 read -s REVNCPW
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
+#                    echo ${VNCPW} | ${GATEWAY_SSH}${NO_GATEWAY_SSH}" "${REMOTE_INSTALL_PATH}/libexec/set_vncpasswd.sh"
+                eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}<<EOF
+echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
+EOF'
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
@@ -601,8 +608,7 @@ kill_vnc () {
 #   ${LOCAL_VNC_CONS[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" \
-                                                   | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
     done
     echo "${LOCAL_VNC_CONS[@]}"
@@ -801,7 +807,7 @@ inform "PIXELDEPTH:" "${PIXELDEPTH}"
 
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
-if [[ "${NETWORK}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
+if [[ "${NETWORK,,}" =~ invalid ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
@@ -1116,11 +1122,11 @@ else
 fi
 
 # killing the tunnel to $MACHINE
-#if kill -0 ${tunnel_pid} &>/dev/null ; then
-#    kill ${tunnel_pid} &>/dev/null
-#fi
+if kill -0 ${tunnel_pid} &>/dev/null ; then
+    kill ${tunnel_pid} &>/dev/null
+fi
 
 remotelog
-#$(${CONTROL_KILL})
+$(${CONTROL_KILL})
 
 exit
