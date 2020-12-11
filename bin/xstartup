@@ -1,5 +1,6 @@
 #!/bin/sh
-set -x 
+exec > >(tee -ai $HOME/.vnc2hpc.out >&1)
+exec 2> >(tee -ai $HOME/.vnc2hpc.err >&2)
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
 [[ "${VNC2HPC_WM}x" != x ]] || exit -1 
 unset SESSION_MANAGER
