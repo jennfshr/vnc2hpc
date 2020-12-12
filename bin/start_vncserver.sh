@@ -69,7 +69,9 @@ case ${VNC2HPC_WM} in
    openbox)	WM="openbox"	;;
 esac
 
-if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || [[ -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM} || ! $(which $VNC2HPC_WM) &>/dev/null ; then
+if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || \
+     [[ -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM} ]] || \
+     ! $(which $VNC2HPC_WM) &>/dev/null ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
    if [ $? -ne 0 ] ; then
       echo "Build of $WM FAILURE on $(hostname)"
