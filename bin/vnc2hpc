@@ -30,7 +30,7 @@ usage () {
                             [-c|--client <vncclient>]				(required)
 			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
                             [-d|--debug]					(optional)
-	                    [-p|--port <display port>]				(optional)
+	                    [-p|--display <display port>]			(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
@@ -194,14 +194,14 @@ setup_ssh_opts () {
 # Globals:
 #   MACHINE
 #   MACHUSER
-#   PORT
+#   DISPLAY
 # Arguments:
 #   None
 # Outputs:
 #   Writes $TUNNELHOST to stdout
 #######################################
 setup_tunnel_host () {
-    echo "-L $(( 5900+${PORT} )):localhost:$(( 5900+${PORT} ))"
+    echo "-L $(( 5900+${DISPLAY} )):localhost:$(( 5900+${DISPLAY} ))"
 }
 
 #######################################
@@ -394,7 +394,7 @@ kill_gateway_control_master_connection () {
 #######################################
 # Tunnel to host
 # Globals:
-#   PORT
+#   DISPLAY
 #   MACHUSER
 #   MACHINE
 #   TUNNEL_HOST
@@ -410,7 +410,7 @@ setup_nogateway_tunnel () {
 #######################################
 # Tunnel to host via gateway
 # Globals:
-#   PORT
+#   DISPLAY
 #   MACHUSER
 #   MACHINE
 #   TUNNEL_HOST
@@ -602,15 +602,15 @@ EOF'
 #   NO_GATEWAY_SSH
 #   MACHUSER
 #   MACHINE
-#   PORT
+#   DISPLAY
 # Arguments:
-#   LOCAL_PORT
+#   LOCAL_DISPLAY
 # Outputs:
 #   echos stdout from vncserver
 #######################################
 kill_vnc () {
-    LOCAL_PORT=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${LOCAL_PORT} 2>&1)
+    LOCAL_DISPLAY=$1
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${LOCAL_DISPLAY} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -732,7 +732,7 @@ clientOS () {
 #   NO_GATEWAY_SSH
 #   MACHUSER
 #   MACHINE
-#   PORT
+#   DISPLAY
 #   LOGDIR
 #   SERVER_LOG_FILE
 # Arguments:
@@ -742,7 +742,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*${PORT#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*${DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
     fi 
 }
 
@@ -752,19 +752,19 @@ echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
-        *-cl*nt)       set -- "$@" "-c"   ;;
-        *-debug)       set -- "$@" "-d"   ;;
-        *-help)        set -- "$@" "-h"   ;;
-        *-keep)        set -- "$@" "-k"   ;;
-        *-machine)     set -- "$@" "-m"   ;;
-        *-port)        set -- "$@" "-p"   ;;
-        *-reconnect)   set -- "$@" "-r"   ;;
-        *-user)        set -- "$@" "-u"   ;;
-        *-wm*)         set -- "$@" "-w"   ;;
-        *-geo*)        set -- "$@" "-g"   ;;
-        *-depth*)      set -- "$@" "-P"   ;;
-        *-source)      set -- "$@" "-s"   ;;
-        *)             set -- "$@" "$arg" ;;
+        *-cl*nt)	set -- "$@" "-c"   ;;
+        *-debug)	set -- "$@" "-d"   ;;
+        *-help)		set -- "$@" "-h"   ;;
+        *-keep)		set -- "$@" "-k"   ;;
+        *-machine)	set -- "$@" "-m"   ;;
+        *-display)	set -- "$@" "-p"   ;;
+        *-reconnect)	set -- "$@" "-r"   ;;
+        *-user)		set -- "$@" "-u"   ;;
+        *-wm*)		set -- "$@" "-w"   ;;
+        *-geo*)		set -- "$@" "-g"   ;;
+        *-depth*)	set -- "$@" "-P"   ;;
+        *-source)	set -- "$@" "-s"   ;;
+        *)		set -- "$@" "$arg" ;;
     esac
 done
 
@@ -772,20 +772,20 @@ OPTIND=1
 
 while getopts "bc:m:P:p:u:w:g:dhrks:-" opt ; do
     case "${opt}" in
-        b)  BACKDOOR=true                                                                          ;;
-        d)  DEBUG=true                                                                             ;;
-        p)  port="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at port $port"    ;;
-        m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               ;;
-        c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    ;;
-        k)  KEEP_VNC_SERVER_ACTIVE=true                                                            ;;
-        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          ;;
-        h)  usage && exit 0                                                                        ;;
-        u)  MACHUSER="${OPTARG}"                                                                   ;;
-        w)  WINDOWMANAGER="${OPTARG}"                                                              ;;
-        g)  GEOMETRY="${OPTARG}"                                                                   ;;
-        P)  PIXELDEPTH="${OPTARG}"                                                                 ;;
-        s)  SOURCE="${OPTARG}"                                                                     ;;
-        -)                                                                                         ;;
+        b)  BACKDOOR=true                                                                          			;;
+        d)  DEBUG=true                                                                             			;;
+        p)  display="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at display $display"		;;
+        m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               			;;
+        c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    			;;
+        k)  KEEP_VNC_SERVER_ACTIVE=true                                                            			;;
+        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          			;;
+        h)  usage && exit 0                                                                        			;;
+        u)  MACHUSER="${OPTARG}"                                                                   			;;
+        w)  WINDOWMANAGER="${OPTARG}"                                                              			;;
+        g)  GEOMETRY="${OPTARG}"                                                                   			;;
+        P)  PIXELDEPTH="${OPTARG}"                                                                 			;;
+        s)  SOURCE="${OPTARG}"                                                                     			;;
+        -)                                                                                         			;;
     esac
 done
 
@@ -971,7 +971,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
 fi   
     
 all_active_vncserver_ports=( $(get_vnc_connections) )
-debug "ALL USERS VNCSERVER PORTS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
+debug "ALL USERS VNCSERVER DISPLAYS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
 active_vncserver_ports=( $(list_vncservers) )
@@ -1001,20 +1001,20 @@ fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
 if [[ "${RECONNECT}"x != x ]] ; then
-    if [[ "${port}"x == x ]] ; then
-        inform "RECONNECT REQUESTED WITHOUT PORT ARGUMENT"
-	port=${active_vncserver_ports}
-	inform "ATTEMPTING TO RECONNECT TO PORT ${port}"
-    elif ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
-        die "PORT $port NOT RUNNING VNCSERVER PORT FOR" "$MACHUSER on ${MACHINE}"
+    if [[ "${display}"x == x ]] ; then
+        inform "RECONNECT REQUESTED WITHOUT DISPLAY ARGUMENT"
+        display=${active_vncserver_ports}
+        inform "ATTEMPTING TO RECONNECT TO DISPLAY ${display}"
+    elif ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
+        die "DISPLAY $display NOT RUNNING VNCSERVER DISPLAY FOR" "$MACHUSER on ${MACHINE}"
     else
-        inform "ATTEMPTING CONNECTION TO REQUESTED PORT" "localhost:$port"
+        inform "ATTEMPTING CONNECTION TO REQUESTED DISPLAY" "localhost:$(( 5900+${display} ))"
     fi
 fi
 
-# ensure that we limit ports to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
+# ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
-    warning "ACTIVE VNCSERVER PORTS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
+    warning "ACTIVE VNCSERVER DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -1027,70 +1027,70 @@ if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && 
         N*|n*)
 	    warning "YOU HAVE ${#active_vncserver_ports[@]} VNCSERVER SESSIONS RUNNING!"
 	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_vncserver_ports[@]}; do printf "%s " $p ; done)"
-	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$port\""
+	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$display\""
 	;;
         R*|r*)
-	    debug "WILL REUSE PORT ${active_vncserver_ports}"
-            debug "WILL ALSO KEEP PORT ACTIVE UPON DISCONNECT"
+	    debug "WILL REUSE DISPLAY ${active_vncserver_ports}"
+            debug "WILL ALSO KEEP DISPLAY ACTIVE UPON DISCONNECT"
 	    KEEP_VNC_SERVER_ACTIVE=true
-            port=${active_vncserver_ports}
+            display=${active_vncserver_ports}
 	;;
     esac
 fi
 
-# generate a random port number between 5901 5999
-if [[ "${port}"x == x ]] ; then
-    port=0
+# generate a random display number
+if [[ "${display}"x == x ]] ; then
+    display=0
     FLOOR=11111
     RANGE=$(( 65535-5900 ))
-    while ! [[ ${all_active_vncserver_ports[@]} =~ '${port}' ]] && ( [ "$port" -le $FLOOR ] || [ "$port" -gt $RANGE ] ) ; do
-        port=$RANDOM
+    while ! [[ ${all_active_vncserver_ports[@]} =~ '${display}' ]] && ( [ "$display" -le $FLOOR ] || [ "$display" -gt $RANGE ] ) ; do
+        display=$RANDOM
     done
 fi
 
-# manage some details on the port formats
-if [[ ${#port} -lt 2 ]] && [[ -n ${port} ]]; then
-    PORT=0${port}
+# manage some details on the formats
+if [[ ${#display} -lt 2 ]] && [[ -n ${display} ]]; then
+    DISPLAY=0${display}
 else
-    PORT=${port}
+    DISPLAY=${display}
 fi
 
 # strip leading zeros from lower-case port
-port=${port#0}
+display=${display#0}
 
-# if the port requested isn't already actively listening for USER, call startvncserver script remotely
-if ! [[ "${active_vncserver_ports[@]}" =~ $port ]] ; then
+# if the display requested isn't already actively listening for USER, call startvncserver script remotely
+if ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${DISPLAY}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${PORT}\"")
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${DISPLAY}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
         die "start_vncserver.sh returns:" "$(echo $newport)"
     else
         # reassign port here to the actual port vncserver established
-        port="${newport}"
+        display="${newport}"
         # strip leading zeros from lower-case port
-        port=${port#0}
-        # zero pad single digit ports this still is needed in case a vncserver autoselects low port number
-        if [ ${#port} -lt 2 ] ; then
-           PORT=0${port}
+        display=${display#0}
+        # zero pad single digit displays this still is needed in case a vncserver autoselects low display number
+        if [ ${#display} -lt 2 ] ; then
+           DISPLAY=0${display}
         else
-           PORT=${port}
+           DISPLAY=${display}
         fi
-        debug "PORT NUMBER ADJUSTED FOR ZERO PADDING" "$PORT"
-        debug "PORT NUMBER ADJUSTED TO REMOVE ZEROS" "$port"
+        debug "DISPLAY NUMBER ADJUSTED FOR ZERO PADDING" "$DISPLAY"
+        debug "DISPLAY NUMBER ADJUSTED TO REMOVE ZEROS" "$display"
     fi
     sleep 2.5
 else
-    debug "VNCSERVER RUNNING AS $USER ALREADY on $port" "WILL USE THIS PORT $port"
+    debug "VNCSERVER RUNNING AS $USER ALREADY on $display" "WILL USE THIS DISPLAY $display"
 fi
 
 # get tunnel string
 TUNNEL_HOST=$(setup_tunnel_host)
 
-# need the tunnel to include the port as determined above
+# need the tunnel to include the display as determined above
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
     GATEWAY="wtrw1.lanl.gov"
     GATEWAY_TUNNEL=$(setup_gateway_tunnel ${GATEWAY})
@@ -1105,12 +1105,12 @@ ${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} &>/dev/null &
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $MACHINE
-debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT ${PORT}"
+debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT $(( 5900+$DISPLAY ))"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
-# test that the Xvnc process on $port was instantiated
+# test that the Xvnc process on $display was instantiated
 remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
-              | awk -v exclude="awk" -v pat="Xvnc :*$PORT " '($0 !~ exclude) && $0~pat{print $2}' )
+              | awk -v exclude="awk" -v pat="Xvnc :*$DISPLAY " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
@@ -1118,29 +1118,29 @@ debug "XVNC PID IS:" "${remote_pid}"
 #    die "ERROR OCCURRED STARTING VNCSERVER."
 #fi
 
-inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$PORT" 
+inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$(( 5900+$DISPLAY))" 
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$client" localhost::$(( 5900+${PORT} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    "$client" localhost::$(( 5900+${DISPLAY} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost::$(( 5900+${PORT} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$client" localhost::$(( 5900+${DISPLAY} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
 if [[ $? -ne 0 ]] ; then
-    message -r "FAILURE CONNECTING $client TO $PORT"
+    message -r "FAILURE CONNECTING $client TO $DISPLAY"
 fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $display Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAYPORT $port"
-    kill_vnc_output=$(kill_vnc $port)
+    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $display"
+    kill_vnc_output=$(kill_vnc $display)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
