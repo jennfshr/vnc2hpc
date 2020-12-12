@@ -791,7 +791,10 @@ done
 
 #######################################
 # Inform vnc2hpc version used
-inform "VNC2HPC INFO:" "Version ${VERSION}" 
+inform "VNC2HPC VERSION:" "${VERSION}" 
+
+# ensure display is set if arg is passed, and is number
+[[ "${display}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$display"
 
 # Check out the vncclient
 if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
@@ -861,7 +864,7 @@ $(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!"
 REAL_MACHINE=$(check_machine)
 if [[ "${REAL_MACHINE}" =~ invalid ]] ; then die "INVALID MACHINE REQUEST" "$MACHINE" ; fi
 if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
-    debug "MACHINE CHECK:" "$REAL_MACHINE NOT EQUAL TO" "$MACHINE"
+    debug "MACHINE CHECK:" "$REAL_MACHINE NOT EQUAL TO $MACHINE, RESETTING CONTROL MASTER SSH CONNECTION"
     # setup the appropriate ssh commands for the network
     MACHINE="${REAL_MACHINE}"
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
