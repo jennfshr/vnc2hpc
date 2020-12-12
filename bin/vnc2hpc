@@ -29,8 +29,8 @@ usage () {
                             [-m|--machine <machine>]				(required)
                             [-c|--client <vncclient>]				(required)
 			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
-                            [-d|--debug]					(optional)
-	                    [-p|--display <display port>]			(optional)
+                            [-v|--debug]					(optional)
+	                    [-d|--display <display port>]			(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
@@ -753,11 +753,11 @@ for arg in "$@"; do
     shift
     case "$arg" in
         *-cl*nt)	set -- "$@" "-c"   ;;
-        *-debug)	set -- "$@" "-d"   ;;
+        *-debug)	set -- "$@" "-v"   ;;
         *-help)		set -- "$@" "-h"   ;;
         *-keep)		set -- "$@" "-k"   ;;
         *-machine)	set -- "$@" "-m"   ;;
-        *-display)	set -- "$@" "-p"   ;;
+        *-display)	set -- "$@" "-d"   ;;
         *-reconnect)	set -- "$@" "-r"   ;;
         *-user)		set -- "$@" "-u"   ;;
         *-wm*)		set -- "$@" "-w"   ;;
@@ -770,11 +770,11 @@ done
 
 OPTIND=1
 
-while getopts "bc:m:P:p:u:w:g:dhrks:-" opt ; do
+while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
     case "${opt}" in
         b)  BACKDOOR=true                                                                          			;;
-        d)  DEBUG=true                                                                             			;;
-        p)  display="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at display $display"		;;
+        v)  DEBUG=true                                                                             			;;
+        d)  display="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at display $display"		;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               			;;
         c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    			;;
         k)  KEEP_VNC_SERVER_ACTIVE=true                                                            			;;
@@ -887,7 +887,7 @@ mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
 inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING" "${LOGDIR}/${SERVER_LOG_FILE}"
+inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check the remote shell
 REMOTE_SHELL=$(check_remote_shell)
@@ -940,14 +940,12 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
             die "EITHER INSTALL CURL OR WGET, or DOWNLOAD $REPO_URL AND POINT THIS TOOL TO THE TARBALL: $0 -s /path/to/tar.gz <etc>"
         fi
     fi
-    [ -f ${FULL_FILE_PATH} ] || inform "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
+    [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
     DEST_TOPLEVEL_DIR=$(tar tf ${FULL_FILE_PATH} | head -n1 | sed 's/\///g')
     debug "DEST_TOPLEVEL_DIR:" "$DEST_TOPLEVEL_DIR"
     ${GATEWAY_SSH}${NO_GATEWAY_SSH} "mkdir -p ${DEST%\/\.}"
     if [[ $? -ne 0 ]] ; then
         die "$HOME/.vnc2hpc doesn't exist on $MACHINE"
-    else
-        inform "TESTING $HOME/.vnc2hpc" "ENSURED \$HOME/.vnc2hpc exists"
     fi
     SSH_SCP_OPTS=$(setup_ssh_opts scp)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
