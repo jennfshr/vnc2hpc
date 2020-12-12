@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="ports"
+VERSION="0.0.5"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -730,7 +730,6 @@ clientOS () {
 # Globals:
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
-#   MACHUSER
 #   MACHINE
 #   DISPLAY
 #   LOGDIR
