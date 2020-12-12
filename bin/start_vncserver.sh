@@ -10,7 +10,7 @@ remote_install_path="$7"
 vncserver_path="$8"
 
 # some conditionals
-if [[ "${9}x" != x ]] ; then DISPLAYPORT=":${9}" ; fi 
+if [[ "${9}x" != x ]] ; then DISPLAY=":${9}" ; fi 
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 
 # setup pixeldepth arg
@@ -69,7 +69,9 @@ case ${VNC2HPC_WM} in
    openbox)	WM="openbox"	;;
 esac
 
-if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || ! $(which $VNC2HPC_WM) &>/dev/null ; then
+if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || \
+     [[ -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM} || \
+     ! $(which $VNC2HPC_WM) &>/dev/null ; then
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
    if [ $? -ne 0 ] ; then
       echo "Build of $WM FAILURE on $(hostname)"
@@ -77,20 +79,20 @@ if ! [[ -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" ]] || ! $(
    fi
 fi
 
-echo "RUNNING: ${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
-${vncserver_path} ${DISPLAYPORT} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
+echo "RUNNING: ${vncserver_path} ${DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
+${vncserver_path} ${DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
 if [[ $? -ne 0 ]] ; then 
-   displayport="FAILURE: $(tail -n 1 ${LOG})"
+   display="FAILURE: $(tail -n 1 ${LOG})"
    RESULT="FAIL"
 else  
-   displayport=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
-   if [[ "${displayport}" =~ ^[0-9]+$ ]] ; then
+   display=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
+   if [[ "${display}" =~ ^[0-9]+$ ]] ; then
       RESULT="PASS"
    else
       RESULT="FAIL"
    fi
 fi 
-PORT=$displayport
-echo $PORT
-echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} DISPLAYPORT=${displayport} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
+DISPLAY=$display
+echo $DISPLAY
+echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} DISPLAY=${display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
