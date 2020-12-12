@@ -201,7 +201,7 @@ setup_ssh_opts () {
 #   Writes $TUNNELHOST to stdout
 #######################################
 setup_tunnel_host () {
-    echo "-L $(( 5900+${DISPLAY} )):localhost:$(( 5900+${DISPLAY} ))"
+        echo "-L $(( 5900+${DISPLAY} )):localhost:$(( 5900+${DISPLAY} ))"
 }
 
 #######################################
@@ -555,7 +555,7 @@ check_vncpasswd () {
     if ! $( ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "[ -s  \$HOME/.vnc/passwd ] || exit 1" ); then
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
-            #DISABLE_XTRACE="set +x"
+            DISABLE_XTRACE="set +x"
             ENABLE_XTRACE="set -x"
         fi
         ${DISABLE_XTRACE}
@@ -1021,6 +1021,8 @@ if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && 
         Y*|y*)
 	    for p in ${active_vncserver_ports[@]} ; do
                 output=$(kill_vnc $p)
+                # need to regenerate this list after killing $p
+                active_vncserver_ports=( $(list_vncservers) )
 	        warning "$output"
             done
 	;;
@@ -1057,6 +1059,17 @@ fi
 
 # strip leading zeros from lower-case port
 display=${display#0}
+
+# test local tunnel connections for conflicts
+until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))" &>/dev/null ; do
+    TUNNEL_CONFLICT=$(lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))")
+    debug "DETECTED TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
+    # Increment $display to avoid conflict
+    DISPLAY=$(( $DISPLAY+1 ))
+    display=${DISPLAY}
+    inform "TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
+    inform "NEW DISPLAY:" "${DISPLAY}"
+done
 
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
@@ -1097,6 +1110,7 @@ if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
 else
     NO_GATEWAY_TUNNEL=$(setup_nogateway_tunnel)
 fi
+
 debug "TUNNEL FOR ${NETWORK}:" "${NO_GATEWAY_TUNNEL} ${GATEWAY_TUNNEL}"
 
 # generic tunnel invocation
@@ -1114,9 +1128,9 @@ remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
 debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
-#if [[ "${remote_pid}x" == x ]] ; then
-#    die "ERROR OCCURRED STARTING VNCSERVER."
-#fi
+if [[ "${remote_pid}x" == x ]] ; then
+    die "ERROR OCCURRED STARTING VNCSERVER."
+fi
 
 inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$(( 5900+$DISPLAY))" 
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
