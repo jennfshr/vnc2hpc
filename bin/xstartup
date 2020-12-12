@@ -1,6 +1,6 @@
-#!/bin/bash -x 
-exec > >(tee -ai $HOME/.vnc2hpc/xstartup.out >&1)
-exec 2> >(tee -ai $HOME/.vnc2hpc/xstartup.err >&2)
+#!/bin/bash
+exec > >(tee -ai $HOME/.vnc2hpc/xstartup.log >&1)
+exec 2> >(tee -ai $HOME/.vnc2hpc/xstartup.log >&2)
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
 [[ "${VNC2HPC_WM}x" != x ]] || exit -1 
 unset SESSION_MANAGER
@@ -34,7 +34,7 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if [[ -d /usr/projects/hpcsoft/vnc2hpc ]] ; then
+if [[ -d /usr/projects/hpcsoft/${OS}/common/${ARCH}/(berry|icewm|fvwm|openbox) ]] ; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
