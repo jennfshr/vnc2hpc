@@ -34,7 +34,7 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if [[ -d /usr/projects/hpcsoft/${OS}/common/${ARCH}/(berry|icewm|fvwm|openbox) ]] ; then
+if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry,foo} &>/dev/null; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
