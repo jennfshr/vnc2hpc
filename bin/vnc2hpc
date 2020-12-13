@@ -30,7 +30,7 @@ usage () {
                             [-c|--client <vncclient>]				(required)
 			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
                             [-v|--debug]					(optional)
-	                    [-d|--display <display port>]			(optional)
+	                    [-d|--display <display>]				(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
@@ -773,7 +773,7 @@ while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
     case "${opt}" in
         b)  BACKDOOR=true                                                                          			;;
         v)  DEBUG=true                                                                             			;;
-        d)  display="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} at display $display"		;;
+        d)  DISPLAY="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} AT DISPLAY $DISPLAY"		;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               			;;
         c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    			;;
         k)  KEEP_VNC_SERVER_ACTIVE=true                                                            			;;
@@ -793,7 +793,7 @@ done
 inform "VNC2HPC VERSION:" "${VERSION}" 
 
 # ensure display is set if arg is passed, and is number
-[[ "${display}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$display"
+[[ "${DISPLAY}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$DISPLAY"
 
 # Check out the vncclient
 if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
@@ -1000,15 +1000,16 @@ else
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
-if [[ "${RECONNECT}"x != x ]] ; then
-    if [[ "${display}"x == x ]] ; then
+if [[ "${RECONNECT}"x != x ]] && [[ "${#active_vncserver_ports[@]}" -gt 0 ]] ; then
+    if [[ "${DISPLAY}"x == x ]] ; then
         inform "RECONNECT REQUESTED WITHOUT DISPLAY ARGUMENT"
-        display=${active_vncserver_ports}
-        inform "ATTEMPTING TO RECONNECT TO DISPLAY ${display}"
-    elif ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
-        die "DISPLAY $display NOT RUNNING VNCSERVER DISPLAY FOR" "$MACHUSER on ${MACHINE}"
+        # grab the first element in active_vncseerver_ports
+        DISPLAY=${active_vncserver_ports}
+        inform "ATTEMPTING TO RECONNECT TO DISPLAY ${DISPLAY}"
+    elif ! [[ "${active_vncserver_ports[@]}" =~ $DISPLAY]] ; then
+        die "DISPLAY $DISPLAY NOT RUNNING VNCSERVER DISPLAY FOR" "$MACHUSER on ${MACHINE}"
     else
-        inform "ATTEMPTING CONNECTION TO REQUESTED DISPLAY" "localhost:$(( 5900+${display} ))"
+        inform "ATTEMPTING CONNECTION TO REQUESTED DISPLAY" "localhost:$(( 5900+${DISPLAY} ))"
     fi
 fi
 
@@ -1029,50 +1030,50 @@ if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && 
         N*|n*)
 	    warning "YOU HAVE ${#active_vncserver_ports[@]} VNCSERVER SESSIONS RUNNING!"
 	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_vncserver_ports[@]}; do printf "%s " $p ; done)"
-	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$display\""
+	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$DISPLAY\""
 	;;
         R*|r*)
 	    debug "WILL REUSE DISPLAY ${active_vncserver_ports}"
             debug "WILL ALSO KEEP DISPLAY ACTIVE UPON DISCONNECT"
 	    KEEP_VNC_SERVER_ACTIVE=true
-            display=${active_vncserver_ports}
+            DISPLAY=${active_vncserver_ports}
 	;;
     esac
 fi
 
 # generate a random display number
-if [[ "${display}"x == x ]] ; then
-    display=0
+if [[ "${DISPLAY}"x == x ]] ; then
+    DISPLAY=0
     FLOOR=11111
     RANGE=$(( 65535-5900 ))
-    while ! [[ ${all_active_vncserver_ports[@]} =~ '${display}' ]] && ( [ "$display" -le $FLOOR ] || [ "$display" -gt $RANGE ] ) ; do
-        display=$RANDOM
+    while ! [[ ${all_active_vncserver_ports[@]} =~ '${DISPLAY}' ]] && ( [ "$DISPLAY" -le $FLOOR ] || [ "$DISPLAY" -gt $RANGE ] ) ; do
+        DISPLAY=$RANDOM
     done
 fi
 
 # manage some details on the formats
-if [[ ${#display} -lt 2 ]] && [[ -n ${display} ]]; then
-    DISPLAY=0${display}
+if [[ ${#DISPLAY} -lt 2 ]] && [[ -n ${DISPLAY} ]]; then
+    DISPLAY=0${DISPLAY}
 else
-    DISPLAY=${display}
+    DISPLAY=${DISPLAY}
 fi
 
 # strip leading zeros from lower-case port
-display=${display#0}
+DISPLAY=${DISPLAY#0}
 
 # test local tunnel connections for conflicts
 until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))" &>/dev/null ; do
     TUNNEL_CONFLICT=$(lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))")
     debug "DETECTED TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
-    # Increment $display to avoid conflict
+    # Increment $DISPLAY to avoid conflict
     DISPLAY=$(( $DISPLAY+1 ))
-    display=${DISPLAY}
+    DISPLAY=${DISPLAY}
     inform "TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
     inform "NEW DISPLAY:" "${DISPLAY}"
 done
 
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
-if ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
+if ! [[ "${active_vncserver_ports[@]}" =~ $DISPLAY]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
            \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${DISPLAY}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
@@ -1083,21 +1084,21 @@ if ! [[ "${active_vncserver_ports[@]}" =~ $display ]] ; then
         die "start_vncserver.sh returns:" "$(echo $newport)"
     else
         # reassign port here to the actual port vncserver established
-        display="${newport}"
+        DISPLAY="${newport}"
         # strip leading zeros from lower-case port
-        display=${display#0}
+        DISPLAY=${DISPLAY#0}
         # zero pad single digit displays this still is needed in case a vncserver autoselects low display number
-        if [ ${#display} -lt 2 ] ; then
-           DISPLAY=0${display}
+        if [ ${#DISPLAY} -lt 2 ] ; then
+           DISPLAY=0${DISPLAY}
         else
-           DISPLAY=${display}
+           DISPLAY=${DISPLAY}
         fi
         debug "DISPLAY NUMBER ADJUSTED FOR ZERO PADDING" "$DISPLAY"
-        debug "DISPLAY NUMBER ADJUSTED TO REMOVE ZEROS" "$display"
+        debug "DISPLAY NUMBER ADJUSTED TO REMOVE ZEROS" "$DISPLAY"
     fi
     sleep 2.5
 else
-    debug "VNCSERVER RUNNING AS $USER ALREADY on $display" "WILL USE THIS DISPLAY $display"
+    debug "VNCSERVER RUNNING AS $USER ALREADY on $DISPLAY" "WILL USE THIS DISPLAY $DISPLAY"
 fi
 
 # get tunnel string
@@ -1122,7 +1123,7 @@ tunnel_pid=$!
 debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT $(( 5900+$DISPLAY ))"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
-# test that the Xvnc process on $display was instantiated
+# test that the Xvnc process on $DISPLAY was instantiated
 remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
               | awk -v exclude="awk" -v pat="Xvnc :*$DISPLAY " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
@@ -1151,10 +1152,10 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $display Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $DISPLAY Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $display"
-    kill_vnc_output=$(kill_vnc $display)
+    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT DISPLAY $DISPLAY"
+    kill_vnc_output=$(kill_vnc $DISPLAY)
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
