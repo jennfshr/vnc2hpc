@@ -602,15 +602,14 @@ EOF'
 #   NO_GATEWAY_SSH
 #   MACHUSER
 #   MACHINE
-#   DISPLAY
 # Arguments:
-#   LOCAL_DISPLAY
+#   DISPLAY
 # Outputs:
 #   echos stdout from vncserver
 #######################################
 kill_vnc () {
-    LOCAL_DISPLAY=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${LOCAL_DISPLAY} 2>&1)
+    local loc_display=$1
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${loc_display} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -625,14 +624,14 @@ kill_vnc () {
 # Arguments:
 #   None
 # Outputs:
-#   ${LOCAL_VNC_CONS[@]}
+#   ${loc_vnc_cons[@]}
 #######################################
 get_vnc_connections () {
     for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" \
                                                    | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
-       LOCAL_VNC_CONS=( $(printf "%s " "${pt%$'\r'}") "${LOCAL_VNC_CONS[@]}" )
+       local loc_vnc_cons=( $(printf "%s " "${pt%$'\r'}") "${loc_vnc_cons[@]}" )
     done
-    echo "${LOCAL_VNC_CONS[@]}"
+    echo "${loc_vnc_cons[@]}"
 }
 
 #######################################
@@ -646,13 +645,13 @@ get_vnc_connections () {
 # Outputs:
 #   ${VNCSERVERS_LIST[@]}
 #######################################
-list_vncservers () {
-    vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
+list_displays () {
+    local loc_vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
                                                           | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
-    for item in ${vncservers_list[@]} ; do
-        VNCSERVERS_LIST=( $(printf "%s " "${item%$'\r'}") "${VNCSERVERS_LIST[@]}" )
+    for item in ${loc_vncservers_list[@]} ; do
+        loc_vncservers_list=( $(printf "%s " "${item%$'\r'}") "${loc_vncservers_list[@]}" )
     done
-    echo "${VNCSERVERS_LIST[@]}"
+    echo "${loc_vncservers_list[@]}"
 }
 
 #######################################
@@ -671,7 +670,8 @@ client_check () {
 #######################################
 # File tests ${WINDOWMANAGER} for viability
 # Globals:
-#   CLIENT
+#   WINDOWMANAGER
+#   WMS
 # Arguments:
 #   None
 # Outputs:
@@ -970,43 +970,42 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     fi
 fi   
     
-all_active_vncserver_ports=( $(get_vnc_connections) )
-debug "ALL USERS VNCSERVER DISPLAYS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
+all_active_displays=( $(get_vnc_connections) )
+debug "ALL USERS VNCSERVER DISPLAYS ON ${MACHINE}:" "$(echo ${all_active_displays[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
-active_vncserver_ports=( $(list_vncservers) )
-if [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
+active_displays=( $(list_displays) )
+if [[ ${#active_displays[@]} -eq 0 ]] ; then
     debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${MACHINE}"
 else
-    debug "DETECT ${#active_vncserver_ports[@]} VNCSERVERS:" "${MACHUSER}@${MACHINE}" "${active_vncserver_ports[@]}"
+    debug "DETECT ${#active_displays[@]} VNCSERVERS:" "${MACHUSER}@${MACHINE}" "${active_displays[@]}"
 fi 
 
 # test connecting to remote and scraping ps output for Xvnc
-if [[ "${all_active_vncserver_ports[@]}" =~ FAILURE ]] ; then
+if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
     die "DETECTED FAILURE WITH SSH TO: ${MACHINE}"
-elif [[ ${#all_active_vncserver_ports[@]} -eq 0 ]] ; then
+elif [[ ${#all_active_displays[@]} -eq 0 ]] ; then
     debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${MACHINE}"
 else
-    debug "ALL USERS XVNC SESSIONS ON ${MACHINE}:" "$(echo ${all_active_vncserver_ports[@]})"
+    debug "ALL USERS XVNC SESSIONS ON ${MACHINE}:" "$(echo ${all_active_displays[@]})"
 fi
 
 # test connecting to remote and scraping vncserver -list output for user specific displays
-if [[ "${active_vncserver_ports[@]}" =~ FAILURE ]] ; then
-    die "FAILURE CONNECTING TO:" "${MACHINE}" "active_vncserver_ports: ${active_vncserver_ports[@]}"
-elif [[ ${#active_vncserver_ports[@]} -eq 0 ]] ; then
+if [[ "${active_displays[@]}" =~ FAILURE ]] ; then
+    die "FAILURE CONNECTING TO:" "${MACHINE}" "active_displays: ${active_displays[@]}"
+elif [[ ${#active_displays[@]} -eq 0 ]] ; then
     debug "NOT FINDING OTHER XVNC SESSIONS RUNNING FOR $MACHUSER" "${MACHINE}"
 else
-    debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_vncserver_ports[@]})"
+    debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_displays[@]})"
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
-if [[ "${RECONNECT}"x != x ]] && [[ "${#active_vncserver_ports[@]}" -gt 0 ]] ; then
+if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
     if [[ "${DISPLAY}"x == x ]] ; then
-        inform "RECONNECT REQUESTED WITHOUT DISPLAY ARGUMENT"
-        # grab the first element in active_vncseerver_ports
-        DISPLAY=${active_vncserver_ports}
-        inform "ATTEMPTING TO RECONNECT TO DISPLAY ${DISPLAY}"
-    elif ! [[ "${active_vncserver_ports[@]}" =~ $DISPLAY]] ; then
+        # grab the first element in active_displays
+        DISPLAY=${active_displays}
+        inform "RECONNECT REQUESTED WITHOUT DISPLAY ARGUMENT. USING:" "${DISPLAY}"
+    elif ! [[ "${active_displays[@]}" =~ $DISPLAY]] ; then
         die "DISPLAY $DISPLAY NOT RUNNING VNCSERVER DISPLAY FOR" "$MACHUSER on ${MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED DISPLAY" "localhost:$(( 5900+${DISPLAY} ))"
@@ -1014,29 +1013,29 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_vncserver_ports[@]}" -gt 0 ]] ; t
 fi
 
 # ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
-if [[ "${#active_vncserver_ports[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
-    warning "ACTIVE VNCSERVER DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_vncserver_ports[@]}")"
+if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
+    warning "ACTIVE VNCSERVER DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_displays[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
         Y*|y*)
-	    for p in ${active_vncserver_ports[@]} ; do
+	    for p in ${active_displays[@]} ; do
                 output=$(kill_vnc $p)
                 # need to regenerate this list after killing $p
-                active_vncserver_ports=( $(list_vncservers) )
+                active_displays=( $(list_displays) )
 	        warning "$output"
             done
 	;;
         N*|n*)
-	    warning "YOU HAVE ${#active_vncserver_ports[@]} VNCSERVER SESSIONS RUNNING!"
-	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_vncserver_ports[@]}; do printf "%s " $p ; done)"
+	    warning "YOU HAVE ${#active_displays[@]} VNCSERVER SESSIONS RUNNING!"
+	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_displays[@]}; do printf "%s " $p ; done)"
 	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$DISPLAY\""
 	;;
         R*|r*)
-	    debug "WILL REUSE DISPLAY ${active_vncserver_ports}"
+	    debug "WILL REUSE DISPLAY ${active_displays}"
             debug "WILL ALSO KEEP DISPLAY ACTIVE UPON DISCONNECT"
 	    KEEP_VNC_SERVER_ACTIVE=true
-            DISPLAY=${active_vncserver_ports}
+            DISPLAY=${active_displays}
 	;;
     esac
 fi
@@ -1046,7 +1045,7 @@ if [[ "${DISPLAY}"x == x ]] ; then
     DISPLAY=0
     FLOOR=11111
     RANGE=$(( 65535-5900 ))
-    while ! [[ ${all_active_vncserver_ports[@]} =~ '${DISPLAY}' ]] && ( [ "$DISPLAY" -le $FLOOR ] || [ "$DISPLAY" -gt $RANGE ] ) ; do
+    while ! [[ ${all_active_displays[@]} =~ '${DISPLAY}' ]] && ( [ "$DISPLAY" -le $FLOOR ] || [ "$DISPLAY" -gt $RANGE ] ) ; do
         DISPLAY=$RANDOM
     done
 fi
@@ -1073,7 +1072,7 @@ until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))" &>/dev/null ; do
 done
 
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
-if ! [[ "${active_vncserver_ports[@]}" =~ $DISPLAY]] ; then
+if ! [[ "${active_displays[@]}" =~ $DISPLAY]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
            \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${DISPLAY}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
