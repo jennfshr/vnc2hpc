@@ -656,22 +656,22 @@ list_vncservers () {
 }
 
 #######################################
-# File tests ${client} for viability
+# File tests ${CLIENT} for viability
 # Globals:
-#   client
+#   CLIENT 
 # Arguments:
 #   None
 # Outputs:
 #   None
 #######################################
 client_check () {
-    ( [ ! -d "${client}" ] && [ -x "${client}" ] ) || [ -x "$(which ${client})" ] || exit 1
+    ( [ ! -d "${CLIENT}" ] && [ -x "${CLIENT}" ] ) || [ -x "$(which ${CLIENT})" ] || exit 1
 }
 
 #######################################
 # File tests ${WINDOWMANAGER} for viability
 # Globals:
-#   client
+#   CLIENT
 # Arguments:
 #   None
 # Outputs:
@@ -684,16 +684,16 @@ wm_check () {
 }
 
 #######################################
-# Parses ${client} and version string
+# Parses ${CLIENT} and version string
 # Globals:
-#   client
+#   CLIENT
 # Arguments:
 #   None
 # Outputs:
 #   Client/Version
 #######################################
 client_version () {
-    "${client}" -help 2>&1 | head -n 2 | awk '/./ {print $1$2"-"$3}' |head -n 1
+    "${CLIENT}" -help 2>&1 | head -n 2 | awk '/./ {print $1$2"-"$3}' |head -n 1
 }
 
 #######################################
@@ -775,7 +775,7 @@ while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
         v)  DEBUG=true                                                                             			;;
         d)  DISPLAY="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} AT DISPLAY $DISPLAY"		;;
         m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               			;;
-        c)  client=${OPTARG//\\/} && client=${client//\~/$HOME}                                    			;;
+        c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}                                    			;;
         k)  KEEP_VNC_SERVER_ACTIVE=true                                                            			;;
         r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          			;;
         h)  usage && exit 0                                                                        			;;
@@ -796,8 +796,8 @@ inform "VNC2HPC VERSION:" "${VERSION}"
 [[ "${DISPLAY}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$DISPLAY"
 
 # Check out the vncclient
-if [[ "${client}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
-if ! $(client_check 2>&-) ; then die "$client" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
+if [[ "${CLIENT}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
+if ! $(client_check 2>&-) ; then die "$CLIENT" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
 inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
 
@@ -887,7 +887,7 @@ debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${client//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
 inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
@@ -1139,15 +1139,15 @@ inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
-    warning "Client: ${client}" "Redirecting ${client} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$client" localhost::$(( 5900+${DISPLAY} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
+    "$CLIENT" localhost::$(( 5900+${DISPLAY} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$client" localhost::$(( 5900+${DISPLAY} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$CLIENT" localhost::$(( 5900+${DISPLAY} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
 if [[ $? -ne 0 ]] ; then
-    message -r "FAILURE CONNECTING $client TO $DISPLAY"
+    message -r "FAILURE CONNECTING $CLIENT TO $DISPLAY"
 fi
 
 # if -k is passed to the script, don't kill the process
