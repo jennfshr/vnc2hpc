@@ -1005,7 +1005,7 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
         # grab the first element in active_displays
         DISPLAY=${active_displays}
         inform "RECONNECT REQUESTED WITHOUT DISPLAY ARGUMENT. USING:" "${DISPLAY}"
-    elif ! [[ "${active_displays[@]}" =~ $DISPLAY]] ; then
+    elif ! [[ "${active_displays[@]}" =~ $DISPLAY ]] ; then
         die "DISPLAY $DISPLAY NOT RUNNING VNCSERVER DISPLAY FOR" "$MACHUSER on ${MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED DISPLAY" "localhost:$(( 5900+${DISPLAY} ))"
@@ -1072,7 +1072,7 @@ until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))" &>/dev/null ; do
 done
 
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
-if ! [[ "${active_displays[@]}" =~ $DISPLAY]] ; then
+if ! [[ "${active_displays[@]}" =~ $DISPLAY ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
            \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${DISPLAY}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
