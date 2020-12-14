@@ -182,6 +182,8 @@ else
    METHOD="copy"
 fi
 
+module purge &>/dev/null
+
 for wm in "${WINDOWMANAGER[@]}"; do
    case "$wm" in
       icewm)
