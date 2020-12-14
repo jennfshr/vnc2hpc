@@ -147,7 +147,8 @@ done
 INSTALL_PATH=${TOP_PREFIX}/${OS}/common/${ARCH}
 
 # temp build dir
-mkdir -p ${TEMP_INSTALL_LOCATION:="/tmp/vnc2hpc-deps"}
+[[ -d ${TEMP_INSTALL_LOCATION} ]] && rm -Rf ${TEMP_INSTALL_LOCATION}
+mkdir -p ${TEMP_INSTALL_LOCATION:="/tmp/vnc2hpc-deps_${USER}"}
 
 # setup proxies
 export HTTP_PROXY=http://proxyout.lanl.gov:8080
