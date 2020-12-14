@@ -70,7 +70,11 @@ build () {
    grab ${_url} ${_method} || echo "FAILURE AT: ${LINENO}"
    local _tar_name=$(ls)
    local _dirname=$(tardir $_tar_name)
-   tar xfz ${_tar_name} && pushd ${_dirname} &> /dev/null && pwd &>> ${_build_log}
+   if [[ "${_tar_name}" =~ gz ]] ; then 
+      tar xfz ${_tar_name} && pushd ${_dirname} &> /dev/null && pwd &>> ${_build_log}
+   elif [[ "${_tar_name}" =~ xz ]] ; then
+      tar xf ${_tar_name} && pushd ${_dirname} &> /dev/null && pwd &>> ${_build_log}
+   fi
    [ -x ./bootstrap ] && ./bootstrap &>> ${_build_log} || echo "No boostrap for ${_product_name} at ${LINENO}" &>> ${_build_log}
    [ -x ./autogen.sh ] && ./autogen.sh &>> ${_build_log} || echo "No autogen for ${_product_name} at ${LINENO}" &>> ${_build_log}
    [ -x ./configure ] &&  ./configure --prefix=${_prefix} &>> ${_build_log} || echo "No configure for ${_product_name} at ${LINENO}" &>> ${_build_log}
@@ -157,6 +161,7 @@ export http_proxy=http://proxyout.lanl.gov:8080
 export https_proxy=http://proxyout.lanl.gov:8080
 
 # Source package URLs
+AWESOME_URL="https://github.com/awesomeWM/awesome-releases/raw/master/awesome-4.3.tar.xz"
 ICEWM_URL="https://github.com/ice-wm/icewm/archive/1.9.2.tar.gz"
 BERRY_URL="https://github.com/JLErvin/berry/archive/0.1.7.tar.gz"
 OPENBOX_URL="https://github.com/Mikachu/openbox/archive/release-3.6.1.tar.gz"
@@ -187,6 +192,17 @@ module purge &>/dev/null
 
 for wm in "${WINDOWMANAGER[@]}"; do
    case "$wm" in
+      awesome)
+         AWESOME_VERSION="4.3"
+         AWESOME_PRODUCT_NAME="awesome"
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${AWESOME_URL}
+         else
+            AWESOME_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${ICEWM_PRODUCT_NAME}-${AWESOME_VERSION}"
+            AWESOME_PREFIX="${INSTALL_PATH}/${AWESOME_PRODUCT_NAME}/${AWESOME_VERSION}"
+            AWESOME_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${AWESOME_PRODUCT_NAME}-${AWESOME_VERIONS}/build.log"
+            build ${AWESOME_URL} ${AWESOME_VERSION} ${AWESOME_PRODUCT_NAME} ${AWESOME_BUILD_DIR} ${AWESOME_PREFIX} ${AWESOME_BUILD_LOG} ${METHOD}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${AWESOME_BUILD_LOG} ; fi
       icewm)
          # WMs to build: icewm, berry, openbox, fvwm
          ICEWM_VERSION="1.9.2"
