@@ -396,7 +396,7 @@ _____
 
 Currently, six window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  On systems where non-system supplied window managers are absent, the script will attempt to build them on behalf of the user.  The resulting builds will be found in `~/.vnc2hpc/${os}/common/${arch}/${wm_product_name}/${wm_version}`.
 
-*NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps`, where the `build.log` should supply some indication as to the cause for the failure.*
+*NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps`, where the `build.log` should supply some indication as to the cause for the failure.  In the circumstance that the Window Manager requires building before usage, `start_vncserver.sh` may take a while, as that script makes a call to `build_wms.sh` to accomplish the build.*
 
 _____
 
