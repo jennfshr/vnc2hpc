@@ -20,7 +20,7 @@ VERSION="0.0.5"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
-WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" )
+WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" )
 
 usage () {
     message -m "${0//*\//} v${VERSION}
