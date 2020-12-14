@@ -375,13 +375,12 @@ _____
 
 ### [-d|--display <display>] (optional)
 
-VNC2HPC currently uses the VNC 5900 port range to establish VNC Servers listening on the front-end cluster nodes, to which the client (via the SSH tunnel) connects.  The port that one may pass to the vnc2hpc script via the `-p <int>` option can be a integer between 1-99, and the vncserver invocation will try to launch a server that listens on that particular display port, which.  The client, in fact, will prefix the display port with 59 upon connecting.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  Therefore, this `--port` option is not necessary, and may be deprecated in the future.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
+The display value that one may pass to the vnc2hpc script via the `-d <int>` option can be a integer between 1-58999, and the vncserver invocation will try to launch a server that listens on that particular display port.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
 *NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
 
 `$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
 
 *NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
-
 
 _____
 
@@ -393,11 +392,11 @@ Sometimes the user id of the user running on the desktop system where vnc2hpc is
 
 _____
 
-### [-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)
+### [-w|--wm <fvwm|mwm|xfwm4|icewm|fvwm|berry>] (optional) Default: [-w mwm] (Motif Window Manager)
 
-Currently, three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
+Currently, six window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  On systems where non-system supplied window managers are absent, the script will attempt to build them on behalf of the user.  The resulting builds will be found in `~/.vnc2hpc/${os}/common/${arch}/${wm_product_name}/${wm_version}`.
 
-*NOTE: Investigations into openbox support is on-going, as it is a more modern stacking interface than those currently offered.*
+*NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps`, where the `build.log` should supply some indication as to the cause for the failure.  In the circumstance that the Window Manager requires building before usage, `start_vncserver.sh` may take a while, as that script makes a call to `build_wms.sh` to accomplish the build.*
 
 _____
 
@@ -452,10 +451,10 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.4 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.4 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.4 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.4 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.4 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.4 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mxm xfwm4, berry, openbox icewm |
-| v0.0.4 | Windows | UNTESTED | UNTESTED |
+| v0.0.5 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.5 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.5 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.5 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.5 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.5 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mxm xfwm4, berry, openbox icewm |
+| v0.0.5 | Windows | UNSUPPORTED | UNSUPPORTED |
