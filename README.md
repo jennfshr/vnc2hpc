@@ -171,7 +171,7 @@ The usage output is available by running
 
 `./vnc2hpc --help`
 
-`vnc2hpc v0.0.3`
+`vnc2hpc v0.0.5`
 
 `	usage: vnc2hpc`
 
@@ -181,7 +181,9 @@ The usage output is available by running
 
 `		[-u|--user <hpcuserid>] 					(optional) Default: $USER on localhost`
 
-`		[-d|--debug]							(optional)`
+`		[-v|--verbose]							(optional)`
+
+`		[-d|--display]							(optional)`
 
 `		[-p|--port <display port>]					(optional)`
 
@@ -221,6 +223,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Kodiak | ko-fe, ko-fey |
 | Fog | fg-fey |
 | Trinitite | tt-fey |
+| Darwin | darwin-fe |
 | Fire | fi-fe |
 | Ice | ic-fe |
 | Cyclone | cy-fe |
@@ -348,7 +351,7 @@ isn't in your $PATH.  To determine if the executable is in your path, in a termi
 
 _____
 
-### [-d|--debug] (optional)
+### [-v|--verbose] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
@@ -370,7 +373,7 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 
 _____
 
-### [-p|--port <display port>] (optional)
+### [-d|--display <display>] (optional)
 
 VNC2HPC currently uses the VNC 5900 port range to establish VNC Servers listening on the front-end cluster nodes, to which the client (via the SSH tunnel) connects.  The port that one may pass to the vnc2hpc script via the `-p <int>` option can be a integer between 1-99, and the vncserver invocation will try to launch a server that listens on that particular display port, which.  The client, in fact, will prefix the display port with 59 upon connecting.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  Therefore, this `--port` option is not necessary, and may be deprecated in the future.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
 *NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
