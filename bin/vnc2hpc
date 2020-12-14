@@ -37,6 +37,7 @@ usage () {
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-P|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
+                            [-j|--job <jobid>]					(optional)
 			    [-h|--help]
 
           Questions?        <${CONTACT}>
@@ -64,6 +65,19 @@ check_network () {
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
+}
+
+#######################################
+# Connect to JOBID
+# Globals:
+#   JOBID
+# Arguments:
+#   None
+# Outputs:
+# ?????
+#######################################
+connect_job () {
+    echo "DO SOMETHING"   
 }
 
 #######################################
@@ -763,6 +777,7 @@ for arg in "$@"; do
         *-geo*)		set -- "$@" "-g"   ;;
         *-depth*)	set -- "$@" "-P"   ;;
         *-source)	set -- "$@" "-s"   ;;
+        *-jobid)	set -- "$@" "-j"   ;;
         *)		set -- "$@" "$arg" ;;
     esac
 done
@@ -784,6 +799,7 @@ while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
         g)  GEOMETRY="${OPTARG}"                                                                   			;;
         P)  PIXELDEPTH="${OPTARG}"                                                                 			;;
         s)  SOURCE="${OPTARG}"                                                                     			;;
+        j)  JOBID="${OPTARG}"												;;
         -)                                                                                         			;;
     esac
 done
