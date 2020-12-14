@@ -914,6 +914,7 @@ fi
 
 # check remote vncserver install path
 VNCSERVER_PATH=$(check_vncserver)
+if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
 # check remote install path for vnc2hpc backend
@@ -986,9 +987,8 @@ active_displays=( $(list_displays) )
 if [[ ${#active_displays[@]} -eq 0 ]] ; then
     debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${MACHINE}"
 else
-    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${MACHINE}" "${active_displays[@]}"
+    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${MACHINE}" "$(echo ${active_displays[@]})"
 fi 
-set +x
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
@@ -997,15 +997,6 @@ elif [[ ${#all_active_displays[@]} -eq 0 ]] ; then
     debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${MACHINE}"
 else
     debug "ALL USERS XVNC SESSIONS ON ${MACHINE}:" "$(echo ${all_active_displays[@]})"
-fi
-
-# test connecting to remote and scraping vncserver -list output for user specific displays
-if [[ "${active_displays[@]}" =~ FAILURE ]] ; then
-    die "FAILURE CONNECTING TO:" "${MACHINE}" "active_displays: ${active_displays[@]}"
-elif [[ ${#active_displays[@]} -eq 0 ]] ; then
-    debug "NOT FINDING OTHER XVNC SESSIONS RUNNING FOR $MACHUSER" "${MACHINE}"
-else
-    debug "XVNC SESSIONS ON ${MACHINE} FOR $MACHUSER" "$(echo ${active_displays[@]})"
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
