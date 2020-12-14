@@ -646,7 +646,7 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_displays () {
-    for item in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'REMOTE_DISPLAY|T*VNC|^$' \
+    for item in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
                                                     | awk '{ gsub(\":\",\"\",\$1); print \$1}'" ) ; do
         local loc_vncservers_list=( $(printf "%s " "${item%$'\r'}") "${loc_vncservers_list[@]}" )
     done
@@ -772,7 +772,7 @@ while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
     case "${opt}" in
         b)  BACKDOOR=true						;;
         v)  DEBUG=true							;;
-        d)  REMOTE_DISPLAY="$OPTARG"						;;
+        d)  REMOTE_DISPLAY="$OPTARG"					;;
         m)  MACHINE="$OPTARG"						;;
         c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}		;;
         k)  KEEP_VNC_SERVER_ACTIVE=true					;;
@@ -1014,7 +1014,7 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
         # grab the first element in active_displays
         REMOTE_DISPLAY=${active_displays}
         inform "RECONNECT REQUESTED WITHOUT REMOTE_DISPLAY ARGUMENT. USING:" "${REMOTE_DISPLAY}"
-    elif ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
+    elif ! [[ "${active_displays[@]}" =~ ${REMOTE_DISPLAY} ]] ; then
         die "REMOTE_DISPLAY $REMOTE_DISPLAY NOT RUNNING VNCSERVER REMOTE_DISPLAY FOR" "$MACHUSER on ${MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED REMOTE_DISPLAY" "localhost:$(( 5900+${REMOTE_DISPLAY} ))"
@@ -1113,7 +1113,7 @@ debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $REMOTE_DISPLAY was instantiated
 remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
-              | awk -v exclude="awk" -v pat="Xvnc :*$REMOTE_DISPLAY " '($0 !~ exclude) && $0~pat{print $2}' )
+              | awk -v exclude="awk" -v pat="Xvnc :*${REMOTE_DISPLAY} " '($0 !~ exclude) && $0~pat{print $2}' )
 debug "XVNC PID IS:" "${remote_pid}"
 
 # fail if not
@@ -1143,7 +1143,7 @@ if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
     inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
 else
     inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT REMOTE_DISPLAY $REMOTE_DISPLAY"
-    kill_vnc_output=$(kill_vnc $REMOTE_DISPLAY)
+    kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
