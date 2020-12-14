@@ -34,7 +34,7 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry,foo} &>/dev/null; then
+if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry} &>/dev/null; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
@@ -56,7 +56,7 @@ case "$VNC2HPC_WM" in
         # Set path to use WM
         export PATH=${BERRY_BIN}:${PATH}
         # Test that the directories exist before modifying environment
-#	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
+	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
         [ -d ${BERRY_LIB} ] && export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
 
         # test executables before invoking them
