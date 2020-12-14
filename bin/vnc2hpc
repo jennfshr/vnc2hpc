@@ -792,9 +792,11 @@ done
 inform "VNC2HPC VERSION:" "${VERSION}" 
 
 # ensure display is set if arg is passed, and is number
-debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
+inform "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
+
+# ensure display is valid, if set, and include that in info output
 if [[ "${DISPLAY}x" != "x" ]] ; then
-    debug "RECEIVED REQUEST TO USE DISPLAY:" "${DISPLAY}"
+    inform "RECEIVED REQUEST TO USE DISPLAY:" "${DISPLAY}"
 fi
 [[ "${DISPLAY}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$DISPLAY"
 [[ "${DISPLAY}" -le 58999 ]] || die "DISPLAY must not exceed 58999!" "DISPLAY=${DISPLAY}"
