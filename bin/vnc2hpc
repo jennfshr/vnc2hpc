@@ -127,7 +127,7 @@ check_machine () {
 check_vncserver () {
     local loc_vncserver_path
     loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-        "which vncserver || find /opt/ -name \"vncserver\" -executable" 2>/dev/null)
+        "which vncserver || find /opt/ -name \"vncserver\" -executable" )
     echo "$loc_vncserver_path"
 }
 
