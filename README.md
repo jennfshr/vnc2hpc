@@ -214,20 +214,20 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 <details>
 	<summary markdown="span">Expand to see LANL Machines VNC2HPC Supports</summary>
 
-| Machine | Front-ends (Round-Robin Aliases) | 
-| -- | -- | 
-| Snow | sn-fe, sn-fey |
-| Badger | ba-fe |
-| Capulin | cp-login, cp-loginy |
-| Grizzly | gr-fe, gr-fey |
-| Kodiak | ko-fe, ko-fey |
-| Fog | fg-fey |
-| Trinitite | tt-fey |
-| Darwin | darwin-fe |
-| Fire | fi-fe |
-| Ice | ic-fe |
-| Cyclone | cy-fe |
-| Trinity | tr-fe |
+| Machine | Front-ends (Round-Robin Aliases) | Notes |
+| -- | -- | -- |
+| Snow | sn-fe, sn-fey ||
+| Badger | ba-fe ||
+| Capulin | cp-login, cp-loginy ||
+| Grizzly | gr-fe, gr-fey ||
+| Kodiak | ko-fe, ko-fey ||
+| Fog | fg-fey ||
+| Trinitite | tt-fey | berry can't build |
+| Darwin | darwin-fe | icewm & berry can't build |
+| Fire | fi-fe ||
+| Ice | ic-fe ||
+| Cyclone | cy-fe ||
+| Trinity | tr-fe ||
 
 </details>
 
