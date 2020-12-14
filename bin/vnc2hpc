@@ -201,7 +201,7 @@ setup_ssh_opts () {
 #   Writes $TUNNELHOST to stdout
 #######################################
 setup_tunnel_host () {
-        echo "-L $(( 5900+${DISPLAY} )):localhost:$(( 5900+${DISPLAY} ))"
+        echo "-L $(( 5900+${DISPLAY#0} )):localhost:$(( 5900+${DISPLAY#0} ))"
 }
 
 #######################################
@@ -627,7 +627,7 @@ kill_vnc () {
 #   ${loc_vnc_cons[@]}
 #######################################
 get_vnc_connections () {
-    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0-9]+)\" \
+    for pt in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps ax| grep -E \"*/Xvnc :([0]*[0-9]+)\" \
                                                    | awk '{ gsub(\":\",\"\",\$6) } {print \$6}'") ; do
        local loc_vnc_cons=( $(printf "%s " "${pt%$'\r'}") "${loc_vnc_cons[@]}" )
     done
@@ -646,10 +646,9 @@ get_vnc_connections () {
 #   ${VNCSERVERS_LIST[@]}
 #######################################
 list_displays () {
-    local loc_vncservers_list=( $(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
-                                                          | awk '{ gsub(\":\",\"\",\$1); print \$1}'") )
-    for item in ${loc_vncservers_list[@]} ; do
-        loc_vncservers_list=( $(printf "%s " "${item%$'\r'}") "${loc_vncservers_list[@]}" )
+    for item in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
+                                                    | awk '{ gsub(\":\",\"\",\$1); print \$1}'" ) ; do
+        local loc_vncservers_list=( $(printf "%s " "${item%$'\r'}") "${loc_vncservers_list[@]}" )
     done
     echo "${loc_vncservers_list[@]}"
 }
@@ -771,20 +770,20 @@ OPTIND=1
 
 while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
     case "${opt}" in
-        b)  BACKDOOR=true                                                                          			;;
-        v)  DEBUG=true                                                                             			;;
-        d)  DISPLAY="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE} AT DISPLAY $DISPLAY"		;;
-        m)  MACHINE="$OPTARG" ; debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"               			;;
-        c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}                                    			;;
-        k)  KEEP_VNC_SERVER_ACTIVE=true                                                            			;;
-        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true                                          			;;
-        h)  usage && exit 0                                                                        			;;
-        u)  MACHUSER="${OPTARG}"                                                                   			;;
-        w)  WINDOWMANAGER="${OPTARG}"                                                              			;;
-        g)  GEOMETRY="${OPTARG}"                                                                   			;;
-        P)  PIXELDEPTH="${OPTARG}"                                                                 			;;
-        s)  SOURCE="${OPTARG}"                                                                     			;;
-        -)                                                                                         			;;
+        b)  BACKDOOR=true						;;
+        v)  DEBUG=true							;;
+        d)  DISPLAY="$OPTARG"						;;
+        m)  MACHINE="$OPTARG"						;;
+        c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}		;;
+        k)  KEEP_VNC_SERVER_ACTIVE=true					;;
+        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true		;;
+        h)  usage && exit 0						;;
+        u)  MACHUSER="${OPTARG}"					;;
+        w)  WINDOWMANAGER="${OPTARG}"					;;
+        g)  GEOMETRY="${OPTARG}"					;;
+        P)  PIXELDEPTH="${OPTARG}"					;;
+        s)  SOURCE="${OPTARG}"						;;
+        -)								;;
     esac
 done
 
@@ -793,6 +792,10 @@ done
 inform "VNC2HPC VERSION:" "${VERSION}" 
 
 # ensure display is set if arg is passed, and is number
+debug "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
+if [[ "${DISPLAY}x" != "x" ]] ; then
+    debug "RECEIVED REQUEST TO USE DISPLAY:" "${DISPLAY}"
+fi
 [[ "${DISPLAY}" =~ ^[0-9]+$ ]] || die "DISPLAY isn't a number, or is unset" "DISPLAY=$DISPLAY"
 
 # Check out the vncclient
@@ -970,16 +973,17 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     fi
 fi   
     
+# show all users Xvnc processes, parsed for display
 all_active_displays=( $(get_vnc_connections) )
-debug "ALL USERS VNCSERVER DISPLAYS ON ${MACHINE}:" "$(echo ${all_active_displays[@]})"
 
 # grab user specific vncserver from vncserver -list command on remote
 active_displays=( $(list_displays) )
 if [[ ${#active_displays[@]} -eq 0 ]] ; then
     debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${MACHINE}"
 else
-    debug "DETECT ${#active_displays[@]} VNCSERVERS:" "${MACHUSER}@${MACHINE}" "${active_displays[@]}"
+    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${MACHINE}" "${active_displays[@]}"
 fi 
+set +x
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
@@ -1029,7 +1033,7 @@ if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BAC
         N*|n*)
 	    warning "YOU HAVE ${#active_displays[@]} VNCSERVER SESSIONS RUNNING!"
 	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_displays[@]}; do printf "%s " $p ; done)"
-	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-p \$DISPLAY\""
+	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-d \$DISPLAY\""
 	;;
         R*|r*)
 	    debug "WILL REUSE DISPLAY ${active_displays}"
@@ -1050,22 +1054,12 @@ if [[ "${DISPLAY}"x == x ]] ; then
     done
 fi
 
-# manage some details on the formats
-if [[ ${#DISPLAY} -lt 2 ]] && [[ -n ${DISPLAY} ]]; then
-    DISPLAY=0${DISPLAY}
-else
-    DISPLAY=${DISPLAY}
-fi
-
-# strip leading zeros from lower-case port
-DISPLAY=${DISPLAY#0}
-
 # test local tunnel connections for conflicts
-until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))" &>/dev/null ; do
-    TUNNEL_CONFLICT=$(lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY}+5900 ))")
+until ! lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY#0}+5900 ))" &>/dev/null ; do
+    TUNNEL_CONFLICT=$(lsof -i -n |grep "127.0.0.1:$(( ${DISPLAY#0}+5900 ))")
     debug "DETECTED TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
     # Increment $DISPLAY to avoid conflict
-    DISPLAY=$(( $DISPLAY+1 ))
+    DISPLAY=$(( ${DISPLAY#0}+1 ))
     DISPLAY=${DISPLAY}
     inform "TUNNEL CONFLICT:" "${TUNNEL_CONFLICT}"
     inform "NEW DISPLAY:" "${DISPLAY}"
@@ -1084,16 +1078,6 @@ if ! [[ "${active_displays[@]}" =~ $DISPLAY ]] ; then
     else
         # reassign port here to the actual port vncserver established
         DISPLAY="${newport}"
-        # strip leading zeros from lower-case port
-        DISPLAY=${DISPLAY#0}
-        # zero pad single digit displays this still is needed in case a vncserver autoselects low display number
-        if [ ${#DISPLAY} -lt 2 ] ; then
-           DISPLAY=0${DISPLAY}
-        else
-           DISPLAY=${DISPLAY}
-        fi
-        debug "DISPLAY NUMBER ADJUSTED FOR ZERO PADDING" "$DISPLAY"
-        debug "DISPLAY NUMBER ADJUSTED TO REMOVE ZEROS" "$DISPLAY"
     fi
     sleep 2.5
 else
@@ -1119,7 +1103,7 @@ ${GATEWAY_TUNNEL} ${NO_GATEWAY_TUNNEL} &>/dev/null &
 tunnel_pid=$!
 
 # establish a ssh local tunnel to $MACHINE
-debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT $(( 5900+$DISPLAY ))"
+debug "STARTING PORT FORWARDING" "`hostname -s` TO ${MACHINE} ON PORT $(( 5900+${DISPLAY#0} ))"
 debug "TUNNEL PID IS:" "${tunnel_pid}"
 
 # test that the Xvnc process on $DISPLAY was instantiated
@@ -1132,16 +1116,16 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$(( 5900+$DISPLAY))" 
+inform "CONNECTING $CLIENT_VERSION TO:" "$MACHINE:$(( 5900+${DISPLAY#0}))"
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$CLIENT" localhost::$(( 5900+${DISPLAY} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    "$CLIENT" localhost::$(( 5900+${DISPLAY#0} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$CLIENT" localhost::$(( 5900+${DISPLAY} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    "$CLIENT" localhost::$(( 5900+${DISPLAY#0} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
