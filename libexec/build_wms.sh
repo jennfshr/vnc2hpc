@@ -203,6 +203,8 @@ for wm in "${WINDOWMANAGER[@]}"; do
             AWESOME_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${AWESOME_PRODUCT_NAME}-${AWESOME_VERIONS}/build.log"
             build ${AWESOME_URL} ${AWESOME_VERSION} ${AWESOME_PRODUCT_NAME} ${AWESOME_BUILD_DIR} ${AWESOME_PREFIX} ${AWESOME_BUILD_LOG} ${METHOD}
             if [[ "${DEBUG}x" != x ]] ; then cat ${AWESOME_BUILD_LOG} ; fi
+         fi
+      ;;
       icewm)
          # WMs to build: icewm, berry, openbox, fvwm
          ICEWM_VERSION="1.9.2"
