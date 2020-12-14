@@ -51,6 +51,8 @@ case "$VNC2HPC_WM" in
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
 
+        module purge &>/dev/null
+        module load gcc
         # Set path to use WM
         export PATH=${BERRY_BIN}:${PATH}
         # Test that the directories exist before modifying environment
