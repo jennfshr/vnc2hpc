@@ -146,6 +146,8 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
+        (sleep 1 && pypanel) &
+        (sleep 1 && conky) &
         [ -x ${OBX_BIN}/openbox ] && openbox
     ;;
     xfwm4)
