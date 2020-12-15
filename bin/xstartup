@@ -137,16 +137,18 @@ case "$VNC2HPC_WM" in
         OBX_BIN="${OBX_PREFIX}/bin"
         OBX_LIB="${OBX_PREFIX}/lib"
 	OBX_SHARE="${OBX_PREFIX}/share"
-
+        OBX_ETC="${OBX_PREFIX}/etc"
         # Set path to use WM
         export PATH=${OBX_BIN}:${PATH}
 
 	[ -d ${OBX_SHARE} ] && export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
         [ -d ${OBX_LIB} ] && export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
+        [ -d ${OBX_ETC} ] && [ ! -d $HOME/.config/openbox ] && mkdir -p $HOME/.config/openbox && cp ${OBX_ETC}/xdg/openbox/* $HOME/.config/openbox/.
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${OBX_BIN}/gdm-control ] && gdm-control &
+        [ -x ${OBX_BIN}/gnome-panel-control ] && gnome-panel-control &
         [ -x ${OBX_BIN}/openbox ] && openbox
     ;;
     xfwm4)
