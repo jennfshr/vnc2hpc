@@ -768,7 +768,7 @@ done
 
 OPTIND=1
 
-while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
+while getopts "bc:m:p:vu:w:g:d:hrks:-" opt ; do
     case "${opt}" in
         b)  BACKDOOR=true						;;
         v)  DEBUG=true							;;
@@ -781,7 +781,7 @@ while getopts "bc:m:P:vu:w:g:d:hrks:-" opt ; do
         u)  MACHUSER="${OPTARG}"					;;
         w)  WINDOWMANAGER="${OPTARG}"					;;
         g)  GEOMETRY="${OPTARG}"					;;
-        P)  PIXELDEPTH="${OPTARG}"					;;
+        p)  PIXELDEPTH="${OPTARG}"					;;
         s)  SOURCE="${OPTARG}"						;;
         -)								;;
     esac
@@ -1013,6 +1013,7 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
 fi
 
 # ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
+# for someone interested sufficiently to avoid this, note that the -b option sets BACKDOOR="true", therefore bypassing this
 if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
     warning "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_displays[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"

@@ -195,7 +195,7 @@ The usage output is available by running
 
 `		[-g|--geometry <int>x<int>]					(optional) Default: xdpyinfo |grep dimensions`
 
-`		[-P|--pixeldepth <int>]						(optional) Default: 24 - others: 8, 15, 16`
+`		[-p|--pixeldepth <int>]						(optional) Default: 24 - others: 8, 15, 16`
 
 `		[-h|--help]`
 
@@ -406,7 +406,7 @@ To pass custom geometry dimensions to the vncserver instantiation on the remote 
 
 -----
 
-### [-P|--pixeldepth \<int\>] (optional) Default: 24 - others: 8, 15, 16
+### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 8, 15, 16
 
 To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 8, 15, 16.  Other values of -P may cause odd behavior with certain applications.
 
