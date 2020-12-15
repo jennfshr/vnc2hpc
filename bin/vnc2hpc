@@ -913,7 +913,7 @@ if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
 fi
 
 # check remote vncserver install path
-VNCSERVER_PATH=$(check_vncserver)
+VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
