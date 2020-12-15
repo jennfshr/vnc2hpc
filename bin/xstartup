@@ -147,7 +147,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${OBX_BIN}/gdm-control ] && gdm-control &
-        [ -x ${OBX_BIN}/openbox-session ] && openbox-session
+        [ -x ${OBX_BIN}/openbox ] && openbox
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
