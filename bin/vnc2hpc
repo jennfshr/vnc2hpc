@@ -12,7 +12,7 @@ README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
 MYDATE=$(date +%m-%d-%y"-"%H.%M.%S)
 
 # SSH Control Master Socket
-SSH_SOCKET="~/.ssh/connections/%C"
+SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
