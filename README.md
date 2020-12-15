@@ -222,12 +222,13 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Grizzly | gr-fe, gr-fey ||
 | Kodiak | ko-fe, ko-fey ||
 | Fog | fg-fey ||
-| Trinitite | tt-fey | berry can't build |
-| Darwin | darwin-fe | icewm & berry can't build |
+| Trinitite | tt-fey | berry segfaults |
+| Darwin | darwin-fe | icwm, openbox build deps unmet |
 | Fire | fi-fe ||
 | Ice | ic-fe ||
 | Cyclone | cy-fe ||
 | Trinity | tr-fe ||
+| Viewmaster | vm3-fe ||
 
 </details>
 
@@ -456,5 +457,5 @@ _____
 | v0.0.5 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
 | v0.0.5 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
 | v0.0.5 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mxm xfwm4, berry, openbox icewm |
+| v0.0.5 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
 | v0.0.5 | Windows | UNSUPPORTED | UNSUPPORTED |
