@@ -35,7 +35,7 @@ usage () {
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
-                            [-P|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
+                            [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
                             [-j|--job <jobid>]					(optional)
 			    [-h|--help]
