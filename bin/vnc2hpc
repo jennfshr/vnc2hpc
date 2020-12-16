@@ -78,9 +78,9 @@ check_network () {
 }
 
 #######################################
-# Connect to JOBID
+# Connect to SLURM_JOBID
 # Globals:
-#   JOBID
+#   SLURM_JOBID
 # Arguments:
 #   None
 # Outputs:
@@ -93,11 +93,10 @@ connect_job () {
 #######################################
 # Submit Batch Job
 # Globals:
-#   JOBID
 # Arguments:
 #   None
 # Outputs:
-# ?????
+#   SLURM_JOBID
 #######################################
 slurm_job_submit() {
     while getopts "A:Q:R:T:C:P:N:" opt; do
@@ -114,150 +113,49 @@ slurm_job_submit() {
     done
     job_submit_cmd="salloc --x11=none --no-shell ${loc_numnodes} ${loc_partition} ${loc_constraint} ${loc_walltime} ${loc_reservation} ${loc_qos} ${loc_account}"
     inform "Submitting interactive job:" "$(echo ${job_submit_cmd})"
-    JOBID=$( ${job_submit_cmd} )
-    if echo ${JOBID} |grep -qi error ; then
-        die "Salloc failed: ${JOBID}"
+    local loc_slurm_jobid=$( ${job_submit_cmd} )
+    if echo ${loc_slurm_jobid} |grep -qi error ; then
+        die "Salloc failed: ${loc_slurm_jobid}"
     else
-        JOBID=$( echo $JOBID | grep -i "salloc: Granted job allocation" | awk '{print $5}')
-        while ! job_running ${JOBID} ; do
+        loc_slurm_jobid=$( echo $loc_slurm_jobid | grep -i "salloc: Granted job allocation" | awk '{print $5}')
+        while ! job_running ${loc_slurm_jobid} ; do
            sleep 2
         done
     fi
 }
 
 #######################################
-# Cancel JOBID
+# Cancel SLURM_JOBID
 # Globals:
-#   JOBID
+#   SLURM_JOBID
 # Arguments:
 #   None
 # Outputs:
-# ?????
-#######################################
-job_cancel() {
-  scancel $1 &>/dev/null
-}
-
-#######################################
-# Check JOBID for Failure
-# Globals:
-#   JOBID
-# Arguments:
 #   None
-# Outputs:
-# ?????
 #######################################
-job_id_fail() {
-  squeue -j $1 |grep -q 'slurm_load_jobs error: Invalid job id specified' &>/dev/null
-  return $?
+job_control() {
+    local loc_slurm_jobid="$1"
+    case "${2}" in
+        terminate)	scancel $loc_slurm_jobid &>/dev/null														;;
+        failure)	squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'								;;
+        competed)	sacct -j $loc_slurm_jobid | grep -q COMPLETED													;;
+        cancelled)	sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED									;; 
+        running)	squeue -j $loc_slurm_jobid -o %T | grep RUNNING													;;
+        failed)		sacct -j $loc_slurm_jobid | grep "$1 " | grep FAILED												;;
+        tunnel)    
+            # grab headnode for $loc_slurm_jobid
+            for x in $(scontrol -o show jobid $loc_slurm_jobid) ; do 
+                if [[ "${x}" =~ BatchHost ]] ; then 
+                    local loc_headnode=$(echo ${x} | awk -F= '{print $2}')
+                fi
+            done
+            ssh -T -Nn -L $(( $REMOTE_DISPLAY+5900 )):localhost:$(( $REMOTE_DISPLAY+5900 )) ${loc_headnode} &
+            local tunnel_pid=$1
+            echo "$tunnel_pid"
+        ;;
+    esac
 }
-
-#######################################
-# Check JOBID for COMPLETE
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-job_completed() {
-  sacct -j $1 | grep -q COMPLETED
-}
-
-#######################################
-# Check JOBID for CANCEL
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-job_cancelled() {
-  sacct -j $1 | grep "$1 " | grep -q CANCELLED
-}
-
-#######################################
-# Check JOBID for RUNNING
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-job_running() {
-  squeue -j $1 -o %T | grep RUNNING &> /dev/null
-}
-
-#######################################
-# Check JOBID for FAIL
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-job_failed() {
-  #sacct -j $1 | grep FAILED &> /dev/null
-  sacct -j $1 | grep "$1 " | grep FAILED &> /dev/null
-}
-
-#######################################
-# Get maxppn for JOBID
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-maxppn() {
-  MAX_PPN=$(sinfo -h -o '%c'|sed s'/+//g')
-  if [[ -z $MAX_PPN ]] ; then
-    MAX_PPN=1
-  fi
-  echo $MAX_PPN
-}
-
-#######################################
-# Get HEADNODE for JOBID
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-headnode() {
-  SLURM_NODELIST=`squeue -j $1 -o %N | awk '$0 !~ /^NODELIST/'`
-  HEADNODE=`scontrol show hostnames "$SLURM_NODELIST" | head -n 1`
-  echo $HEADNODE
-}
-
-#######################################
-# Tunnel to Jobid
-# Globals:
-#   JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-tunneler() {
-  sleep 10
-  SLURM_NODELIST=`squeue -j $1 -o %N | awk '$0 !~ /^NODELIST/'`
-  reporter "\$SLURM_NODELIST=$SLURM_NODELIST"
-  R0HOST=`scontrol show hostnames "$SLURM_NODELIST" | head -n 1`
-  reporter "Establishing SSH port tunnel to rank 0 node $R0HOST"
-  # Sometimes outputs a TCP_NODE OVERLAY ERROR. Don't know why or how to fix, but it still sets up the tunnel
-  ssh -T -NnR ${PV_SERVER_PORT}:localhost:${PV_SERVER_PORT} $R0HOST >>${DEBUGOUT} 2>>${DEBUGOUTERR} &
-  TUN_PID=$!
-  return $TUN_PID
-}
-
+         
 #######################################
 # Ensure $MACHINE resolves
 # Globals:
@@ -985,7 +883,7 @@ while getopts "c:m:p:vu:w:g:d:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
         p)  PIXELDEPTH="${OPTARG}"					;;
         s)  SOURCE="${OPTARG}"						;;
         I)  INTERACTIVE_JOB="true"					;;
-        J)  JOBID="${OPTARG}"						;;
+        J)  SLURM_JOBID="${OPTARG}"					;;
         A)  SLURM_ACCOUNT="${OPTARG}"					;;
         Q)  SLURM_QOS="${OPTARG}"					;;
         R)  SLURM_RESERVATION="${OPTARG}"				;;
@@ -993,7 +891,6 @@ while getopts "c:m:p:vu:w:g:d:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
         C)  SLURM_CONSTRAINT="${OPTARG}"				;;
         P)  SLURM_PARTITION="${OPTARG}"					;;
         N)  SLURM_NNODES="${OPTARG}"					;;
-        J)  SLURM_JOBID="${OPTARG}"					;;
         -)								;;
     esac
 done
@@ -1007,10 +904,19 @@ inform "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
 
 # if JOBID is set, we need to attach to that job
 if [[ ${INTERACTIVE_JOB} == "true" ]] ; then 
-    if [[ -z ${JOBID} ]] ; then
+    if [[ -z ${SLURM_JOBID} ]] ; then
         inform "REQUEST FOR NEW INTERACTIVE ALLOCATION"
+        [[ -n ${SLURM_ACCOUNT} ]] && slurm_job_opts+="-A ${SLURM_ACCOUNT}"
+        [[ -n ${SLURM_QOS} ]] && slurm_job_opts+="-Q ${SLURM_QOS}"
+        [[ -n ${SLURM_RESERVATION} ]] && slurm_job_opts+="-R ${SLURM_RESERVATION}"
+        [[ -n ${SLURM_WALLTIME} ]] && slurm_job_opts+="-T ${SLURM_WALLTIME}"
+        [[ -n ${SLURM_CONSTRAINT} ]] && slurm_job_opts+="-C ${SLURM_CONSTRAINT}"
+        [[ -n ${SLURM_PARTITION} ]] && slurm_job_opts+="-P ${SLURM_PARTITION}"
+        [[ -n ${SLURM_NNODES} ]] && slurm_job_opts+="-N ${SLURM_NNODES}"
+        #SLURM_JOBID=$(slurm_job_submit ${slurm_job_opts[@]})
+        echo "${slurm_job_opts[@]}
     else
-        inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${JOBID}"
+        inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
     fi
 fi
 
