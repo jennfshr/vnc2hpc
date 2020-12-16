@@ -34,7 +34,7 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry,foo} &>/dev/null; then
+if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry} &>/dev/null; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
@@ -42,6 +42,29 @@ fi
 
 
 case "$VNC2HPC_WM" in
+    awesome)
+        # Setup installation variables for reuse
+        PRODUCT="awesome"
+        VERSION="4.3"
+        AWESOME_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
+        AWESOME_BIN="${AWESOME_PREFIX}/bin"
+        AWESOME_LIB="${AWESOME_PREFIX}/lib"
+        AWESOME_SHARE="${AWESOME_PREFIX}/share"
+
+        module purge &>/dev/null
+        module load gcc
+        # Set path to use WM
+        export PATH=${AWESOME_BIN}:${PATH}
+        # Test that the directories exist before modifying environment
+        [ -d ${AWESOME_SHARE} ] && export XDG_DATA_DIRS=${AWESOME_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${AWESOME_LIB} ] && export LD_LIBRARY_PATH=${AWESOME_LIB}:${LD_LIBRARY_PATH}
+
+        # test executables before invoking them
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
+        [ -x ${AWESOME_BIN}/berry ] && berry
+    ;;
     berry)
         # Setup installation variables for reuse
         PRODUCT="berry"
@@ -51,6 +74,8 @@ case "$VNC2HPC_WM" in
         BERRY_LIB="${BERRY_PREFIX}/lib"
         BERRY_SHARE="${BERRY_PREFIX}/share"
 
+        module purge &>/dev/null
+        module load gcc
         # Set path to use WM
         export PATH=${BERRY_BIN}:${PATH}
         # Test that the directories exist before modifying environment
@@ -112,16 +137,19 @@ case "$VNC2HPC_WM" in
         OBX_BIN="${OBX_PREFIX}/bin"
         OBX_LIB="${OBX_PREFIX}/lib"
 	OBX_SHARE="${OBX_PREFIX}/share"
-
+        OBX_ETC="${OBX_PREFIX}/etc"
         # Set path to use WM
         export PATH=${OBX_BIN}:${PATH}
 
 	[ -d ${OBX_SHARE} ] && export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
         [ -d ${OBX_LIB} ] && export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
+        [ -d ${OBX_ETC} ] && [ ! -d $HOME/.config/openbox ] && mkdir -p $HOME/.config/openbox && cp ${OBX_ETC}/xdg/openbox/* $HOME/.config/openbox/.
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x ${OBX_BIN}/openbox-session ] && openbox-session
+        [ -x ${OBX_BIN}/gdm-control ] && gdm-control &
+        [ -x ${OBX_BIN}/gnome-panel-control ] && gnome-panel-control &
+        [ -x ${OBX_BIN}/openbox ] && openbox
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
