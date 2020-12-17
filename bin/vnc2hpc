@@ -130,7 +130,7 @@ check_vncserver () {
         loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
                               "which vncserver || find /opt/ -name \"vncserver\" -executable" )
     else
-        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/vncserver.out ) >& /dev/null ;; cat /tmp/vncserver.out" ) 
+        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
     fi
     echo "$loc_vncserver_path"
 }
