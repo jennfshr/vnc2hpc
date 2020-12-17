@@ -764,7 +764,7 @@ for arg in "$@"; do
         *-user)		set -- "$@" "-u"   ;;
         *-wm*)		set -- "$@" "-w"   ;;
         *-geo*)		set -- "$@" "-g"   ;;
-        *-depth*)	set -- "$@" "-p"   ;;
+        *-pixel*)	set -- "$@" "-p"   ;;
         *-source)	set -- "$@" "-s"   ;;
         *)		set -- "$@" "$arg" ;;
     esac
