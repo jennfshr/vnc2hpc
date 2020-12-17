@@ -73,7 +73,7 @@ _____
 
 **Direct Download**
 
-* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
+* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
 
 **Clone the project**
 * `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
@@ -126,7 +126,7 @@ Here's one way to do that:
 
 * Note: this variable should be now set to be exported in your shell environment whenever you login to the system. If you set your environment up this way, you can simply use the variable to access the path to your viewer, rather than supplying the full path*
 
-	`./vnc2hpc -m tt-fey -c ${VNCV}` 
+	`./vnc2hpc -m tt-fey -c "${VNCV}"` 
 
 </details>
 
@@ -137,7 +137,7 @@ _____
 <details>
   <summary markdown="span">Expand section for guidance on setting up VNC2HPC</summary>
 
-You can download here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/raw/master/bin/vnc2hpc?inline=false)
+You can download here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
 
 One you have done this, you'll need to change permissions to make the script executable:
 
@@ -157,7 +157,7 @@ And if you add this line to your ~/.bashrc file, it will setup the $PATH to have
 
 `which vnc2hpc`
 
-*Alternative approach (perhaps preferable) is to clone the repository to your local machine, that way, the directory will already by in place, and a simple `git pull` while sitting in that directory will update your software to the latest stable version.* 
+*The preferred approach is to clone the repository to your local machine, that way, the directory will already by in place, and a simple `git pull` while sitting in that directory will update your software to the latest stable version.* 
 
 Again, if you do this, be sure to adjust the `export PATH` command in your .bashrc to prepend PATH with the bin subdirectory of the repository, where the vnc2hpc script is in the repository. 
 
@@ -193,7 +193,7 @@ The usage output is available by running
 
 `		[-g|--geometry <int>x<int>]					(optional) Default: xdpyinfo |grep dimensions`
 
-`		[-p|--pixeldepth <int>]						(optional) Default: 24 - others: 8, 15, 16`
+`		[-p|--pixeldepth <int>]						(optional) Default: 24 - others: 16,32`
 
 `		[-h|--help]`
 
@@ -246,6 +246,18 @@ Simple launch instructions follow.  As demonstrated below, the script is knowled
 
 `$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
+**Avoiding cluster password prompt(s)**
+
+*Initialize a forwardable Kerberos Ticket on your desktop system before running vnc2hpc*
+
+`kinit -f ${USER}`
+
+*Target a specific Darwin front-end*
+
+`./vnc2hpc -m darwin-fe1 -c "/Applicatoins/VNC\ Viewer.app/Contents/MacOS/vncviewer"`
+
+*Unavoidable authentication requirement for Turquoise systems to authenticate via wtrw gateway once - likely to change soon with the OUCH project*
+
 **Stopping the Connection**
 
 There are a couple ways to terminate your session, you can CTRL+C on the command line to kill the script, which will then kill your VNC Viewer connection to the tunnel, and terminate the session.  It's cleaner, however, to close the VNC Viewer window.  If you run the script with a `--keep` the session will remain on the targeted machine, so pointing vnc2hpc to use that machine subsequent to a 'kept' session will offer you the option to re-use that session.  Likewise, `--reconnect` will detect the vncserver session, and reuse that port, recreating the tunnel to re-attach to that same session. 
@@ -271,23 +283,25 @@ If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user throu
 
 ```
 $> vnc2hpc -m sn-fey -w fvwm -k -c "${VNCV}"
-INFO       VNC CLIENT INFO:                                   VNC(R)Viewer-6.20.529 
-INFO       LOCALHOST OS INFO:                                 pike.lanl.gov-Darwin
-INFO       REMOTE USER:                                       jgreen
-INFO       WINDOWMANAGER:                                     fvwm
-INFO       MACHINE:                                           sn-fey
-INFO       NETWORK:                                           YELLOW
-jgreen@sn-fey's password:
-jgreen@sn-fey1.lanl.gov's password:
-INFO       VNC CLIENT vncviewer LOGGING                       /Users/jgreen/.vnc2hpc/sn-fey1.lanl.gov/vncclient.log.11-02-20-06.11.26     
-INFO       VNC SERVER LOGGING                                 /Users/jgreen/.vnc2hpc/sn-fey1.lanl.gov/vncserver.log.11-02-20-06.11.26
-INFO       VNC passwd not available on sn-fey1.lanl.gov for jgreen
-INFO       Do you want to setup a password now? [Y/N]
+INFO       VNC2HPC VERSION:                                   0.0.5                                                                                                
+INFO       RECEIVED REQUEST TO CONNECT TO:                    sn-fey                                                                                               
+INFO       VNC CLIENT INFO:                                   VNC(R)Viewer-6.20.529                                                                                
+INFO       LOCALHOST OS INFO:                                 pike.lanl.gov-Darwin                                                                                 
+INFO       REMOTE USER:                                       jgreen                                                                                               
+INFO       WINDOWMANAGER:                                     fvwm                                                                                                 
+INFO       GEOMETRY:                                          default                                                                                              
+INFO       PIXELDEPTH:                                        24                                                                                                   
+INFO       MACHINE:                                           sn-fey                                                                                               
+INFO       NETWORK:                                           YELLOW                                                                                               
+INFO       VNC CLIENT vncviewer LOGGING:                      /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39                                                   
+INFO       VNC SERVER LOGGING:                                /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39                                                   
+INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen                                                                                                      
+INFO       Do you want to setup a password now? [Y/N]                                                                                                              
 y
-INFO       Enter your password (at least six characters long, up to eight)
-INFO       Reenter your password to confirm                                
-INFO       SETTING VNCPASSWD                                  sn-fey1.lanl.gov for jgreen                                                       
-INFO       VNCPASSWD SET!                                                       
+INFO       Enter your password (at least six characters long, up to eight)                                                                                                      
+INFO       Reenter your password to confirm                                                                                                                        
+INFO       SETTING VNCPASSWD                                  sn-fey2.lanl.gov for jgreen                                                                          
+INFO       VNCPASSWD SUCCESSFULLY SET!
 ```
 
 Once this password is set on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all remote hosts on that network due to the shared home directories on LANL networks.
@@ -374,10 +388,12 @@ _____
 
 ### [-d|--display <display>] (optional)
 
-The display value that one may pass to the vnc2hpc script via the `-d <int>` option can be a integer between 1-58999, and the vncserver invocation will try to launch a server that listens on that particular display port.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
+The display value that one may pass to the vnc2hpc script via the `-d <int>` option can be a integer between 1-58999, and the vncserver invocation will try to launch a server that listens on that particular display port.  Without a port argument, the script will randomly generate an integer in the higher range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  
+If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
+
 *NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --display 15`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --display 12345`
 
 *NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
 
@@ -395,8 +411,9 @@ _____
 
 Currently, six window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  On systems where non-system supplied window managers are absent, the script will attempt to build them on behalf of the user.  The resulting builds will be found in `~/.vnc2hpc/${os}/common/${arch}/${wm_product_name}/${wm_version}`.
 
-*NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps`, where the `build.log` should supply some indication as to the cause for the failure.  In the circumstance that the Window Manager requires building before usage, `start_vncserver.sh` may take a while, as that script makes a call to `build_wms.sh` to accomplish the build.*
+*NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps_$USER`, where the `build.log` should supply some indication as to the cause for the failure.  In the circumstance that the Window Manager requires building before usage, `start_vncserver.sh` may take a while, as that script makes a call to `build_wms.sh` to accomplish the build.*
 
+*Currently, openbox doesn't build on Darwin; Berry segfaults upon invocation on Trinitite.  As we refine the list of Window Managers we want to support, we'll address these limitations*
 _____
 
 ### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
@@ -405,9 +422,9 @@ To pass custom geometry dimensions to the vncserver instantiation on the remote 
 -----
 
 
-### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 8, 15, 16
+### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 16,32
 
-To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 8, 15, 16.  Other values of -P may cause odd behavior with certain applications.
+To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 16 and 32.  Other values of -P may cause odd behavior with certain applications.
 
 -----
 
