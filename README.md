@@ -183,9 +183,7 @@ The usage output is available by running
 
 `		[-v|--verbose]							(optional)`
 
-`		[-d|--display]							(optional)`
-
-`		[-p|--port <display port>]					(optional)`
+`		[-d|--display <display>]					(optional)`
 
 `		[-k|--keep]							(optional)`
 
@@ -201,7 +199,7 @@ The usage output is available by running
 
 `	Questions?        <vnc2hpc@lanl.gov>`
 
-`	Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/master/README.md`
+`	Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/README.md`
 
 _____
 
@@ -223,7 +221,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Kodiak | ko-fe, ko-fey ||
 | Fog | fg-fey ||
 | Trinitite | tt-fey | berry segfaults |
-| Darwin | darwin-fe | icwm, openbox build deps unmet |
+| Darwin | darwin-fe | openbox build deps unmet |
 | Fire | fi-fe ||
 | Ice | ic-fe ||
 | Cyclone | cy-fe ||
@@ -379,7 +377,7 @@ _____
 The display value that one may pass to the vnc2hpc script via the `-d <int>` option can be a integer between 1-58999, and the vncserver invocation will try to launch a server that listens on that particular display port.  Without a port argument, the script will randomly generate an integer in the range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
 *NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --port 15`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --display 15`
 
 *NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
 
@@ -404,8 +402,8 @@ _____
 ### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
 
 To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session. Supply as a argument to the -g flag a resolution in the form \<int\>x\<int\>, where the first value is the X-axis dimension (width), the second represents the Y-axis dimension (height).  If no argument is supplied to vnc2hpc, the default setting will be used, 1024x768. 
-
 -----
+
 
 ### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 8, 15, 16
 
