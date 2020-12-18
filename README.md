@@ -414,11 +414,13 @@ Currently, six window managers are supported.  The window manager supplies the g
 *NOTE: ~/.vnc2hpc/vnc2hpc-${branch}/libexec/build_wms.sh is called when a requested Window Manager is absent on the remote machine.  The temporary build locations is set to `/tmp/vnc2hpc-deps_$USER`, where the `build.log` should supply some indication as to the cause for the failure.  In the circumstance that the Window Manager requires building before usage, `start_vncserver.sh` may take a while, as that script makes a call to `build_wms.sh` to accomplish the build.*
 
 *Currently, openbox doesn't build on Darwin; Berry segfaults upon invocation on Trinitite.  As we refine the list of Window Managers we want to support, we'll address these limitations*
-_____
+
+-----
 
 ### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
 
 To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session. Supply as a argument to the -g flag a resolution in the form \<int\>x\<int\>, where the first value is the X-axis dimension (width), the second represents the Y-axis dimension (height).  If no argument is supplied to vnc2hpc, the default setting will be used, 1024x768. 
+
 -----
 
 
