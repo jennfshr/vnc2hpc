@@ -407,7 +407,7 @@ Sometimes the user id of the user running on the desktop system where vnc2hpc is
 
 _____
 
-### [-w|--wm <fvwm|mwm|xfwm4|icewm|fvwm|berry>] (optional) Default: [-w mwm] (Motif Window Manager)
+### [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>] (optional) Default: [-w mwm] (Motif Window Manager)
 
 Currently, six window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  On systems where non-system supplied window managers are absent, the script will attempt to build them on behalf of the user.  The resulting builds will be found in `~/.vnc2hpc/${os}/common/${arch}/${wm_product_name}/${wm_version}`.
 
