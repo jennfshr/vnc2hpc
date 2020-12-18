@@ -126,11 +126,11 @@ check_machine () {
 #######################################
 check_vncserver () {
     local loc_vncserver_path
-    if [[ "${REMOTE_SHELL}" =~ bash ]] ; then
+    if [[ "${REMOTE_SHELL}" =~ csh ]] ; then
+        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
+    else
         loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
                               "which vncserver || find /opt/ -name \"vncserver\" -executable" )
-    else
-        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
     fi
     echo "$loc_vncserver_path"
 }
@@ -587,6 +587,7 @@ EOF'
                 fi 
                 perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
+                inform "VNCPASSWD SUCCESSFULLY SET!"
             ;;
             N*|n*)
                 die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
