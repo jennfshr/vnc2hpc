@@ -108,7 +108,7 @@ job_submit() {
             T)  local loc_walltime="-t ${OPTARG}"		;;
             C)  local loc_contstraint="-c ${OPTARG}"		;;
             P)  local loc_partition="-p ${OPTARG}"		;;
-            N)  local loc_numnodes="-n ${OPTARG}"		;;
+            N)  local loc_numnodes="-N ${OPTARG}"		;;
             *)  echo "UNKNOWN OPTION"				;;
         esac
     done
@@ -118,7 +118,7 @@ job_submit() {
         die "Salloc failed: ${loc_slurm_jobid}"
     else
         loc_slurm_jobid=$( echo $loc_slurm_jobid | grep -i "salloc: Granted job allocation" | awk '{print $5}')
-        while ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "$(job_control ${loc_slurm_jobid} running)" &>/dev/null ; do
+        while ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${loc_slurm_jobid} running) ; do
             sleep 2
         done
     fi
@@ -137,13 +137,13 @@ job_submit() {
 job_control() {
     local loc_slurm_jobid="$1"
     case "${2}" in
-        terminate)	echo "scancel $loc_slurm_jobid &>/dev/null"														;;
-        failure)	echo "squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'"								;;
-        competed)	echo "sacct -j $loc_slurm_jobid | grep -q COMPLETED"													;;
-        cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"										;; 
-        running)	echo "squeue -j $loc_slurm_jobid -o %T | grep RUNNING"													;;
-        failed)		echo "sacct -j $loc_slurm_jobid | grep "$1 " | grep FAILED"												;;
-        headnode)	echo "scontrol show jobid $loc_slurm_jobid | grep BatchHost | awk -F= '{print \$2}'"									;;
+        terminate)	echo "scancel $loc_slurm_jobid"									;;
+        failure)	echo "squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'"	;;
+        competed)	echo "sacct -j $loc_slurm_jobid | grep -q COMPLETED"						;;
+        cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"			;; 
+        running)	echo "squeue -j $loc_slurm_jobid -o %T | grep -q RUNNING"					;;
+        failed)		echo "sacct -j $loc_slurm_jobid | grep "$1 " | grep -q FAILED"					;;
+        headnode)	echo "scontrol show jobid $loc_slurm_jobid | grep BatchHost | awk -F= '{print \$2}'"		;;
     esac
 }
 
@@ -222,8 +222,12 @@ check_machine () {
 #######################################
 check_vncserver () {
     local loc_vncserver_path
-    loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-        "which vncserver || find /opt/ -name \"vncserver\" -executable" )
+    if [[ "${REMOTE_SHELL}" =~ csh ]] ; then
+        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
+    else
+        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
+                              "which vncserver || find /opt/ -name \"vncserver\" -executable" )
+    fi
     echo "$loc_vncserver_path"
 }
 
@@ -516,7 +520,7 @@ kill_gateway_control_master_connection () {
 #######################################
 setup_nogateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
-        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
+        local loc_lasthop="ssh -tt $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
         echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_lasthop}"
     else
         echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
@@ -1129,22 +1133,19 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
         [[ -n ${SLURM_CONSTRAINT} ]] && slurm_job_opts+=" -C ${SLURM_CONSTRAINT}"
         [[ -n ${SLURM_PARTITION} ]] && slurm_job_opts+=" -P ${SLURM_PARTITION}"
         [[ -n ${SLURM_NNODES} ]] && slurm_job_opts+=" -N ${SLURM_NNODES}"
-        inform "SLURM JOB OPTIONS" "${slurm_job_opts[@]}"
-        inform "Submitting interactive job:" "$(echo ${job_submit_cmd})"
         SLURM_JOBID=$(job_submit ${slurm_job_opts[@]})
         if ! [[ "${SLURM_JOBID}" =~ [0-9]+ ]] ; then
             die "SLURM JOB ALLOCATION FAILED" "SLURM_JOBID:" "$(echo $SLURM_JOBID})"
         fi
         inform "SLURM_JOBID:" "$SLURM_JOBID"
-        job_control ${SLURM_JOBID} headnode
-        SLURM_HEADNODE=$(${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} headnode))
-        if [[ "${SLURM_HEADNODE}x" == x ]] ; then
-            die "DETERMINING SLURM_JOBID $SLURM_JOBID HEADNODE FAILED"
-        fi
-        inform "SLURM_HEADNODE:" "$SLURM_HEADNODE"
     else
         inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
     fi
+    SLURM_HEADNODE=$(${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} headnode))
+    if [[ "${SLURM_HEADNODE}x" == x ]] ; then
+        die "DETERMINING SLURM_JOBID $SLURM_JOBID HEADNODE FAILED"
+    fi
+    inform "SLURM_HEADNODE:" "$SLURM_HEADNODE"
     # reset SSH COMMANDS to use the headnode
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw1.lanl.gov"
@@ -1307,10 +1308,14 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${MACHINE} AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${MACHINE} AT REMOTE_DISPLAY $REMOTE_DISPLAY"
+    inform "KILLING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        kill_job_output=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} terminate))
+        inform "CANCELLED SLURM_JOBID $SLURM_JOBID" "$(echo ${kill_job_output})"
+    fi
     debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
 fi
 
