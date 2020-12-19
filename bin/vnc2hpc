@@ -1311,7 +1311,7 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "SLURM_JOBID: ${SLURM_JOBID} HEADNODE:${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "SLURM_JOBID: ${SLURM_JOBID} HEADNODE: ${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
 else
     inform "KILLING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
