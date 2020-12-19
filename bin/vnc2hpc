@@ -1141,6 +1141,7 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
     else
         inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
     fi
+
     SLURM_HEADNODE=$(${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} headnode))
     if [[ "${SLURM_HEADNODE}x" == x ]] ; then
         die "DETERMINING SLURM_JOBID $SLURM_JOBID HEADNODE FAILED"
@@ -1190,7 +1191,8 @@ fi
 
 # ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 # for someone interested sufficiently to avoid this, note that the -b option sets BACKDOOR="true", therefore bypassing this
-if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] && [[ "${SLURM_HEADNODE}x" == x ]] ; then
+if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
+#if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] && [[ "${SLURM_HEADNODE}x" == x ]] ; then
     warning "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_displays[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
@@ -1308,7 +1310,7 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
+    inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "SLURM_JOBID: ${SLURM_JOBID} HEADNODE:${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
 else
     inform "KILLING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
