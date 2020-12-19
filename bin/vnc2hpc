@@ -29,14 +29,14 @@ usage () {
                             [-m|--machine <machine>]				(required)
                             [-c|--client <vncclient>]				(required)
 			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
-                            [-v|--debug]					(optional)
+                            [-v|--verbose]					(optional)
 	                    [-d|--display <display>]				(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
-                            [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 8, 15, 16
-                            [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no vnc2hpc backend where client can't access git.lanl.gov
+                            [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
+                            [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
 			    [-h|--help]
                             [-J|--job <jobid>]					(optional) Attach to running job
 
@@ -708,6 +708,7 @@ EOF'
                 fi 
                 perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
+                inform "VNCPASSWD SUCCESSFULLY SET!"
             ;;
             N*|n*)
                 die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
@@ -876,7 +877,7 @@ for arg in "$@"; do
     shift
     case "$arg" in
         *-cl*nt)	set -- "$@" "-c"   ;;
-        *-debug)	set -- "$@" "-v"   ;;
+        *-verbose)	set -- "$@" "-v"   ;;
         *-help)		set -- "$@" "-h"   ;;
         *-keep)		set -- "$@" "-k"   ;;
         *-machine)	set -- "$@" "-m"   ;;
@@ -885,7 +886,7 @@ for arg in "$@"; do
         *-user)		set -- "$@" "-u"   ;;
         *-wm*)		set -- "$@" "-w"   ;;
         *-geo*)		set -- "$@" "-g"   ;;
-        *-depth*)	set -- "$@" "-P"   ;;
+        *-pixel*)	set -- "$@" "-p"   ;;
         *-source)	set -- "$@" "-s"   ;;
         *-inter*)	set -- "$@" "-I"   ;;
         *-jobid)	set -- "$@" "-J"   ;;
