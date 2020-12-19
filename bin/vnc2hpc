@@ -98,7 +98,8 @@ connect_job () {
 # Outputs:
 #   SLURM_JOBID
 #######################################
-slurm_job_submit() {
+job_submit() {
+    OPTIND=1
     while getopts "A:Q:R:T:C:P:N:" opt; do
         case $opt in
             A)  local loc_account="-A ${OPTARG}"		;;
@@ -112,50 +113,55 @@ slurm_job_submit() {
         esac
     done
     job_submit_cmd="salloc --x11=none --no-shell ${loc_numnodes} ${loc_partition} ${loc_constraint} ${loc_walltime} ${loc_reservation} ${loc_qos} ${loc_account}"
-    inform "Submitting interactive job:" "$(echo ${job_submit_cmd})"
-    local loc_slurm_jobid=$( ${job_submit_cmd} )
+    local loc_slurm_jobid=$( ${GATEWAY_SSH}${NO_GATEWAY_SSH} "${job_submit_cmd}" 2>&1 )
     if echo ${loc_slurm_jobid} |grep -qi error ; then
         die "Salloc failed: ${loc_slurm_jobid}"
     else
         loc_slurm_jobid=$( echo $loc_slurm_jobid | grep -i "salloc: Granted job allocation" | awk '{print $5}')
-        while ! job_running ${loc_slurm_jobid} ; do
-           sleep 2
+        while ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "$(job_control ${loc_slurm_jobid} running)" &>/dev/null ; do
+            sleep 2
         done
     fi
+    echo "${loc_slurm_jobid}"
 }
 
 #######################################
-# Cancel SLURM_JOBID
+# Control for SLURM_JOBID
 # Globals:
 #   SLURM_JOBID
 # Arguments:
 #   None
 # Outputs:
-#   None
+#   tunnel case returns tunnel pid
 #######################################
 job_control() {
     local loc_slurm_jobid="$1"
     case "${2}" in
-        terminate)	scancel $loc_slurm_jobid &>/dev/null														;;
-        failure)	squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'								;;
-        competed)	sacct -j $loc_slurm_jobid | grep -q COMPLETED													;;
-        cancelled)	sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED									;; 
-        running)	squeue -j $loc_slurm_jobid -o %T | grep RUNNING													;;
-        failed)		sacct -j $loc_slurm_jobid | grep "$1 " | grep FAILED												;;
-        tunnel)    
-            # grab headnode for $loc_slurm_jobid
-            for x in $(scontrol -o show jobid $loc_slurm_jobid) ; do 
-                if [[ "${x}" =~ BatchHost ]] ; then 
-                    local loc_headnode=$(echo ${x} | awk -F= '{print $2}')
-                fi
-            done
-            ssh -T -Nn -L $(( $REMOTE_DISPLAY+5900 )):localhost:$(( $REMOTE_DISPLAY+5900 )) ${loc_headnode} &
-            local tunnel_pid=$1
-            echo "$tunnel_pid"
-        ;;
+        terminate)	echo "scancel $loc_slurm_jobid &>/dev/null"														;;
+        failure)	echo "squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'"								;;
+        competed)	echo "sacct -j $loc_slurm_jobid | grep -q COMPLETED"													;;
+        cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"										;; 
+        running)	echo "squeue -j $loc_slurm_jobid -o %T | grep RUNNING"													;;
+        failed)		echo "sacct -j $loc_slurm_jobid | grep "$1 " | grep FAILED"												;;
+        headnode)	echo "scontrol show jobid $loc_slurm_jobid | grep BatchHost | awk -F= '{print \$2}'"									;;
     esac
 }
-         
+
+#######################################
+# Attach to SLURM_JOBID
+# Globals:
+#   SLURM_JOBID
+# Arguments:
+#   None
+# Outputs:
+#   tunnel case returns tunnel pid
+#######################################
+job_attach() {
+    local loc_slurm_jobid="$1"
+    if ! $(job_control $loc_slurm_jobid running); then die "SLURM_JOBID" "$loc_slurm_jobid invalid"; fi 
+    
+}
+
 #######################################
 # Ensure $MACHINE resolves
 # Globals:
@@ -254,7 +260,6 @@ setup_ssh_opts () {
     loc_ssh_opts+="-o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
-    loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
     case "$1" in
         master)
             loc_ssh_opts+=" -x"
@@ -262,19 +267,25 @@ setup_ssh_opts () {
             loc_ssh_opts+=" -N"
             loc_ssh_opts+=" -f"
             loc_ssh_opts+=" -o ControlPersist=yes"
+            loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
         ;;
         command)
             loc_ssh_opts+=" -x"
             loc_ssh_opts+=" -tt"
             loc_ssh_opts+=" -N"
             loc_ssh_opts+=" -f"
+            loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
         ;;
         vncpasswd)
             loc_ssh_opts+=" -x"
+            loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
         ;;
-        *)
+        no_controlmaster)
             loc_ssh_opts+=""
         ;;
+        *)
+            loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
+        ;;   
     esac 
     echo "$loc_ssh_opts"
 }
@@ -305,7 +316,12 @@ setup_tunnel_host () {
 #   Writes ssh cmd to stdout
 #######################################
 setup_nogateway_ssh () {
-    echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
+        echo "ssh -t $(setup_ssh_opts command) ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+    else
+        echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
+    fi
 }
 
 #######################################
@@ -396,7 +412,12 @@ kill_nogateway_control_master_connection () {
 #######################################
 setup_gateway_ssh () {
     local loc_gateway="$1"
-    echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
+        echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_lasthop} "
+    else
+        echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    fi
 }
 
 #######################################
@@ -494,7 +515,12 @@ kill_gateway_control_master_connection () {
 #   Writes ssh tunnel cmd to stdout
 #######################################
 setup_nogateway_tunnel () {
-    echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+    else
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    fi
 }
 
 #######################################
@@ -511,7 +537,12 @@ setup_nogateway_tunnel () {
 #######################################
 setup_gateway_tunnel () {
     local loc_gateway="$1"
-    echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+    else
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
+    fi
 }
 
 #######################################
@@ -902,24 +933,6 @@ inform "VNC2HPC VERSION:" "${VERSION}"
 # ensure display is set if arg is passed, and is number
 inform "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
 
-# if JOBID is set, we need to attach to that job
-if [[ ${INTERACTIVE_JOB} == "true" ]] ; then 
-    if [[ -z ${SLURM_JOBID} ]] ; then
-        inform "REQUEST FOR NEW INTERACTIVE ALLOCATION"
-        [[ -n ${SLURM_ACCOUNT} ]] && slurm_job_opts+="-A ${SLURM_ACCOUNT}"
-        [[ -n ${SLURM_QOS} ]] && slurm_job_opts+="-Q ${SLURM_QOS}"
-        [[ -n ${SLURM_RESERVATION} ]] && slurm_job_opts+="-R ${SLURM_RESERVATION}"
-        [[ -n ${SLURM_WALLTIME} ]] && slurm_job_opts+="-T ${SLURM_WALLTIME}"
-        [[ -n ${SLURM_CONSTRAINT} ]] && slurm_job_opts+="-C ${SLURM_CONSTRAINT}"
-        [[ -n ${SLURM_PARTITION} ]] && slurm_job_opts+="-P ${SLURM_PARTITION}"
-        [[ -n ${SLURM_NNODES} ]] && slurm_job_opts+="-N ${SLURM_NNODES}"
-        #SLURM_JOBID=$(slurm_job_submit ${slurm_job_opts[@]})
-        echo "${slurm_job_opts[@]}
-    else
-        inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
-    fi
-fi
-
 # ensure display is valid, if set, and include that in info output
 if [[ "${REMOTE_DISPLAY}x" != "x" ]] ; then
     inform "RECEIVED REQUEST TO USE REMOTE_DISPLAY:" "${REMOTE_DISPLAY}"
@@ -1104,6 +1117,42 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         inform "RESETTING REMOTE_INSTALL_PATH:" "$REMOTE_INSTALL_PATH"
     fi
 fi   
+
+# if JOBID is set, we need to attach to that job
+if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
+    if [[ -z ${SLURM_JOBID} ]] ; then
+        inform "REQUEST FOR NEW INTERACTIVE ALLOCATION"
+        [[ -n ${SLURM_ACCOUNT} ]] && slurm_job_opts+=" -A ${SLURM_ACCOUNT}"
+        [[ -n ${SLURM_QOS} ]] && slurm_job_opts+=" -Q ${SLURM_QOS}"
+        [[ -n ${SLURM_RESERVATION} ]] && slurm_job_opts+=" -R ${SLURM_RESERVATION}"
+        [[ -n ${SLURM_WALLTIME} ]] && slurm_job_opts+=" -T ${SLURM_WALLTIME}"
+        [[ -n ${SLURM_CONSTRAINT} ]] && slurm_job_opts+=" -C ${SLURM_CONSTRAINT}"
+        [[ -n ${SLURM_PARTITION} ]] && slurm_job_opts+=" -P ${SLURM_PARTITION}"
+        [[ -n ${SLURM_NNODES} ]] && slurm_job_opts+=" -N ${SLURM_NNODES}"
+        inform "SLURM JOB OPTIONS" "${slurm_job_opts[@]}"
+        inform "Submitting interactive job:" "$(echo ${job_submit_cmd})"
+        SLURM_JOBID=$(job_submit ${slurm_job_opts[@]})
+        if ! [[ "${SLURM_JOBID}" =~ [0-9]+ ]] ; then
+            die "SLURM JOB ALLOCATION FAILED" "SLURM_JOBID:" "$(echo $SLURM_JOBID})"
+        fi
+        inform "SLURM_JOBID:" "$SLURM_JOBID"
+        job_control ${SLURM_JOBID} headnode
+        SLURM_HEADNODE=$(${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} headnode))
+        if [[ "${SLURM_HEADNODE}x" == x ]] ; then
+            die "DETERMINING SLURM_JOBID $SLURM_JOBID HEADNODE FAILED"
+        fi
+        inform "SLURM_HEADNODE:" "$SLURM_HEADNODE"
+    else
+        inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
+    fi
+    # reset SSH COMMANDS to use the headnode
+    if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
+        GATEWAY="wtrw1.lanl.gov"
+        GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+    else
+        NO_GATEWAY_SSH=$(setup_nogateway_ssh)
+    fi
+fi
     
 # show all users Xvnc processes, parsed for display
 all_active_displays=( $(get_vnc_connections) )
@@ -1140,7 +1189,7 @@ fi
 
 # ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 # for someone interested sufficiently to avoid this, note that the -b option sets BACKDOOR="true", therefore bypassing this
-if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
+if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] && [[ "${SLURM_HEADNODE}x" == x ]] ; then
     warning "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${MACHINE}" "$(echo "${active_displays[@]}")"
     warning "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
@@ -1191,9 +1240,9 @@ done
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"")
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
