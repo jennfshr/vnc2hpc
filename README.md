@@ -452,6 +452,38 @@ To change the pixel depth of the desktop to be started, call the script with a `
 
 -----
 
+### [-I|--interactive] (optional) Run vncserver inside an interactive job on $MACHINE
+
+-----
+
+### [-A|--account] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
+
+-----
+
+### [-Q|--qos] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
+
+-----
+
+### [-R|--reservation] (optional) For use when targeting nodes in a Slurm reservation
+
+-----
+
+### [-T|--time]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
+
+-----
+
+### [-C|--constraint] (optional) For use when targeting nodes with Slurm Constraints
+
+-----
+
+### [-P|--partition] (optional) For use when targeting nodes in Slurm partition
+
+-----
+
+### [-N|--numnodes]	(optional) Default: 1
+
+-----
+
 ## Window Managers
 
 The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, that this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
