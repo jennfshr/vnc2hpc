@@ -79,19 +79,6 @@ check_network () {
 }
 
 #######################################
-# Connect to SLURM_JOBID
-# Globals:
-#   SLURM_JOBID
-# Arguments:
-#   None
-# Outputs:
-# ?????
-#######################################
-connect_job () {
-    echo "DO SOMETHING"   
-}
-
-#######################################
 # Submit Batch Job
 # Globals:
 # Arguments:
@@ -950,7 +937,7 @@ while getopts "c:m:p:vu:w:g:d:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
         p)  PIXELDEPTH="${OPTARG}"					;;
         s)  SOURCE="${OPTARG}"						;;
         I)  INTERACTIVE_JOB="true"					;;
-        J)  SLURM_JOBID="${OPTARG}"					;;
+        J)  SLURM_JOBID="${OPTARG}"; KEEP_JOB="true"			;;
         A)  SLURM_ACCOUNT="${OPTARG}"					;;
         Q)  SLURM_QOS="${OPTARG}"					;;
         R)  SLURM_RESERVATION="${OPTARG}"				;;
@@ -1170,7 +1157,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
 fi   
 
 # if JOBID is set, we need to attach to that job
-if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
+if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
     if [[ -z ${SLURM_JOBID} ]] ; then
         inform "REQUEST FOR NEW INTERACTIVE ALLOCATION"
         [[ -n ${SLURM_ACCOUNT} ]] && slurm_job_opts+=" -A ${SLURM_ACCOUNT}"
@@ -1368,7 +1355,7 @@ if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
 else
     inform "KILLING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
-    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+    if [[ "${SLURM_HEADNODE}x" != x ]] && [[ "${KEEP_JOB}x" == x ]] ; then
         kill_job_output=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} terminate))
         inform "CANCELLED SLURM_JOBID $SLURM_JOBID" "$(echo ${kill_job_output})"
     fi
