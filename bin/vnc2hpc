@@ -72,6 +72,7 @@ check_network () {
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
 	gr*|ba*|cp-login*|ko*|sn*)	loc_network="TURQUOISE"     	;;
+        ga*)				loc_network="VLGATE"		;;
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
@@ -321,8 +322,14 @@ setup_tunnel_host () {
 #######################################
 setup_nogateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
+            case ${MACHINE} in
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
+            esac
+        fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
-        echo "ssh -t $(setup_ssh_opts command) ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+        echo "ssh -t $(setup_ssh_opts command) ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop}"
     else
         echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${MACHINE}"
     fi
@@ -417,8 +424,15 @@ kill_nogateway_control_master_connection () {
 setup_gateway_ssh () {
     local loc_gateway="$1"
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
+            case "${MACHINE}" in
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1"	;;
+            esac
+        fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
-        echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_lasthop} "
+        echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop} "
     else
         echo "ssh $(setup_ssh_opts command) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
     fi
@@ -520,8 +534,15 @@ kill_gateway_control_master_connection () {
 #######################################
 setup_nogateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
+            case "${MACHINE}" in
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+            esac
+        fi
         local loc_lasthop="ssh -tt $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
-        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop}"
     else
         echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
     fi
@@ -542,8 +563,15 @@ setup_nogateway_tunnel () {
 setup_gateway_tunnel () {
     local loc_gateway="$1"
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+        if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
+            case "${MACHINE}" in
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+            esac
+        fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
-        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_lasthop}"
+        echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop}"
     else
         echo "ssh $(setup_ssh_opts command) ${TUNNEL_HOST} ${MACHUSER}@${loc_gateway} ssh -tt ${TUNNEL_HOST} ${MACHUSER}@${MACHINE}"
     fi
@@ -651,6 +679,9 @@ debug () {
 control_master_connection () {
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         local local_gateway="wtrw1.lanl.gov"
+        local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
+    elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+        local local_gateway="vl-gate.lanl.gov"
         local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
     else
         local local_nogateway_ssh=$(setup_nogateway_ssh_control_master)
@@ -998,6 +1029,12 @@ if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
     GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
     CONTROL_KILL=$(kill_gateway_control_master_connection ${GATEWAY})
+elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+    GATEWAY="vl-gate.lanl.gov"
+    GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+    GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+    CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
+    CONTROL_KILL=$(kill_gateway_control_master_connection ${GATEWAY})
 else
     NO_GATEWAY_SSH=$(setup_nogateway_ssh)
     NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
@@ -1020,6 +1057,10 @@ if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
     MACHINE="${REAL_MACHINE}"
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw1.lanl.gov"
+        GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+    elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+        GATEWAY="vl-gate.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
         GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     else
@@ -1108,6 +1149,11 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         if ! $GATEWAY_SCP &>/dev/null ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi
+    elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+        GATEWAY_SCP=$(setup_gateway_scp ${GATEWAY} ${FULL_FILE_PATH} ${DEST})
+        if ! $GATEWAY_SCP &>/dev/null ; then
+            die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
+        fi
     else
         NO_GATEWAY_SCP=$(setup_nogateway_scp ${FULL_FILE_PATH} ${DEST})
         if ! $NO_GATEWAY_SCP &>/dev/null ; then
@@ -1141,6 +1187,7 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
         inform "SLURM_JOBID:" "$SLURM_JOBID"
     else
         inform "RECEIVED REQUEST TO ATTACH TO JOBID:" "${SLURM_JOBID}"
+        if ! ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "$(job_control ${SLURM_JOBID} running)"; then die "SLURM_JOBID ${SLURM_JOBID}: NOT RUNNING!" ; fi
     fi
 
     SLURM_HEADNODE=$(${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} headnode))
@@ -1151,6 +1198,9 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] ; then
     # reset SSH COMMANDS to use the headnode
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw1.lanl.gov"
+        GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+    elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+        GATEWAY="vl-gate.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
     else
         NO_GATEWAY_SSH=$(setup_nogateway_ssh)
@@ -1266,6 +1316,9 @@ TUNNEL_HOST=$(setup_tunnel_host)
 # need the tunnel to include the display as determined above
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
     GATEWAY="wtrw1.lanl.gov"
+    GATEWAY_TUNNEL=$(setup_gateway_tunnel ${GATEWAY})
+elif [[ "${NETWORK}" =~ VLGATE ]] ; then
+    GATEWAY="vl-gate.lanl.gov"
     GATEWAY_TUNNEL=$(setup_gateway_tunnel ${GATEWAY})
 else
     NO_GATEWAY_TUNNEL=$(setup_nogateway_tunnel)
