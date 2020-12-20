@@ -175,13 +175,13 @@ The usage output is available by running
 
 `          usage: vnc2hpc`
 
-`                            [-m|--machine <machine>]				(required)`
+`                           [-m|--machine <machine>]				(required)`
 
-`                            [-c|--client <vncclient>]				(required)`
+`                           [-c|--client <vncclient>]				(required)`
 
 `			    [-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost` 
 
-`                            [-v|--verbose]					(optional)`
+`                           [-v|--verbose]					(optional)`
 
 `	                    [-d|--display <display>]				(optional)`
 
@@ -191,37 +191,37 @@ The usage output is available by running
 
 `			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`                            [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions`
+`                           [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions`
 
-`                            [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32`
+`                           [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32`
 
-`                            [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet`
+`                           [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet`
 
 `			    [-h|--help]`
 
-`                            [-J|--job <jobid>]					(optional) Attach to running job`
+`                           [-J|--job <jobid>]					(optional) Attach to running job`
 `
 `                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
 
-`                            [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
+`                           [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
 
-`                            [-A|--account]					(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
+`                           [-A|--account]					(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
 
-`                            [-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
+`                           [-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
 
-`                            [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
+`                           [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
 
-`                            [-T|--time]						(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm`
+`                           [-T|--time]						(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm`
 
-`                            [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
+`                           [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
 
-`                            [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
+`                           [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
 
-`                            [-N|--numnodes]					(optional) Default: 1`
+`                           [-N|--numnodes]					(optional) Default: 1`
 
-`          Questions?        <vnc2hpc@lanl.gov>`
+`          Questions?       <vnc2hpc@lanl.gov>`
 
-`          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
+`          Need Help?       https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
 
 _____
 
