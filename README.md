@@ -181,7 +181,7 @@ The usage output is available by running
 
 `			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost` 
 
-`			[-v|--verbose]					(optional)`
+`			[-v|--verbose]						(optional)`
 
 `			[-d|--display <display>]				(optional)`
 
@@ -189,13 +189,13 @@ The usage output is available by running
 
 `			[-r|--reconnect]					(optional)`
 
-`			[-w|--wm icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)`
+`			[-w|--wm icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`			[-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions`
+`			[-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
 
-`			[-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32`
+`			[-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
 
-`			[-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend installation and no yellow connection`
+`			[-s|--source /path/to/source.tar.gz]			(optional) Only Required for systems with no backend installation and no yellow connection`
 
 `			[-h|--help]`
 
@@ -205,7 +205,7 @@ The usage output is available by running
 
 `			[-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
 
-`			[-A|--account]					(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
+`			[-A|--account]						(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
 
 `			[-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
 
@@ -217,7 +217,7 @@ The usage output is available by running
 
 `			[-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
 
-`			[-N|--numnodes]					(optional) Default: 1`
+`			[-N|--numnodes]						(optional) Default: 1`
 
 `		Questions?       <vnc2hpc@lanl.gov>`
 
@@ -305,24 +305,24 @@ If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user throu
 
 ```
 $> vnc2hpc -m sn-fey -w fvwm -k -c "${VNCV}"
-INFO       VNC2HPC VERSION:                                   0.0.5                                                                                                
-INFO       RECEIVED REQUEST TO CONNECT TO:                    sn-fey                                                                                               
-INFO       VNC CLIENT INFO:                                   VNC(R)Viewer-6.20.529                                                                                
-INFO       LOCALHOST OS INFO:                                 pike.lanl.gov-Darwin                                                                                 
-INFO       REMOTE USER:                                       jgreen                                                                                               
-INFO       WINDOWMANAGER:                                     fvwm                                                                                                 
-INFO       GEOMETRY:                                          default                                                                                              
-INFO       PIXELDEPTH:                                        24                                                                                                   
-INFO       MACHINE:                                           sn-fey                                                                                               
-INFO       NETWORK:                                           YELLOW                                                                                               
-INFO       VNC CLIENT vncviewer LOGGING:                      /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39                                                   
-INFO       VNC SERVER LOGGING:                                /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39                                                   
-INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen                                                                                                      
-INFO       Do you want to setup a password now? [Y/N]                                                                                                              
+INFO       VNC2HPC VERSION:								0.0.5
+INFO       RECEIVED REQUEST TO CONNECT TO:						sn-fey
+INFO       VNC CLIENT INFO:								VNC(R)Viewer-6.20.529
+INFO       LOCALHOST OS INFO:								pike.lanl.gov-Darwin
+INFO       REMOTE USER:									jgreen
+INFO       WINDOWMANAGER:								fvwm
+INFO       GEOMETRY:									default
+INFO       PIXELDEPTH:									24
+INFO       MACHINE:									sn-fey
+INFO       NETWORK:									YELLOW
+INFO       VNC CLIENT vncviewer LOGGING:						/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39
+INFO       VNC SERVER LOGGING:								/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39
+INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen
+INFO       Do you want to setup a password now? [Y/N]
 y
-INFO       Enter your password (at least six characters long, up to eight)                                                                                                      
-INFO       Reenter your password to confirm                                                                                                                        
-INFO       SETTING VNCPASSWD                                  sn-fey2.lanl.gov for jgreen                                                                          
+INFO       Enter your password (at least six characters long, up to eight)
+INFO       Reenter your password to confirm
+INFO       SETTING VNCPASSWD								sn-fey2.lanl.gov for jgreen
 INFO       VNCPASSWD SUCCESSFULLY SET!
 ```
 
@@ -445,7 +445,6 @@ To pass custom geometry dimensions to the vncserver instantiation on the remote 
 
 -----
 
-
 ### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 16,32
 
 To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 16 and 32.  Other values of -P may cause odd behavior with certain applications.
@@ -454,33 +453,49 @@ To change the pixel depth of the desktop to be started, call the script with a `
 
 ### [-I|--interactive] (optional) Run vncserver inside an interactive job on $MACHINE
 
+Pass -I to the script to request a vncserver launched within an interactive allocation on the cluster.
+
 -----
 
 ### [-A|--account] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
+
+Pass `-A <accountname>` if you'd like to schedule the interactive allocation under a particular Slurm Account.
 
 -----
 
 ### [-Q|--qos] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
 
+Use `-Q <qos>` to run Slurm interactive allocation under a particular Slurm quality of service (qos). 
+
 -----
 
 ### [-R|--reservation] (optional) For use when targeting nodes in a Slurm reservation
+
+Use `-R <reservation>` to target a Slurm reservation on the cluster. 
 
 -----
 
 ### [-T|--time]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
 
+Use `-T <time>` in the HH:MM:SS format required by slurm to allocate a job with the non-default walltime.
+
 -----
 
 ### [-C|--constraint] (optional) For use when targeting nodes with Slurm Constraints
+
+Use `-C <constraint>` if a particular constraint is required on the desired target nodes.
 
 -----
 
 ### [-P|--partition] (optional) For use when targeting nodes in Slurm partition
 
+Use `-P <partition>` if you want your job to run under a non-default partition on the cluster. 
+
 -----
 
 ### [-N|--numnodes]	(optional) Default: 1
+
+Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocation invocation.
 
 -----
 
