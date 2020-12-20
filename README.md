@@ -173,55 +173,55 @@ The usage output is available by running
 
 `vnc2hpc v0.0.5`
 
-`          usage: vnc2hpc`
+`		usage: vnc2hpc`
 
-`                           [-m|--machine <machine>]				(required)`
+`			[-m|--machine <machine>]				(required)`
 
-`                           [-c|--client <vncclient>]				(required)`
+`			[-c|--client <vncclient>]				(required)`
 
-`			    [-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost` 
+`			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost` 
 
-`                           [-v|--verbose]					(optional)`
+`			[-v|--verbose]						(optional)`
 
-`	                    [-d|--display <display>]				(optional)`
+`			[-d|--display <display>]				(optional)`
 
-`			    [-k|--keep]						(optional)`
+`			[-k|--keep]						(optional)`
 
-`			    [-r|--reconnect]					(optional)`
+`			[-r|--reconnect]					(optional)`
 
-`			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)`
+`			[-w|--wm icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`                           [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions`
+`			[-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
 
-`                           [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32`
+`			[-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
 
-`                           [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet`
+`			[-s|--source /path/to/source.tar.gz]			(optional) Only Required for systems with no backend installation and no yellow connection`
 
-`			    [-h|--help]`
+`			[-h|--help]`
 
-`                           [-J|--job <jobid>]					(optional) Attach to running job`
-`
-`                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
+`			[-J|--job <jobid>]					(optional) Attach to running job`
 
-`                           [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
+`		OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
 
-`                           [-A|--account]					(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
+`			[-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
 
-`                           [-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
+`			[-A|--account]						(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
 
-`                           [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
+`			[-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
 
-`                           [-T|--time]						(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm`
+`			[-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
 
-`                           [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
+`			[-T|--time]						(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm`
 
-`                           [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
+`			[-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
 
-`                           [-N|--numnodes]					(optional) Default: 1`
+`			[-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
 
-`          Questions?       <vnc2hpc@lanl.gov>`
+`			[-N|--numnodes]						(optional) Default: 1`
 
-`          Need Help?       https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
+`		Questions?       <vnc2hpc@lanl.gov>`
+
+`		Need Help?       https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
 
 _____
 
@@ -239,6 +239,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Snow | sn-fe, sn-fey ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
+| Gadget | ga-fe ||
 | Grizzly | gr-fe, gr-fey ||
 | Kodiak | ko-fe, ko-fey ||
 | Fog | fg-fey ||
@@ -305,24 +306,24 @@ If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user throu
 
 ```
 $> vnc2hpc -m sn-fey -w fvwm -k -c "${VNCV}"
-INFO       VNC2HPC VERSION:                                   0.0.5                                                                                                
-INFO       RECEIVED REQUEST TO CONNECT TO:                    sn-fey                                                                                               
-INFO       VNC CLIENT INFO:                                   VNC(R)Viewer-6.20.529                                                                                
-INFO       LOCALHOST OS INFO:                                 pike.lanl.gov-Darwin                                                                                 
-INFO       REMOTE USER:                                       jgreen                                                                                               
-INFO       WINDOWMANAGER:                                     fvwm                                                                                                 
-INFO       GEOMETRY:                                          default                                                                                              
-INFO       PIXELDEPTH:                                        24                                                                                                   
-INFO       MACHINE:                                           sn-fey                                                                                               
-INFO       NETWORK:                                           YELLOW                                                                                               
-INFO       VNC CLIENT vncviewer LOGGING:                      /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39                                                   
-INFO       VNC SERVER LOGGING:                                /Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39                                                   
-INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen                                                                                                      
-INFO       Do you want to setup a password now? [Y/N]                                                                                                              
+INFO       VNC2HPC VERSION:								0.0.5
+INFO       RECEIVED REQUEST TO CONNECT TO:						sn-fey
+INFO       VNC CLIENT INFO:								VNC(R)Viewer-6.20.529
+INFO       LOCALHOST OS INFO:								pike.lanl.gov-Darwin
+INFO       REMOTE USER:									jgreen
+INFO       WINDOWMANAGER:								fvwm
+INFO       GEOMETRY:									default
+INFO       PIXELDEPTH:									24
+INFO       MACHINE:									sn-fey
+INFO       NETWORK:									YELLOW
+INFO       VNC CLIENT vncviewer LOGGING:						/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39
+INFO       VNC SERVER LOGGING:								/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39
+INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen
+INFO       Do you want to setup a password now? [Y/N]
 y
-INFO       Enter your password (at least six characters long, up to eight)                                                                                                      
-INFO       Reenter your password to confirm                                                                                                                        
-INFO       SETTING VNCPASSWD                                  sn-fey2.lanl.gov for jgreen                                                                          
+INFO       Enter your password (at least six characters long, up to eight)
+INFO       Reenter your password to confirm
+INFO       SETTING VNCPASSWD								sn-fey2.lanl.gov for jgreen
 INFO       VNCPASSWD SUCCESSFULLY SET!
 ```
 
@@ -358,6 +359,12 @@ $> vncpasswd
 >  A view-only password is not used
 $> exit
 ```
+_____
+
+## Slurm integration
+
+If you need to use a GUI inside of Slurm allocation on the target cluster, you'll find better windowing responsiveness if you use the Slurm attach or interactive features of vnc2hpc.  GLXGears benchmarking of a job where vncserver is running on the headnode of a job, versus one where the vncserver is launched on the front-end and X11 is forwarded to the job, demonstrates an order of magnitude improvement in the FPS rate.  Either ask vnc2hpc to allocate the job for you:
+`vnc2hpc -m sn-fey1 -c "${VNCV}" -I -A <myaccount> -Q <myqos> -T <mywalltime>` or attach to an already running allocation `vnc2hpc -m sn-fey1 -c "${VNCV}" -J <jobid>`. 
 
 _____
 
@@ -445,10 +452,57 @@ To pass custom geometry dimensions to the vncserver instantiation on the remote 
 
 -----
 
-
 ### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 16,32
 
 To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 16 and 32.  Other values of -P may cause odd behavior with certain applications.
+
+-----
+
+### [-I|--interactive] (optional) Run vncserver inside an interactive job on $MACHINE
+
+Pass -I to the script to request a vncserver launched within an interactive allocation on the cluster.
+
+-----
+
+### [-A|--account] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
+
+Pass `-A <accountname>` if you'd like to schedule the interactive allocation under a particular Slurm Account.
+
+-----
+
+### [-Q|--qos] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
+
+Use `-Q <qos>` to run Slurm interactive allocation under a particular Slurm quality of service (qos). 
+
+-----
+
+### [-R|--reservation] (optional) For use when targeting nodes in a Slurm reservation
+
+Use `-R <reservation>` to target a Slurm reservation on the cluster. 
+
+-----
+
+### [-T|--time]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
+
+Use `-T <time>` in the HH:MM:SS format required by slurm to allocate a job with the non-default walltime.
+
+-----
+
+### [-C|--constraint] (optional) For use when targeting nodes with Slurm Constraints
+
+Use `-C <constraint>` if a particular constraint is required on the desired target nodes.
+
+-----
+
+### [-P|--partition] (optional) For use when targeting nodes in Slurm partition
+
+Use `-P <partition>` if you want your job to run under a non-default partition on the cluster. 
+
+-----
+
+### [-N|--numnodes]	(optional) Default: 1
+
+Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocation invocation.
 
 -----
 
