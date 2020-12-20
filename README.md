@@ -370,7 +370,7 @@ _____
 
 ## Arguments
 
-### [-m|--machine <machine>] (required)
+### [-m|--machine \<machine\>] (required)
 
 This flag specifies the front-end node's hostname you wish to connect to.  If you want to connect
 to a system on the turquoise network, just pass the front-end hostname to the script and it will detect
@@ -381,7 +381,7 @@ When used, a remote /etc/hosts lookup will be performed in order to construct a 
 
 _____
 
-### [-c|--client <vncclient>] (required)
+### [-c|--client \<vncclient\>] (required)
 
 The client flag is how you direct vnc2hpc to the vncviewer on your desktop to use to connect to the vncserver.
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
@@ -415,7 +415,7 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 
 _____
 
-### [-d|--display <display>] (optional)
+### [-d|--display \<display\>] (optional)
 
 The display value that one may pass to the vnc2hpc script via the `-d <int>` option can be a integer between 1-58999, and the vncserver invocation will try to launch a server that listens on that particular display port.  Without a port argument, the script will randomly generate an integer in the higher range, and check to see whether there are other Xvnc processes listening on that port, then proceed with attempting to launch the VNCServer targeting that port.  
 If one wants to reconnect to a vncserver session, the script will detect it upon invocation, and prompt for a response to "reuse" that session, otherwise, kill it and relaunch a new one. 
@@ -428,7 +428,7 @@ If one wants to reconnect to a vncserver session, the script will detect it upon
 
 _____
 
-### [-u|--user <hpcuserid>] (optional) Default: $USER on localhost
+### [-u|--user \<hpcuserid\>] (optional) Default: $USER on localhost
 
 Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
 
@@ -436,7 +436,7 @@ Sometimes the user id of the user running on the desktop system where vnc2hpc is
 
 _____
 
-### [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>] (optional) Default: [-w mwm] (Motif Window Manager)
+### [-w|--wm \<icewm|berry|fvwm|mwm|xfwm4|openbox\>] (optional) Default: [-w mwm] (Motif Window Manager)
 
 Currently, six window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  On systems where non-system supplied window managers are absent, the script will attempt to build them on behalf of the user.  The resulting builds will be found in `~/.vnc2hpc/${os}/common/${arch}/${wm_product_name}/${wm_version}`.
 
@@ -470,43 +470,43 @@ Pass -I to the script to request a vncserver launched within an interactive allo
 
 -----
 
-### [-A|--account] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
+### [-A|--account \<accountname\>] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
 
 Pass `-A <accountname>` if you'd like to schedule the interactive allocation under a particular Slurm Account.
 
 -----
 
-### [-Q|--qos] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
+### [-Q|--qos \<qos\>] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
 
 Use `-Q <qos>` to run Slurm interactive allocation under a particular Slurm quality of service (qos). 
 
 -----
 
-### [-R|--reservation] (optional) For use when targeting nodes in a Slurm reservation
+### [-R|--reservation \<reservation\>] (optional) For use when targeting nodes in a Slurm reservation
 
 Use `-R <reservation>` to target a Slurm reservation on the cluster. 
 
 -----
 
-### [-T|--time]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
+### [-T|--time \<HH:MM:SS\>]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
 
 Use `-T <time>` in the HH:MM:SS format required by slurm to allocate a job with the non-default walltime.
 
 -----
 
-### [-C|--constraint] (optional) For use when targeting nodes with Slurm Constraints
+### [-C|--constraint \<constraint\>] (optional) For use when targeting nodes with Slurm Constraints
 
 Use `-C <constraint>` if a particular constraint is required on the desired target nodes.
 
 -----
 
-### [-P|--partition] (optional) For use when targeting nodes in Slurm partition
+### [-P|--partition \<partition\>] (optional) For use when targeting nodes in Slurm partition
 
 Use `-P <partition>` if you want your job to run under a non-default partition on the cluster. 
 
 -----
 
-### [-N|--numnodes]	(optional) Default: 1
+### [-N|--numnodes \<numnodes\>] (optional) Default: 1
 
 Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocation invocation.
 
