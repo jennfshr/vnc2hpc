@@ -199,7 +199,7 @@ The usage output is available by running
 
 `			[-h|--help]`
 
-`			[-J|--job <jobid>]					(optional) Attach to running job`
+`			[-J|--jobid <jobid>]					(optional) Attach to running job`
 
 `		OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
 
@@ -455,6 +455,12 @@ To pass custom geometry dimensions to the vncserver instantiation on the remote 
 ### [-p|--pixeldepth \<int\>] (optional) Default: 24 - others: 16,32
 
 To change the pixel depth of the desktop to be started, call the script with a `-P <int>` argument, where the integer represents the depth in bits.  The default value is 24, and other viable options are 16 and 32.  Other values of -P may cause odd behavior with certain applications.
+
+-----
+
+## [-J|--jobid <jobid>] (optional) Attach to running job
+
+Pass `-J <jobid>` if you wish to launch and connect to a vncserver inside a running job on a cluster. The script uses the jobid supplied by this argument to query the scheduler for the headnode of the allocation, then extend the ssh tunnel to launch a vncserver on the headnode, rather than the front-end node.  If a vncseerver was previously launched with a `-k` option, the vncserver will continue to run the in context of the job, and a re-connect to that vncserver is accomplished by `vnc2hpc -m <machinename> -J <jobid> -r -d <display> -c "${VNCV}"`
 
 -----
 
