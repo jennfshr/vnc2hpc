@@ -239,6 +239,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Snow | sn-fe, sn-fey ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
+| Gadget | ga-fe ||
 | Grizzly | gr-fe, gr-fey ||
 | Kodiak | ko-fe, ko-fey ||
 | Fog | fg-fey ||
@@ -358,6 +359,12 @@ $> vncpasswd
 >  A view-only password is not used
 $> exit
 ```
+_____
+
+## Slurm integration
+
+If you need to use a GUI inside of Slurm allocation on the target cluster, you'll find better windowing responsiveness if you use the Slurm attach or interactive features of vnc2hpc.  GLXGears benchmarking of a job where vncserver is running on the headnode of a job, versus one where the vncserver is launched on the front-end and X11 is forwarded to the job, demonstrates an order of magnitude improvement in the FPS rate.  Either ask vnc2hpc to allocate the job for you:
+`vnc2hpc -m sn-fey1 -c "${VNCV}" -I -A <myaccount> -Q <myqos> -T <mywalltime>` or attach to an already running allocation `vnc2hpc -m sn-fey1 -c "${VNCV}" -J <jobid>`. 
 
 _____
 
