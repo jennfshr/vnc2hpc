@@ -1,15 +1,14 @@
-#!/bin/sh
-if [[ ! -n $VNC2HPC_WM ]] ; then exit -1; fi 
+#!/bin/bash
+exec > >(tee -ai $HOME/.vnc2hpc/xstartup.log >&1)
+exec 2> >(tee -ai $HOME/.vnc2hpc/xstartup.log >&2)
+[[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
+[[ "${VNC2HPC_WM}x" != x ]] || exit -1 
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 [ -r /etc/profile ] && source /etc/profile
-[ -n "$BASH_ENV" ] && source "$BASH_ENV" 
-if [[ ${GEOMETRY} == "false" ]] ; then 
-    command -v xdpyinfo >/dev/null 2>&1 && \
+[ -n "$BASH_ENV" ] && source "$BASH_ENV"
+command -v xdpyinfo >/dev/null 2>&1 && \
     geometry=`xdpyinfo | grep dimensions | awk '{print $2}'`
-else
-    geometry="${GEOMETRY}"
-fi
 
 [ -r $HOME/.Xresources ] && \
     xrdb -merge $HOME/.Xresources
@@ -18,64 +17,139 @@ fi
 
 #SSH_AGENT=$(which ssh-agent)
 #[ -n "$SSH_ASKPASS" ] && eval $($SSH_AGENT) && ssh-add &
-# this establishes a default windowing env. 
+# this establishes a default windowing env.
 # The user may have their own clients they want to run.  If they don't,
 # fall back to system defaults.
+
+# Reusable arch/os variables:
+if /usr/projects/hpcsoft/utilities/bin/sys_arch &>/dev/null ; then 
+    ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
+else
+    ARCH=$(uname -p)
+fi
+
+if /usr/projects/hpcsoft/utilities/bin/sys_os &>/dev/null ; then 
+    OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
+else
+    OS=$(uname -o | sed 's/\//_/g')
+fi
+
+if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry} &>/dev/null; then
+    INSTALL_PATH="/usr/projects/hpcsoft"
+else
+    INSTALL_PATH="$HOME/.vnc2hpc"
+fi
+
+
 case "$VNC2HPC_WM" in
+    awesome)
+        # Setup installation variables for reuse
+        PRODUCT="awesome"
+        VERSION="4.3"
+        AWESOME_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
+        AWESOME_BIN="${AWESOME_PREFIX}/bin"
+        AWESOME_LIB="${AWESOME_PREFIX}/lib"
+        AWESOME_SHARE="${AWESOME_PREFIX}/share"
+
+        module purge &>/dev/null
+        module load gcc
+        # Set path to use WM
+        export PATH=${AWESOME_BIN}:${PATH}
+        # Test that the directories exist before modifying environment
+        [ -d ${AWESOME_SHARE} ] && export XDG_DATA_DIRS=${AWESOME_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${AWESOME_LIB} ] && export LD_LIBRARY_PATH=${AWESOME_LIB}:${LD_LIBRARY_PATH}
+
+        # test executables before invoking them
+        [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
+        [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
+        [ -x /usr/bin/xterm ] && /usr/bin/xterm &
+        [ -x ${AWESOME_BIN}/berry ] && berry
+    ;;
     berry)
-        BERRY_PREFIX="/usr/projects/hpcsoft/common/berry/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/0.17.1"
+        # Setup installation variables for reuse
+        PRODUCT="berry"
+        VERSION="0.1.7"
+        BERRY_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         BERRY_BIN="${BERRY_PREFIX}/bin"
-        BERRY_LIB="${BERRY_LIB}/lib"
-	export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
+        BERRY_LIB="${BERRY_PREFIX}/lib"
+        BERRY_SHARE="${BERRY_PREFIX}/share"
+
+        module purge &>/dev/null
+        module load gcc
+        # Set path to use WM
         export PATH=${BERRY_BIN}:${PATH}
-        export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
+        # Test that the directories exist before modifying environment
+	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${BERRY_LIB} ] && export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
+
+        # test executables before invoking them
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${BERRY_BIN}/berry ] && berry
     ;;
     ice*)
-        ICEWM_PREFIX="/usr/projects/hpcsoft/common/icewm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/1.9.2"
+        # Setup installation variables for reuse
+        PRODUCT="icewm"
+        VERSION="1.9.2"
+        ICEWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         ICEWM_BIN="${ICEWM_PREFIX}/bin"
         ICEWM_LIB="${ICEWM_PREFIX}/lib"
-	ICEWM_SHARE="${ICEWM_SHARE}/share"
-	export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
+	ICEWM_SHARE="${ICEWM_PREFIX}/share"
+
+        # Set path to use WM
         export PATH=${ICEWM_BIN}:${PATH}
-        export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
+	[ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x ${ICEWM_BIN}/icewm ] && icewm
     ;;
     fv*)
-        FVWM_PATH="/usr/projects/hpcsoft/common/fvwm/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/2.6.9"
-        FVWM_BIN="${FVWM_PATH}/bin"
-        FVWM_LIB="${FVWM_PATH}/lib"
-	FVWM_SHARE="${FVWM_SHARE}/share"
-	export XDG_DATA_DIRS=${FVWM_SHARE}:${XDG_DATA_DIRS}
+        # Setup installation variables for reuse
+        PRODUCT="fvwm"
+        VERSION="2.6.9"
+        FVWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
+        FVWM_BIN="${FVWM_PREFIX}/bin"
+        FVWM_LIB="${FVWM_PREFIX}/lib"
+	FVWM_SHARE="${FVWM_PREFIX}/share"
+
+        # Set path to use WM
         export PATH=${FVWM_BIN}:${PATH}
-        export LD_LIBRARY_PATH=${FVWM_LIB}:${LD_LIBRARY_PATH}
+	[ -d ${FVWM_SHARE} ] && export XDG_DATA_DIRS=${FVWM_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${FVWM_LIB} ] && export LD_LIBRARY_PATH=${FVWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x ${FVWM_BIN}/fvwm ] && fvwm
     ;;
     mwm|motif*)
+        # Setup installation variables for reuse
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x /usr/bin/mwm ] && /usr/bin/mwm 
-    ;; 
+        [ -x /usr/bin/mwm ] && /usr/bin/mwm
+    ;;
     openbox*)
-        OBX_PATH="/usr/projects/hpcsoft/common/openbox/$(/usr/projects/hpcsoft/utilities/bin/sys_os)/$(/usr/projects/hpcsoft/utilities/bin/sys_arch)/3.6.1"
-        OBX_BIN="${OBX_PATH}/bin"
-        OBX_LIB="${OBX_PATH}/lib"
-	OBX_SHARE="${OBX_PATH}/share"
-	export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
+        # Setup installation variables for reuse
+        PRODUCT="openbox"
+        VERSION="3.6.1"
+        OBX_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
+        OBX_BIN="${OBX_PREFIX}/bin"
+        OBX_LIB="${OBX_PREFIX}/lib"
+	OBX_SHARE="${OBX_PREFIX}/share"
+        OBX_ETC="${OBX_PREFIX}/etc"
+        # Set path to use WM
         export PATH=${OBX_BIN}:${PATH}
-        export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
+
+	[ -d ${OBX_SHARE} ] && export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
+        [ -d ${OBX_LIB} ] && export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
+        [ -d ${OBX_ETC} ] && [ ! -d $HOME/.config/openbox ] && mkdir -p $HOME/.config/openbox && cp ${OBX_ETC}/xdg/openbox/* $HOME/.config/openbox/.
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x ${OBX_BIN}/openbox-session ] && openbox-session
+        [ -x ${OBX_BIN}/gdm-control ] && gdm-control &
+        [ -x ${OBX_BIN}/gnome-panel-control ] && gnome-panel-control &
+        [ -x ${OBX_BIN}/openbox ] && openbox
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
