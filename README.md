@@ -540,11 +540,7 @@ The script will prompt for an action on the command line if a port is already ru
 
 `WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         [Y - yes, N - exit, R - reuse]?`
 
-*NOTE: the script is set to utilize the 5900 port range so the port supplied to the script should be limited to two characters*
-
 If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the vncserver selected port.
-
-Port is optional, as the script will randomly generate a port number between 1 and 99 to offer less likelihood that you don't have `localhost:$port` tunnel conflicts on the client side.
 
 _____
 
