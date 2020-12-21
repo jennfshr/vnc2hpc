@@ -390,7 +390,7 @@ Sometimes the user id of the user running on the desktop system where vnc2hpc is
 
 _____
 
-### [-w|--wm <fvwm|mwm|xfwm4>] (optional) Default: [-w mwm] (Motif Window Manager)
+### [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>] (optional) Default: [-w mwm] (Motif Window Manager)
 
 Currently, three window managers are supported.  The window manager supplies the graphical interface to the system you're connecting to with the tool.  The window managers are deliberately selected among those that use the least resources, so you'll note that the gnome-session is unavailable under vnc2hpc.  
 
