@@ -137,7 +137,7 @@ _____
 <details>
   <summary markdown="span">Expand section for guidance on setting up VNC2HPC</summary>
 
-You can download here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
+You can download vnc2hpc here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
 
 One you have done this, you'll need to change permissions to make the script executable:
 
@@ -470,45 +470,45 @@ Pass -I to the script to request a vncserver launched within an interactive allo
 
 -----
 
-### [-A|--account \<accountname\>] (optional) Without, vnc2hpc submits job with $USER default account in Slurm
+### [-A|--account \<accountname\>] (optional)
 
 Pass `-A <accountname>` if you'd like to schedule the interactive allocation under a particular Slurm Account.
 
 -----
 
-### [-Q|--qos \<qos\>] (optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm
+### [-Q|--qos \<qos\>] (optional)
 
 Use `-Q <qos>` to run Slurm interactive allocation under a particular Slurm quality of service (qos). 
 
 -----
 
-### [-R|--reservation \<reservation\>] (optional) For use when targeting nodes in a Slurm reservation
+### [-R|--reservation \<reservation\>] (optional)
 
 Use `-R <reservation>` to target a Slurm reservation on the cluster. 
 
 -----
 
-### [-T|--time \<HH:MM:SS\>]	(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm
+### [-T|--time \<HH:MM:SS\>] (optional)
 
 Use `-T <time>` in the HH:MM:SS format required by slurm to allocate a job with the non-default walltime.
 
 -----
 
-### [-C|--constraint \<constraint\>] (optional) For use when targeting nodes with Slurm Constraints
+### [-C|--constraint \<constraint\>] (optional)
 
 Use `-C <constraint>` if a particular constraint is required on the desired target nodes.
 
 -----
 
-### [-P|--partition \<partition\>] (optional) For use when targeting nodes in Slurm partition
+### [-P|--partition \<partition\>] (optional)
 
 Use `-P <partition>` if you want your job to run under a non-default partition on the cluster. 
 
 -----
 
-### [-N|--numnodes \<numnodes\>] (optional) Default: 1
+### [-N|--numnodes \<numnodes\>] (optional)
 
-Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocation invocation.
+Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocation invocation. Defaults to the cluster's Slurm default, usually 1. 
 
 -----
 
