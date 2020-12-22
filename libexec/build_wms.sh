@@ -65,7 +65,8 @@ build () {
       fi
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
-   module load gcc && CC=gcc
+   [[ -x $(which modulecmd &>/dev/null ) ]] && module load gcc
+   CC=gcc
    mkclean_change ${_build_dir}
    grab ${_url} ${_method} || echo "FAILURE AT: ${LINENO}"
    local _tar_name=$(ls)
@@ -81,7 +82,7 @@ build () {
    make -j CC=$CC PREFIX=${_prefix} install &>> ${_build_log} || echo "Make failed for ${_product_name} at ${LINENO}" &>> ${_build_log}
    if [[ "${GROUP}x" != "x" ]] ; then fix_perms ${_prefix} ${GROUP} &>> ${_build_log} ; fi || echo "FAILURE AT: ${LINENO}" &>> ${_build_log}
    ( [ -d ${_prefix} ] && echo "**** Finished installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log} ) || echo "****  Failed installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log}
-   module unload gcc
+   [[ -x $(which modulecmd &>/dev/null ) ]] && module unload gcc
    popd &>/dev/null #pop back out of source
    popd &>/dev/null #revert pushd from mkclean_change
 }
