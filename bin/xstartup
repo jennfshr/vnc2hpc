@@ -79,7 +79,7 @@ case "$VNC2HPC_WM" in
         module load gcc
         PRODUCT="lemonbar"
         VERSION="v1.4"
-        LEMONBAR_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/$VERSION}"
+        LEMONBAR_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
         LEMONBAR_BIN="${LEMONBAR_PREFIX}/bin"
         # Test that the directories exist before modifying environment
 #	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
