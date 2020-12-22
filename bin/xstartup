@@ -84,10 +84,8 @@ case "$VNC2HPC_WM" in
         # Test that the directories exist before modifying environment
 #	[ -d ${BERRY_SHARE} ] && export XDG_DATA_DIRS=${BERRY_SHARE}:${XDG_DATA_DIRS}
         [ -d ${BERRY_LIB} ] && export LD_LIBRARY_PATH=${BERRY_LIB}:${LD_LIBRARY_PATH}
-        
         # Set path to use WM and Lemonbar
         export PATH=${BERRY_BIN}:${LEMONBAR_BIN}:${PATH}
-        
 
         # test executables before invoking them
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
@@ -107,7 +105,6 @@ case "$VNC2HPC_WM" in
 
         # Set path to use WM
         export PATH=${ICEWM_BIN}:${PATH}
-        sleep 5;
         [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
