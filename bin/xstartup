@@ -87,7 +87,8 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x ${BERRY_BIN}/berryc ] && berryc
+        [ -x ${BERRY_BIN}/lemonbar ] && ${BERRY_BIN}/lemonbar -b &
+        [ -x ${BERRY_BIN}/berry ] && berry
     ;;
     ice*)
         # Setup installation variables for reuse
