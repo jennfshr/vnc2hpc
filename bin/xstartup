@@ -104,7 +104,7 @@ case "$VNC2HPC_WM" in
         [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x ${ICEWM_BIN}/icewm ] && icewm
+        [ -x ${ICEWM_BIN}/icewm-session ] && icewm-session
     ;;
     fv*)
         # Setup installation variables for reuse
