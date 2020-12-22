@@ -186,6 +186,8 @@ check_machine () {
                 # try to access "${MACHINE}1" before failing
                     loc_machine="${MACHINE}1"
                 fi
+            else
+                loc_machine="${MACHINE}"
             fi
         elif [[ "${MACHINE}" =~ wtrw ]] ; then
             loc_machine="INVALID"
