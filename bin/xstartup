@@ -100,7 +100,7 @@ case "$VNC2HPC_WM" in
         # Set path to use WM
         export PATH=${ICEWM_BIN}:${PATH}
         sleep 5;
-	[ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
+	#[ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
         [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
