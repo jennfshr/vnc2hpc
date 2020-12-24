@@ -65,7 +65,8 @@ build () {
       fi
    fi
    echo "**** Starting installation of ${_product_name}-${_version} on $OS for $ARCH $(date)" | tee -a ${_build_log}
-   module load gcc && CC=gcc
+   [[ -x $(which modulecmd &>/dev/null ) ]] && module load gcc
+   CC=gcc
    mkclean_change ${_build_dir}
    grab ${_url} ${_method} || echo "FAILURE AT: ${LINENO}"
    local _tar_name=$(ls)
@@ -81,7 +82,7 @@ build () {
    make -j CC=$CC PREFIX=${_prefix} install &>> ${_build_log} || echo "Make failed for ${_product_name} at ${LINENO}" &>> ${_build_log}
    if [[ "${GROUP}x" != "x" ]] ; then fix_perms ${_prefix} ${GROUP} &>> ${_build_log} ; fi || echo "FAILURE AT: ${LINENO}" &>> ${_build_log}
    ( [ -d ${_prefix} ] && echo "**** Finished installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log} ) || echo "****  Failed installation of ${_product_name}-${_version} at ${_prefix} $(date)" | tee -a ${_build_log}
-   module unload gcc
+   [[ -x $(which modulecmd &>/dev/null ) ]] && module unload gcc
    popd &>/dev/null #pop back out of source
    popd &>/dev/null #revert pushd from mkclean_change
 }
@@ -168,6 +169,7 @@ OPENBOX_URL="https://github.com/Mikachu/openbox/archive/release-3.6.1.tar.gz"
 FVWM_URL="https://github.com/fvwmorg/fvwm/archive/2.6.9.tar.gz"
 LIBBSON_URL="https://github.com/mongodb/libbson/releases/download/1.9.3/libbson-1.9.3.tar.gz"
 FVWM3_URL="https://github.com/fvwmorg/fvwm3/archive/1.0.1.tar.gz"
+LEMONBAR_URL="https://github.com/LemonBoy/bar/archive/v1.4.tar.gz"
 
 ##TODO Fix this
 #if [[ "$DEBUG" =~ [Tt]rue ]] ; then 
@@ -230,6 +232,18 @@ for wm in "${WINDOWMANAGER[@]}"; do
             BERRY_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${BERRY_PRODUCT_NAME}-${BERRY_VERSION}/build.log"
             build ${BERRY_URL} ${BERRY_VERSION} ${BERRY_PRODUCT_NAME} ${BERRY_BUILD_DIR} ${BERRY_PREFIX} ${BERRY_BUILD_LOG} ${METHOD}
             if [[ "${DEBUG}x" != x ]] ; then cat ${BERRY_BUILD_LOG} ; fi
+         fi
+
+         LEMONBAR_VERSION="v1.4"
+         LEMONBAR_PRODUCT_NAME="lemonbar"
+         if [[ "${STAGE_DIR}x" != x ]] ; then
+            get_package ${STAGE_DIR} ${LEMONBAR_URL}
+         else
+            LEMONBAR_BUILD_DIR="${TEMP_INSTALL_LOCATION}/${LEMONBAR_PRODUCT_NAME}-${LEMONBAR_VERSION}" && mkdir -p ${LEMONBAR_BUILD_DIR}
+            LEMONBAR_PREFIX="${INSTALL_PATH}/${LEMONBAR_PRODUCT_NAME}/${LEMONBAR_VERSION}"
+            LEMONBAR_BUILD_LOG="${TEMP_INSTALL_LOCATION}/${LEMONBAR_PRODUCT_NAME}-${LEMONBAR_VERSION}/build.log"
+            build ${LEMONBAR_URL} ${LEMONBAR_VERSION} ${LEMONBAR_PRODUCT_NAME} ${LEMONBAR_BUILD_DIR} ${LEMONBAR_PREFIX} ${LEMONBAR_BUILD_LOG} ${METHOD}
+            if [[ "${DEBUG}x" != x ]] ; then cat ${LEMONBAR_URL} ; fi
          fi
       ;;
       openbox)
