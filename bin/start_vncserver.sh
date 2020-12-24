@@ -77,7 +77,7 @@ if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
    ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
    if [[ $? -ne 0 ]] ; then
       echo "Build of $WM FAILURE on $(hostname)"
-      cat /tmp/vnc2hpc_deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
+      cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
       exit 1
    fi
 fi
