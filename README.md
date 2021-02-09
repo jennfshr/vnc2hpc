@@ -239,6 +239,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 | Snow | sn-fe, sn-fey ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
+| Chicoma | ch-fe1, ch-fe2 | fvwm, icewm only |
 | Gadget | ga-fe ||
 | Grizzly | gr-fe, gr-fey ||
 | Kodiak | ko-fe, ko-fey ||
