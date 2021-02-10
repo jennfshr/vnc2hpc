@@ -892,7 +892,6 @@ remotelog () {
 
 #######################################
 # Parse positional parameters passed to script
-echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
