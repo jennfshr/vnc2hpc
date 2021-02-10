@@ -10,7 +10,7 @@ _____
 
 ## What is VNC?
 
-Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer protocol (RFB) to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
+Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer (RFB) protocol to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
 
 _____
 
@@ -21,7 +21,7 @@ In order to use a VNC Viewer to connect to a headless server, such as that which
 _____
 
 ## Production Status
-VNC2HPC is currently undergoing beta testing with a set of interested HPC customers at LANL. During this time, the software will be updated frequently to address requests and bug reports until hardened and ready for production.
+VNC2HPC is now fully supported, production software for Linux and MacOS desktop systems at LANL.  Support for VNC2HPC, such as assistance in use, feature requests and bug reports may be reported to consult@lanl.gov.
 
 _____
 
@@ -73,12 +73,12 @@ _____
 
 **Direct Download**
 
-* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
+* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.8/bin/vnc2hpc)
 
 **Clone the project**
 * `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
 
-*Note:  as we beta test this product, a clone makes updating master as simple as `git pull`, so it's probably the simplest way to keep an updated copy on your system*
+*Note:  A git repository clone makes updating the project branches as simple as `git pull`, so it's probably the simplest way to keep an updated copy on your system*
 
 _____
 
@@ -137,7 +137,7 @@ _____
 <details>
   <summary markdown="span">Expand section for guidance on setting up VNC2HPC</summary>
 
-You can download vnc2hpc here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.5/bin/vnc2hpc)
+You can download vnc2hpc here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.8/bin/vnc2hpc)
 
 One you have done this, you'll need to change permissions to make the script executable:
 
@@ -548,10 +548,10 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.5 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.5 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.5 | Windows | UNSUPPORTED | UNSUPPORTED |
+| v0.0.8 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.8 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.8 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.8 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.8 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.8 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.8 | Windows | UNSUPPORTED | UNSUPPORTED |
