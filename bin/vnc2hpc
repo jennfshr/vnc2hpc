@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.7"
+VERSION="v0.0.8"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -72,7 +72,7 @@ check_network () {
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
 	gr*|ba*|cp-login*|ko*|sn*)	loc_network="TURQUOISE"     	;;
-        ga*)				loc_network="VLGATE"		;;
+        ga*|ch*)			loc_network="VLGATE"		;;
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
@@ -892,7 +892,6 @@ remotelog () {
 
 #######################################
 # Parse positional parameters passed to script
-echo "${@}" # REMOVE
 for arg in "$@"; do
     shift
     case "$arg" in
