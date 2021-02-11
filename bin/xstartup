@@ -109,7 +109,7 @@ case "$VNC2HPC_WM" in
             ICEWM_BIN="${ICEWM_PREFIX}"
             ICEWM_SHARE="${ICEWM_PREFIX}/share/${PRODUCT}"
         fi
-        [ ! -d ${HOME}/.icewm ]  && mkdir ${HOME}/.icewm && cp -Rf ${ICEWM_PREFIX}/themes ${HOME}/.icewm/
+#        [ ! -d ${HOME}/.icewm ]  && mkdir ${HOME}/.icewm && cp -Rf ${ICEWM_PREFIX}/themes ${HOME}/.icewm/
         [ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
