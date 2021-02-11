@@ -100,6 +100,9 @@ case "$VNC2HPC_WM" in
     ;;
     ice*)
         if [[ "${INSTALL_PATH}" =~ users ]] || [[ "${INSTALL_PATH}" =~ hpcsoft ]] ; then
+            # Setup installation variables for reuse
+            PRODUCT="icewm"
+            VERSION="1.9.2"
             ICEWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
             ICEWM_BIN="${ICEWM_PREFIX}/bin"
             ICEWM_LIB="${ICEWM_PREFIX}/lib"
