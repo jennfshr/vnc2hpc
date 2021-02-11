@@ -37,6 +37,9 @@ fi
 
 if ls /usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM} &>/dev/null; then
     INSTALL_PATH="/usr/projects/hpcsoft"
+elif $( which ${VNC2HPC_WM} ) ; then
+    ## assume the user PATH is set to use from system
+    INSTALL_PATH=$(dirname $(dirname $(which ${VNC2HPC_WM}) ) )
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
 fi

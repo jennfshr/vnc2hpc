@@ -886,7 +886,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \${HOME}/.vnc/${MACHINE//\.*}*${REMOTE_DISPLAY#0}.log ] && cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
     fi 
 }
 
@@ -1005,6 +1005,14 @@ if [[ "${NETWORK}" =~ INVALID ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ;
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
+# some client side logs, the second one is only in the event of a failure
+LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+mkdir -p "${LOGDIR}"
+CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
+inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+SERVER_LOG_FILE="vncserver.log.${MYDATE}"
+inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
+
 [[ "${SOURCE}x" != x ]] && inform "SOURCE:" "$SOURCE"
 # setup initial ssh options for reuse
 SSH_OPTS=$(setup_ssh_opts)
@@ -1064,13 +1072,13 @@ fi
 
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
-# some client side logs, the second one is only in the event of a failure
-LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
-mkdir -p "${LOGDIR}"
-CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
-SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
+## some client side logs, the second one is only in the event of a failure
+#LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+#mkdir -p "${LOGDIR}"
+#CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
+#inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+#SERVER_LOG_FILE="vncserver.log.${MYDATE}"
+#inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check the remote shell
 REMOTE_SHELL=$(check_remote_shell)
