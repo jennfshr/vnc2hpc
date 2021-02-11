@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -f $HOME/.vnc2hpc/xstartup.log ] && rm $HOME/.vnc2hpc/xstartup.log
 exec > >(tee -ai $HOME/.vnc2hpc/xstartup.log >&1)
 exec 2> >(tee -ai $HOME/.vnc2hpc/xstartup.log >&2)
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
@@ -34,7 +35,7 @@ else
     OS=$(uname -o | sed 's/\//_/g')
 fi
 
-if ls /usr/projects/hpcsoft/toss3/common/x86_64/{fvwm,openbox,icewm,berry} &>/dev/null; then
+if ls /usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM} &>/dev/null; then
     INSTALL_PATH="/usr/projects/hpcsoft"
 else
     INSTALL_PATH="$HOME/.vnc2hpc"
@@ -95,17 +96,21 @@ case "$VNC2HPC_WM" in
         [ -x ${BERRY_BIN}/berry ] && berry
     ;;
     ice*)
-        # Setup installation variables for reuse
-        PRODUCT="icewm"
-        VERSION="1.9.2"
-        ICEWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
-        ICEWM_BIN="${ICEWM_PREFIX}/bin"
-        ICEWM_LIB="${ICEWM_PREFIX}/lib"
-	ICEWM_SHARE="${ICEWM_PREFIX}/share"
-
-        # Set path to use WM
-        export PATH=${ICEWM_BIN}:${PATH}
-        [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
+        if [[ "${INSTALL_PATH}" =~ users ]] || [[ "${INSTALL_PATH}" =~ hpcsoft ]] ; then
+            ICEWM_PREFIX="${INSTALL_PATH}/${OS}/common/${ARCH}/${PRODUCT}/${VERSION}"
+            ICEWM_BIN="${ICEWM_PREFIX}/bin"
+            ICEWM_LIB="${ICEWM_PREFIX}/lib"
+            ICEWM_SHARE="${ICEWM_PREFIX}/share"
+           # Set path to use WM
+            export PATH=${ICEWM_BIN}:${PATH}
+            [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
+        else
+            ICEWM_PREFIX="${INSTALL_PATH}"
+            ICEWM_BIN="${ICEWM_PREFIX}"
+            ICEWM_SHARE="${ICEWM_PREFIX}/share/${PRODUCT}"
+        fi
+        [ ! -d ${HOME}/.icewm ]  && mkdir ${HOME}/.icewm && cp -Rf ${ICEWM_PREFIX}/themes ${HOME}/.icewm/
+        [ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x ${ICEWM_BIN}/icewm-session ] && icewm-session

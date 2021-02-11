@@ -25,8 +25,7 @@ HPCSOFT_PATH="/usr/projects/hpcsoft"
 if touch ${HPCSOFT_PATH}/usage_logs/vnc2hpc.log &>/dev/null ; then 
    SPLUNK_LOG="${HPCSOFT_PATH}/usage_logs/vnc2hpc.log"
 else
-   SPLUNK_LOG="${remote_install_path}/vnc2hpc.log"
-   touch ${SPLUNK_LOG}
+   SPLUNK_LOG="/dev/null"
 fi
 
 # generic setup if utilities aren't present
