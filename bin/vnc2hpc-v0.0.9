@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.8"
+VERSION="v0.0.9"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -253,6 +253,7 @@ setup_ssh_opts () {
     local loc_ssh_opts=""
     loc_ssh_opts+="-o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
+    loc_ssh_opts+=" -o UserKnownHostsFile=/dev/null"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     case "$1" in
         master)
@@ -667,7 +668,7 @@ debug () {
 #######################################
 control_master_connection () {
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
-        local local_gateway="wtrw1.lanl.gov"
+        local local_gateway="wtrw.lanl.gov"
         local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         local local_gateway="vl-gate.lanl.gov"
@@ -886,7 +887,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \${HOME}/.vnc/${MACHINE//\.*}*${REMOTE_DISPLAY#0}.log ] && cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
     fi 
 }
 
@@ -1005,6 +1006,14 @@ if [[ "${NETWORK}" =~ INVALID ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ;
 inform "MACHINE:" "$MACHINE" 
 inform "NETWORK:" "$NETWORK"
 
+# some client side logs, the second one is only in the event of a failure
+LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+mkdir -p "${LOGDIR}"
+CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
+inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+SERVER_LOG_FILE="vncserver.log.${MYDATE}"
+inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
+
 [[ "${SOURCE}x" != x ]] && inform "SOURCE:" "$SOURCE"
 # setup initial ssh options for reuse
 SSH_OPTS=$(setup_ssh_opts)
@@ -1012,7 +1021,7 @@ debug "SSH_OPTS:" "$SSH_OPTS"
 
 # setup the appropriate ssh commands for the network
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
-    GATEWAY="wtrw1.lanl.gov"
+    GATEWAY="wtrw.lanl.gov"
     GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
     GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
@@ -1044,7 +1053,7 @@ if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
     # setup the appropriate ssh commands for the network
     MACHINE="${REAL_MACHINE}"
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
-        GATEWAY="wtrw1.lanl.gov"
+        GATEWAY="wtrw.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
         GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
@@ -1064,13 +1073,13 @@ fi
 
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 
-# some client side logs, the second one is only in the event of a failure
-LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
-mkdir -p "${LOGDIR}"
-CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
-SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
+## some client side logs, the second one is only in the event of a failure
+#LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+#mkdir -p "${LOGDIR}"
+#CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
+#inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+#SERVER_LOG_FILE="vncserver.log.${MYDATE}"
+#inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 # check the remote shell
 REMOTE_SHELL=$(check_remote_shell)
@@ -1185,7 +1194,7 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
     inform "SLURM_HEADNODE:" "$SLURM_HEADNODE"
     # reset SSH COMMANDS to use the headnode
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
-        GATEWAY="wtrw1.lanl.gov"
+        GATEWAY="wtrw.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         GATEWAY="vl-gate.lanl.gov"
@@ -1303,7 +1312,7 @@ TUNNEL_HOST=$(setup_tunnel_host)
 
 # need the tunnel to include the display as determined above
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
-    GATEWAY="wtrw1.lanl.gov"
+    GATEWAY="wtrw.lanl.gov"
     GATEWAY_TUNNEL=$(setup_gateway_tunnel ${GATEWAY})
 elif [[ "${NETWORK}" =~ VLGATE ]] ; then
     GATEWAY="vl-gate.lanl.gov"
