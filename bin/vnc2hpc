@@ -68,6 +68,7 @@ check_network () {
     local loc_network
     case "${MACHINE}" in
         *loginy*|*fey*)			loc_network="YELLOW"    	;;
+        *rfe*)				loc_network="RESTRICTED"	;;
         *darwin*)			loc_network="DARWIN"		;;
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
@@ -170,15 +171,16 @@ check_machine () {
         if ! [[ "$MACHINE" =~ [0-9] ]] && ! [[ "${MACHINE}" =~ cp ]] && ! [[ "${MACHINE}" =~ th ]]  ; then
             IGNORE="false"
             case "${NETWORK}" in
-                YELLOW)    netpart="128.165" ;;
-                DARWIN)    netpart="192.168" ;;
-                TURQUOISE) netpart="204.121" ;;
-                RED)       netpart="10.160"  ;;
-                UNKNOWN)   IGNORE="true"     ;;
+                YELLOW)    netpart="128.165"    ;;
+                RESTRICTED)netpart="204.121.71" ;;
+                DARWIN)    netpart="192.168"    ;;
+                TURQUOISE) netpart="204.121"    ;;
+                RED)       netpart="10.160"     ;;
+                UNKNOWN)   IGNORE="true"        ;;
             esac
             if [[ "${IGNORE}" != "true" ]] ; then
                 loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-                    "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE//-*}-fe*.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
+                    "awk -v pat=\"^${netpart//\./\\\.}.*${MACHINE//-*}-r?fe*.*gov\" '\$0~pat{print \$2}' /etc/hosts" 2>&- ) )
                 if [[ ${#loc_machines[@]} -gt 0 ]] ; then
                     loc_machine_index=$(( $RANDOM % ${#loc_machines[@]} ))
                     loc_machine="${loc_machines[$loc_machine_index]}"
