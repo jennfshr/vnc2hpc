@@ -236,7 +236,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 | Machine | Front-ends (Round-Robin Aliases) | Notes |
 | -- | -- | -- |
-| Snow | sn-fe, sn-fey ||
+| Snow | sn-fe, sn-fey, sn-rfe ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
 | Chicoma | ch-fe1, ch-fe2 | fvwm, icewm only |
