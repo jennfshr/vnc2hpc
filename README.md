@@ -555,3 +555,14 @@ _____
 | v0.0.8 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
 | v0.0.8 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
 | v0.0.8 | Windows | UNSUPPORTED | UNSUPPORTED |
+
+_____
+
+## FAQs
+
+#### How do I enable copy and paste on VNC?
+
+Under UNIX or Linux, for VNC Server in Virtual Mode, a program called `vncconfig` may not be running. If this is the case, no VNC Server icon is displayed in the Notification Area, and copy and paste is disabled. To enable it again, type `vncconfig` in a Terminal window, and press the ENTER key.
+
+
+
