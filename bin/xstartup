@@ -99,7 +99,7 @@ case "$VNC2HPC_WM" in
         [ -x ${BERRY_BIN}/berry ] && berry
     ;;
     ice*)
-        if [[ "${INSTALL_PATH}" =~ users ]] || [[ "${INSTALL_PATH}" =~ hpcsoft ]] ; then
+        if [[ "${INSTALL_PATH}" =~ users ]] || [[ "${INSTALL_PATH}" =~ hpcsoft ]] || [[ "${INSTALL_PATH}" =~ home ]] ; then
             # Setup installation variables for reuse
             PRODUCT="icewm"
             VERSION="1.9.2"
