@@ -109,6 +109,7 @@ case "$VNC2HPC_WM" in
             ICEWM_SHARE="${ICEWM_PREFIX}/share"
            # Set path to use WM
             export PATH=${ICEWM_BIN}:${PATH}
+            [ -d ${ICEWM_SHARE} ] && export XDG_DATA_DIRS=${ICEWM_SHARE}:${XDG_DATA_DIRS}
             [ -d ${ICEWM_LIB} ] && export LD_LIBRARY_PATH=${ICEWM_LIB}:${LD_LIBRARY_PATH}
         else
             ICEWM_PREFIX="${INSTALL_PATH}"
