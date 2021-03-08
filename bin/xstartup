@@ -68,7 +68,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x ${AWESOME_BIN}/awesome] && awesome
+        [ -x ${AWESOME_BIN}/awesome] && ${VNC2HPC_AGENT} awesome
     ;;
     berry)
         # Setup installation variables for reuse
@@ -96,7 +96,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${BERRY_BIN}/lemonbar ] && ${BERRY_BIN}/lemonbar -b &
-        [ -x ${BERRY_BIN}/berry ] && berry
+        [ -x ${BERRY_BIN}/berry ] && ${VNC2HPC_AGENT} berry
     ;;
     ice*)
         if [[ "${INSTALL_PATH}" =~ users ]] || [[ "${INSTALL_PATH}" =~ hpcsoft ]] || [[ "${INSTALL_PATH}" =~ home ]] ; then
@@ -120,7 +120,7 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x ${ICEWM_BIN}/icewmbg ] && icewmbg --restart
-        [ -x ${ICEWM_BIN}/icewm-session ] && icewm-session
+        [ -x ${ICEWM_BIN}/icewm-session ] && ${VNC2HPC_AGENT} icewm-session
     ;;
     fv*)
         # Setup installation variables for reuse
@@ -137,14 +137,14 @@ case "$VNC2HPC_WM" in
         [ -d ${FVWM_LIB} ] && export LD_LIBRARY_PATH=${FVWM_LIB}:${LD_LIBRARY_PATH}
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
-        [ -x ${FVWM_BIN}/fvwm ] && fvwm
+        [ -x ${FVWM_BIN}/fvwm ] && ${VNC2HPC_AGENT} fvwm
     ;;
     mwm|motif*)
         # Setup installation variables for reuse
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x /usr/bin/mwm ] && /usr/bin/mwm
+        [ -x /usr/bin/mwm ] && ${VNC2HPC_AGENT} /usr/bin/mwm
     ;;
     openbox*)
         # Setup installation variables for reuse
@@ -166,13 +166,13 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
         [ -x ${OBX_BIN}/gdm-control ] && gdm-control &
         [ -x ${OBX_BIN}/gnome-panel-control ] && gnome-panel-control &
-        [ -x ${OBX_BIN}/openbox ] && openbox
+        [ -x ${OBX_BIN}/openbox ] && ${VNC2HPC_AGENT} openbox
     ;;
     xfwm4)
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
         [ -x /usr/bin/vncconfig ] && /usr/bin/vncconfig -nowin &
         [ -x /usr/bin/xterm ] && /usr/bin/xterm &
-        [ -x /usr/bin/xfwm4 ] && /usr/bin/xfwm4
+        [ -x /usr/bin/xfwm4 ] && ${VNC2HPC_AGENT} /usr/bin/xfwm4
     ;;
     *)
         "echo UNSUPPORTED $1"

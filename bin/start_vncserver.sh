@@ -8,9 +8,11 @@ geometry="$5"
 pixeldepth="$6"
 remote_install_path="$7"
 vncserver_path="$8"
+agent=""
 
 # some conditionals
 if [[ "${9}x" != x ]] ; then REMOTE_DISPLAY=":${9}" ; fi 
+if [[ "${10}" == "true" ]] ; then agent="$(type -P ssh-agent)" ; fi
 if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
 
 # setup pixeldepth arg
@@ -19,6 +21,7 @@ pixeldeptharg="-depth ${pixeldepth}"
 # this is required for a weird xvnccrash with MCNP
 backstore="-bs"
 
+export VNC2HPC_AGENT=${agent}
 export VNC2HPC_INSTALL_PATH=${remote_install_path}
 export VNC2HPC_WM="$windowmanager" 
 HPCSOFT_PATH="/usr/projects/hpcsoft"
@@ -81,8 +84,8 @@ if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
    fi
 fi
 
-echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
-${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
+echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
+${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC v$vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
 if [[ $? -ne 0 ]] ; then 
    remote_display="FAILURE: $(tail -n 1 ${LOG})"
@@ -97,4 +100,4 @@ else
 fi 
 REMOTE_DISPLAY=$remote_display
 echo $REMOTE_DISPLAY
-echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} REMOTE_DISPLAY=${remote_display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
+echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) AGENT=${agent} WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} REMOTE_DISPLAY=${remote_display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
