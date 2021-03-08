@@ -34,6 +34,7 @@ usage () {
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
+			    [-a|--agent]					(optional) Start the WM under the auspices of an ssh-agent
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
@@ -925,8 +926,9 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:vu:w:g:d:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
+while getopts "c:m:p:vu:w:g:d:abhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
     case "${opt}" in
+        a)  AGENT=true							;;
         b)  BACKDOOR=true						;;
         v)  DEBUG=true							;;
         d)  REMOTE_DISPLAY="$OPTARG"					;;
@@ -1293,9 +1295,9 @@ done
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"")
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
