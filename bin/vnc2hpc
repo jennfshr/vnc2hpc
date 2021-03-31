@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.11"
+VERSION="v0.0.11"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -1114,7 +1114,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     # get the repo locally
     if [[ "${SOURCE}x" != x ]] ; then
         FILE="${SOURCE//*\/}"
-        FULL_FILE_PATH="{SOURCE}"
+        FULL_FILE_PATH="${SOURCE}"
     else
         if $(which curl &>/dev/null) ; then
             debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
