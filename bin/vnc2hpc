@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="master"
+VERSION="v0.0.11"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -317,8 +317,8 @@ setup_nogateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case ${MACHINE} in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1-eth2"	;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2"	;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
@@ -419,9 +419,7 @@ setup_gateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1"	;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1-eth2"	;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
@@ -529,9 +527,8 @@ setup_nogateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1-eth2"   ;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1-eth2"   ;;
             esac
         fi
         local loc_lasthop="ssh -tt $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
@@ -558,9 +555,7 @@ setup_gateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1-eth2"   ;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
@@ -1119,7 +1114,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     # get the repo locally
     if [[ "${SOURCE}x" != x ]] ; then
         FILE="${SOURCE//*\/}"
-        FULL_FILE_PATH="{SOURCE}"
+        FULL_FILE_PATH="${SOURCE}"
     else
         if $(which curl &>/dev/null) ; then
             debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"

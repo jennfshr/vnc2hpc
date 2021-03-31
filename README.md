@@ -171,7 +171,7 @@ The usage output is available by running
 
 `./vnc2hpc --help`
 
-`vnc2hpc v0.0.5`
+`vnc2hpc v0.0.11`
 
 `		usage: vnc2hpc`
 
@@ -192,6 +192,8 @@ The usage output is available by running
 `			[-w|--wm icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
 
 `			[-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
+
+`			[-a|--agent]					        (optional) Start the WM under the auspices of an ssh-agent`
 
 `			[-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
 
@@ -447,6 +449,12 @@ Currently, six window managers are supported.  The window manager supplies the g
 
 -----
 
+### [-a|--agent] (optional) Start the WM under the auspices of an ssh-agent
+
+ssh-agent is a key manager for SSH. It holds your keys and certificates in memory, unencrypted, and ready for use by ssh.  This feature benefits certain developer workflows by enabling ssh authentication automation.
+
+-----
+
 ### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
 
 To pass custom geometry dimensions to the vncserver instantiation on the remote machine, you can use this option with a dimension argument to describe the desired resolution of the vncserver window manager session. Supply as a argument to the -g flag a resolution in the form \<int\>x\<int\>, where the first value is the X-axis dimension (width), the second represents the Y-axis dimension (height).  If no argument is supplied to vnc2hpc, the default setting will be used, 1024x768. 
@@ -548,13 +556,13 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.10 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.10 | Windows | UNSUPPORTED | UNSUPPORTED |
+| v0.0.11 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.11 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.11 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.11 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.11 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.11 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.11 | Windows | UNSUPPORTED | UNSUPPORTED |
 
 _____
 
@@ -563,6 +571,14 @@ _____
 #### How do I enable copy and paste on VNC?
 
 Under UNIX or Linux, for VNC Server in Virtual Mode, a program called `vncconfig` may not be running. If this is the case, no VNC Server icon is displayed in the Notification Area, and copy and paste is disabled. To enable it again, type `vncconfig` in a Terminal window, and press the ENTER key.
+
+#### I cannot access git.lanl.gov and want to run on a system where there are no backend installations!  How can I do this?
+
+The git.lanl.gov resides in the yellow network, which isn't accessible by everyone.  If you find yourself hitting an error with the "curl" command performing the download of the repo contents for staging to your home directory on systems where there are no back-end installations (i.e., Darwin), the following sequence should make this work:
+
+1. Download the compressed tarball of the project from https://hpc.lanl.gov/software/hpc-provided-software/vnc2hpc.html (Direct Download section) where the version matches the client version you wish to use. 
+2. `scp <path-to>/vnc2hpc-v<version>.tar.gz $USER@$MACHINE:/tmp/.`
+3. `./vnc2hpc-v<version> -m $MACHINE -s <path-to>/vnc2hpc-v<version>.tar.gz -c <client> <etc>`
 
 
 
