@@ -23,7 +23,7 @@ REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" )
 
 usage () {
-    message -m "${0//*\//} v${VERSION}
+    message -m "${0//*\//} ${VERSION}
 
           usage: ${0//*\//}
                             [-m|--machine <machine>]				(required)
@@ -843,17 +843,16 @@ client_version () {
 #######################################
 # Checks REMOTE_INSTALL_PATH
 # Globals:
-#   REMOTE_INSTALL_PATH
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
 #   MACHINE
 # Arguments:
-#   None
+#   REMOTE_INSTALL_PATH
 # Outputs:
 #   BOOL (True|False)
 #######################################
 check_remote_install_path () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d ${REMOTE_INSTALL_PATH} ]"
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d $1 ]"
 }
 
 #######################################
@@ -1098,41 +1097,46 @@ VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
+##HERE FIX THIS!
 # check remote install path for vnc2hpc backend
-check_remote_install_path || NO_BACKEND="true"
+check_remote_install_path "$REMOTE_INSTALL_PATH" || check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" || NO_BACKEND="true"
 
 # setup NO_GATEWAY_SCP or GATEWAY_SCP commands to get server side setup
 if [[ "${NO_BACKEND}" == "true" ]] ; then
-    REPO_URL="https://git.lanl.gov/hpcsoft/vnc2hpc/-/archive/${VERSION}/vnc2hpc-${VERSION}.tar.gz"
-    debug "REPO_URL:" "${REPO_URL}"
-    FILE="${REPO_URL//*\/}"
-    FULL_FILE_PATH="/tmp/${FILE}"
-    debug "DOWNLOAD TO FILE:" "${FULL_FILE_PATH}"
     DEST="\$HOME/.vnc2hpc/."
-    debug "COPYING ${FULL_FILE_PATH} TO:" "$DEST"
-    export no_proxy=lanl.gov
     # get the repo locally
     if [[ "${SOURCE}x" != x ]] ; then
         FILE="${SOURCE//*\/}"
         FULL_FILE_PATH="${SOURCE}"
+        debug "USING LOCAL ARCHIVE" "${FULL_FILE_PATH}"
+        debug "STAGING TO:" "$MACHINE:$DEST"
     else
+        REPO_URL="https://git.lanl.gov/hpcsoft/vnc2hpc/-/archive/${VERSION}/vnc2hpc-${VERSION}.tar.gz"
+        FILE="${REPO_URL//*\/}"
+        FULL_FILE_PATH="/tmp/${FILE}"
+        export no_proxy=lanl.gov
+        debug "REPO_URL:" "${REPO_URL}"
+        debug "DOWNLOADING SOURCE TARBALL TO FILE:" "${FULL_FILE_PATH}"
+        debug "COPYING ${FULL_FILE_PATH} TO:" "$DEST"
         if $(which curl &>/dev/null) ; then
             debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
             curl -sL ${REPO_URL} >${FULL_FILE_PATH}
             if [[ $? -ne 0 ]] ; then 
                 die "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH} FAILED"
             fi
+            [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
         elif $(which wget &>/dev/null); then
             debug "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH}"
             wget ${REPO_URL} -O ${FULL_FILE_PATH}
             if [[ $? -ne 0 ]] ; then 
                 die "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH} FAILED"
             fi
+            [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
         else
             die "EITHER INSTALL CURL OR WGET, or DOWNLOAD $REPO_URL AND POINT THIS TOOL TO THE TARBALL: $0 -s /path/to/tar.gz <etc>"
         fi
     fi
-    [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
+
     DEST_TOPLEVEL_DIR=$(tar tf ${FULL_FILE_PATH} | head -n1 | sed 's/\///g')
     debug "DEST_TOPLEVEL_DIR:" "$DEST_TOPLEVEL_DIR"
     ${GATEWAY_SSH}${NO_GATEWAY_SSH} "mkdir -p ${DEST%\/\.}"
@@ -1156,7 +1160,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi 
     fi 
-    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "[ -d ${DEST}/${FILE//\.tar.gz} ] || pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
         REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"
