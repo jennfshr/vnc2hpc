@@ -171,7 +171,7 @@ The usage output is available by running
 
 `./vnc2hpc --help`
 
-`vnc2hpc v0.0.11`
+`vnc2hpc v0.0.12`
 
 `		usage: vnc2hpc`
 
@@ -556,13 +556,13 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.10 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.10 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.10 | Windows | UNSUPPORTED | UNSUPPORTED |
+| v0.0.12 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.12 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.12 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.12 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.12 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.12 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.12 | Windows | UNSUPPORTED | UNSUPPORTED |
 
 _____
 

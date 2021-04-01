@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.11"
+VERSION="v0.0.12"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -1098,8 +1098,10 @@ VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
-# check remote install path for vnc2hpc backend
-check_remote_install_path "$REMOTE_INSTALL_PATH" || check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" || NO_BACKEND="true"
+{ check_remote_install_path "$REMOTE_INSTALL_PATH" && REMOTE_INSTALL_PATH=${REMOTE_INSTALL_PATH} ; } || \
+{ check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" && REMOTE_INSTALL_PATH="\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" ; } || \
+{ NO_BACKEND="true" ; REMOTE_INSTALL_PATH="" ; }
+debug "REMOTE_INSTALL_PATH=$REMOTE_INSTALL_PATH" "NO_BACKEND=$NO_BACKEND"
 
 # setup NO_GATEWAY_SCP or GATEWAY_SCP commands to get server side setup
 if [[ "${NO_BACKEND}" == "true" ]] ; then

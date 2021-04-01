@@ -16,14 +16,14 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.10"
+VERSION="v0.0.12"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
 WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" )
 
 usage () {
-    message -m "${0//*\//} v${VERSION}
+    message -m "${0//*\//} ${VERSION}
 
           usage: ${0//*\//}
                             [-m|--machine <machine>]				(required)
@@ -34,6 +34,7 @@ usage () {
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
 			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
+			    [-a|--agent]					(optional) Start the WM under the auspices of an ssh-agent
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
@@ -316,8 +317,8 @@ setup_nogateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case ${MACHINE} in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1-eth2"	;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2"	;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
@@ -418,9 +419,7 @@ setup_gateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1"	;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1"	;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1"	;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1-eth2"	;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
@@ -528,9 +527,8 @@ setup_nogateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1-eth2"   ;;
+                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1-eth2"   ;;
             esac
         fi
         local loc_lasthop="ssh -tt $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
@@ -557,9 +555,7 @@ setup_gateway_tunnel () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case "${MACHINE}" in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tt-login1"   ;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@tr-login1"   ;;
-                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1"   ;;
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@ga-login1-eth2"   ;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${TUNNEL_HOST} ${MACHUSER}@${SLURM_HEADNODE}"
@@ -845,19 +841,19 @@ client_version () {
 }
 
 #######################################
-# Checks REMOTE_INSTALL_PATH
+# Checks arg1 for vnc2hpc remote installation
 # Globals:
-#   REMOTE_INSTALL_PATH
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
 #   MACHINE
 # Arguments:
-#   None
+#   loc_remote_install_path
 # Outputs:
 #   BOOL (True|False)
 #######################################
 check_remote_install_path () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d ${REMOTE_INSTALL_PATH} ]"
+    local loc_remote_install_path="$1"
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d ${loc_remote_install_path} ]"
 }
 
 #######################################
@@ -925,8 +921,9 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:vu:w:g:d:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
+while getopts "c:m:p:vu:w:g:d:abhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
     case "${opt}" in
+        a)  AGENT=true							;;
         b)  BACKDOOR=true						;;
         v)  DEBUG=true							;;
         d)  REMOTE_DISPLAY="$OPTARG"					;;
@@ -1101,46 +1098,52 @@ VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
-# check remote install path for vnc2hpc backend
-check_remote_install_path || NO_BACKEND="true"
+{ check_remote_install_path "$REMOTE_INSTALL_PATH" && REMOTE_INSTALL_PATH=${REMOTE_INSTALL_PATH} ; } || \
+{ check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" && REMOTE_INSTALL_PATH="\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" ; } || \
+{ NO_BACKEND="true" ; REMOTE_INSTALL_PATH="" ; }
+debug "REMOTE_INSTALL_PATH=$REMOTE_INSTALL_PATH" "NO_BACKEND=$NO_BACKEND"
 
 # setup NO_GATEWAY_SCP or GATEWAY_SCP commands to get server side setup
 if [[ "${NO_BACKEND}" == "true" ]] ; then
-    REPO_URL="https://git.lanl.gov/hpcsoft/vnc2hpc/-/archive/${VERSION}/vnc2hpc-${VERSION}.tar.gz"
-    debug "REPO_URL:" "${REPO_URL}"
-    FILE="${REPO_URL//*\/}"
-    FULL_FILE_PATH="/tmp/${FILE}"
-    debug "DOWNLOAD TO FILE:" "${FULL_FILE_PATH}"
     DEST="\$HOME/.vnc2hpc/."
-    debug "COPYING ${FULL_FILE_PATH} TO:" "$DEST"
-    export no_proxy=lanl.gov
     # get the repo locally
-    if [[ "${SOURCE}x" != x ]] ; then
+    if [[ "${SOURCE}"x != x ]] ; then
         FILE="${SOURCE//*\/}"
-        FULL_FILE_PATH="{SOURCE}"
+        FULL_FILE_PATH="${SOURCE}"
+        debug "USING LOCAL ARCHIVE" "${FULL_FILE_PATH}"
+        debug "STAGING TO:" "$MACHINE:$DEST"
     else
+        REPO_URL="https://git.lanl.gov/hpcsoft/vnc2hpc/-/archive/${VERSION}/vnc2hpc-${VERSION}.tar.gz"
+        FILE="${REPO_URL//*\/}"
+        FULL_FILE_PATH="/tmp/${FILE}"
+        export no_proxy=lanl.gov
+        debug "REPO_URL:" "${REPO_URL}"
+        debug "DOWNLOADING SOURCE TARBALL TO FILE:" "${FULL_FILE_PATH}"
+        debug "COPYING ${FULL_FILE_PATH} TO:" "$DEST"
         if $(which curl &>/dev/null) ; then
             debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
             curl -sL ${REPO_URL} >${FULL_FILE_PATH}
             if [[ $? -ne 0 ]] ; then 
                 die "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH} FAILED"
             fi
+            [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
         elif $(which wget &>/dev/null); then
             debug "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH}"
             wget ${REPO_URL} -O ${FULL_FILE_PATH}
             if [[ $? -ne 0 ]] ; then 
                 die "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH} FAILED"
             fi
+            [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
         else
             die "EITHER INSTALL CURL OR WGET, or DOWNLOAD $REPO_URL AND POINT THIS TOOL TO THE TARBALL: $0 -s /path/to/tar.gz <etc>"
         fi
     fi
-    [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
+
     DEST_TOPLEVEL_DIR=$(tar tf ${FULL_FILE_PATH} | head -n1 | sed 's/\///g')
     debug "DEST_TOPLEVEL_DIR:" "$DEST_TOPLEVEL_DIR"
     ${GATEWAY_SSH}${NO_GATEWAY_SSH} "mkdir -p ${DEST%\/\.}"
     if [[ $? -ne 0 ]] ; then
-        die "$HOME/.vnc2hpc doesn't exist on $MACHINE"
+        die "${DEST} doesn't exist on $MACHINE"
     fi
     SSH_SCP_OPTS=$(setup_ssh_opts scp)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
@@ -1159,7 +1162,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi 
     fi 
-    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "[ -d ${DEST}/${FILE//.tar.gz} ] || pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
         REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"
@@ -1293,9 +1296,9 @@ done
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\"")
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
