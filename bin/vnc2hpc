@@ -841,18 +841,19 @@ client_version () {
 }
 
 #######################################
-# Checks REMOTE_INSTALL_PATH
+# Checks arg1 for vnc2hpc remote installation
 # Globals:
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
 #   MACHINE
 # Arguments:
-#   REMOTE_INSTALL_PATH
+#   loc_remote_install_path
 # Outputs:
 #   BOOL (True|False)
 #######################################
 check_remote_install_path () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d $1 ]"
+    local loc_remote_install_path="$1"
+    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -d ${loc_remote_install_path} ]"
 }
 
 #######################################
@@ -1097,7 +1098,6 @@ VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
-##HERE FIX THIS!
 # check remote install path for vnc2hpc backend
 check_remote_install_path "$REMOTE_INSTALL_PATH" || check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" || NO_BACKEND="true"
 
@@ -1105,7 +1105,7 @@ check_remote_install_path "$REMOTE_INSTALL_PATH" || check_remote_install_path "\
 if [[ "${NO_BACKEND}" == "true" ]] ; then
     DEST="\$HOME/.vnc2hpc/."
     # get the repo locally
-    if [[ "${SOURCE}x" != x ]] ; then
+    if [[ "${SOURCE}"x != x ]] ; then
         FILE="${SOURCE//*\/}"
         FULL_FILE_PATH="${SOURCE}"
         debug "USING LOCAL ARCHIVE" "${FULL_FILE_PATH}"
@@ -1141,7 +1141,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
     debug "DEST_TOPLEVEL_DIR:" "$DEST_TOPLEVEL_DIR"
     ${GATEWAY_SSH}${NO_GATEWAY_SSH} "mkdir -p ${DEST%\/\.}"
     if [[ $? -ne 0 ]] ; then
-        die "$HOME/.vnc2hpc doesn't exist on $MACHINE"
+        die "${DEST} doesn't exist on $MACHINE"
     fi
     SSH_SCP_OPTS=$(setup_ssh_opts scp)
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
@@ -1160,7 +1160,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
         fi 
     fi 
-    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "[ -d ${DEST}/${FILE//\.tar.gz} ] || pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
+    if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "[ -d ${DEST}/${FILE//.tar.gz} ] || pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
         REMOTE_INSTALL_PATH="${DEST%\/\.}/${DEST_TOPLEVEL_DIR}"
