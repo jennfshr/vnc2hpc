@@ -238,7 +238,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 | Machine | Front-ends (Round-Robin Aliases) | Notes |
 | -- | -- | -- |
-| Snow | sn-fe, sn-fey, sn-rfe ||
+| Snow | sn-fe, sn-rfe ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
 | Chicoma | ch-fe1, ch-fe2 | fvwm, icewm only |
@@ -266,7 +266,7 @@ Simple launch instructions follow.  As demonstrated below, the script is knowled
 
 *To launch a session to Snow’s Yellow frontend*
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1`
+`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe`
 
 *To launch a session to Snow's Turquoise frontend*
 
@@ -308,25 +308,25 @@ vnc2hpc checks for basic requirements when run, to ensure it has all it needs to
 If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user through the password creation for the vncserver:
 
 ```
-$> vnc2hpc -m sn-fey -w fvwm -k -c "${VNCV}"
-INFO       VNC2HPC VERSION:								0.0.5
-INFO       RECEIVED REQUEST TO CONNECT TO:						sn-fey
+$> vnc2hpc -m sn-rfe -w fvwm -k -c "${VNCV}"
+INFO       VNC2HPC VERSION:								0.0.12
+INFO       RECEIVED REQUEST TO CONNECT TO:						sn-rfe
 INFO       VNC CLIENT INFO:								VNC(R)Viewer-6.20.529
 INFO       LOCALHOST OS INFO:								pike.lanl.gov-Darwin
 INFO       REMOTE USER:									jgreen
 INFO       WINDOWMANAGER:								fvwm
 INFO       GEOMETRY:									default
 INFO       PIXELDEPTH:									24
-INFO       MACHINE:									sn-fey
+INFO       MACHINE:									sn-rfe
 INFO       NETWORK:									YELLOW
-INFO       VNC CLIENT vncviewer LOGGING:						/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncclient.log.12-17-20-09.35.39
-INFO       VNC SERVER LOGGING:								/Users/jgreen/.vnc2hpc/sn-fey2.lanl.gov/vncserver.log.12-17-20-09.35.39
-INFO       VNC passwd not available or is of zero size on sn-fey2.lanl.gov for jgreen
+INFO       VNC CLIENT vncviewer LOGGING:						/Users/jgreen/.vnc2hpc/sn-rfe.lanl.gov/vncclient.log.12-17-20-09.35.39
+INFO       VNC SERVER LOGGING:								/Users/jgreen/.vnc2hpc/sn-rfe.lanl.gov/vncserver.log.12-17-20-09.35.39
+INFO       VNC passwd not available or is of zero size on sn-rfe.lanl.gov for jgreen
 INFO       Do you want to setup a password now? [Y/N]
 y
 INFO       Enter your password (at least six characters long, up to eight)
 INFO       Reenter your password to confirm
-INFO       SETTING VNCPASSWD								sn-fey2.lanl.gov for jgreen
+INFO       SETTING VNCPASSWD								sn-rfe.lanl.gov for jgreen
 INFO       VNCPASSWD SUCCESSFULLY SET!
 ```
 

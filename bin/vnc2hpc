@@ -928,7 +928,7 @@ while getopts "c:m:p:vu:w:g:d:ao:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
     case "${opt}" in
         a)  AGENT=true							;;
         b)  BACKDOOR=true						;;
-        o)  CLIENT_OPT="$OPTARG"					;;
+        o)  CLIENT_OPT=( "$OPTARG" "${CLIENT_OPT}" )			;;
         v)  DEBUG=true							;;
         d)  REMOTE_DISPLAY="$OPTARG"					;;
         m)  MACHINE="$OPTARG"						;;
@@ -984,7 +984,7 @@ inform "LOCALHOST OS INFO:" "$CLIENTOS"
 if [[ "${AGENT}x" != x ]] ; then inform "RECEIVED REQUEST TO RUN WM WITH ssh-agent" ; fi 
 
 # inform if additional args are getting passed to CLIENT
-if [[ "${CLIENT_OPTS}x" != x ]] ;  then inform "CLIENT_OPTS REQUESTED ARE ${CLIENT_OPTS}";  fi
+if [[ "${CLIENT_OPT}x" != x ]] ;  then inform "CLIENT_OPT REQUESTED" "$(echo ${CLIENT_OPT[@]})";  fi
 
 # ensure MACHUSER is overriden by $USER if not specified
 MACHUSER=${MACHUSER:=$USER}
@@ -1364,9 +1364,11 @@ inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] || [[ "${CLIENT_VERSION}" =~ [Tt]urbo ]] ; then
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPTS} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]}"
+    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPTS} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}"
+    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
