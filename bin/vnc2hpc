@@ -1352,7 +1352,7 @@ inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!"
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
-if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] || [[ "${CLIENT_VERSION}" =~ [Tt]urbo ]] ; then
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
