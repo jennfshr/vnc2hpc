@@ -4,7 +4,7 @@ _____
 
 # VNC2HPC
 
-VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.
+VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/)) implementations.
 
 _____
 
@@ -62,21 +62,24 @@ _____
 
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
+* [TurboVNC](https://sourceforge.net/projects/turbovnc/files/latest/download)
 
+*Note: VNCViewer by RealVNC seems to offer better command line control than Tiger or Turbo*
 _____
 
 **Obtain VNC2HPC Tool**
 
 *Note: In the future, will be supplied via LANL Self Services Application Catalog*
 
-**Two methods to obtain VNC2HPC**
+**Methods to obtain VNC2HPC**
 
 **Direct Download**
 
-* Click here to download the script directly: [VNC2HPC](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.8/bin/vnc2hpc)
+**Production releases will be supplied here: [Green Network Access](https://hpc.lanl.gov/software/hpc-provided-software/vnc2hpc.html)**
 
 **Clone the project**
 * `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
+* `git checkout <tag>`
 
 *Note:  A git repository clone makes updating the project branches as simple as `git pull`, so it's probably the simplest way to keep an updated copy on your system*
 
@@ -137,9 +140,7 @@ _____
 <details>
   <summary markdown="span">Expand section for guidance on setting up VNC2HPC</summary>
 
-You can download vnc2hpc here: [vnc2hpc](https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/0.0.8/bin/vnc2hpc)
-
-One you have done this, you'll need to change permissions to make the script executable:
+One you have downloaded the script, you'll need to change permissions on the command line to make the script executable:
 
 `chmod +x vnc2hpc`
 
