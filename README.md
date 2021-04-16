@@ -62,7 +62,9 @@ _____
 
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
+* [TurboVNC](https://sourceforge.net/projects/turbovnc/files/latest/download)
 
+*Note: VNCViewer by RealVNC seems to offer better command line control than Tiger or Turbo*
 _____
 
 **Obtain VNC2HPC Tool**
