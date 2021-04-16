@@ -4,7 +4,7 @@ _____
 
 # VNC2HPC
 
-VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux implementations.
+VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/)) implementations.
 
 _____
 
