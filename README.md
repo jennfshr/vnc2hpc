@@ -170,67 +170,73 @@ _____
 
 The usage output is available by running
 
-`./vnc2hpc --help`
+`./vnc2hpc-v0.0.13 --help`
 
-`vnc2hpc v0.0.12`
+`vnc2hpc-v0.0.13 0.0.13`
 
-`		usage: vnc2hpc`
+`          usage: vnc2hpc-v0.0.13`
 
-`			[-m|--machine <machine>]				(required)`
+`                       [-m|--machine <machine>]				(required)`
 
-`			[-c|--client <vncclient>]				(required)`
+`                       [-c|--client <vncclient>]				(required)`
 
-`			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost` 
+`			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost`
 
-`			[-v|--verbose]						(optional)`
+`                       [-v|--verbose]						(optional)`
 
-`			[-d|--display <display>]				(optional)`
+`	                [-d|--display <display>]				(optional)`
 
 `			[-k|--keep]						(optional)`
 
 `			[-r|--reconnect]					(optional)`
 
-`			[-w|--wm icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
+`			[-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
 
-`			[-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
+`			[-a|--agent]						(optional) Start the WM under the auspices of an ssh-agent`
 
-`			[-a|--agent]					        (optional) Start the WM under the auspices of an ssh-agent`
+`                       [-o|--option]						(optional) Pass arguments to VNCViewer Client`
 
-`			[-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
+`                       [-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
 
-`			[-s|--source /path/to/source.tar.gz]			(optional) Only Required for systems with no backend installation and no yellow connection`
+`                       [-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
+
+`                       [-s|--source /path/to/source.tar.gz]                	(optional) Only Required for systems with no backend where client has no internet`
 
 `			[-h|--help]`
 
-`			[-J|--jobid <jobid>]					(optional) Attach to running job`
+`                       [-J|--jobid <jobid>]					(optional) Attach to running job`
 
-`		OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
+``
 
-`			[-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
+`                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
 
-`			[-A|--account]						(optional) Without, vnc2hpc submits job with $USER default account in Slurm`
+`                       [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
 
-`			[-Q|--qos]						(optional) Without, vnc2hpc submits job with $USER qos defaults in Slurm`
+`                       [-A|--account]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER default account in Slurm`
 
-`			[-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
+`                       [-Q|--qos]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER qos defaults in Slurm`
 
-`			[-T|--time]						(optional) Without, vnc2hpc submits job with $USER walltime defaults in Slurm`
+`                       [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
 
-`			[-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
+`                       [-T|--time]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER walltime defaults in Slurm`
 
-`			[-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
+`                       [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
 
-`			[-N|--numnodes]						(optional) Default: 1`
+`                       [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
 
-`		Questions?       <vnc2hpc@lanl.gov>`
+`                       [-N|--numnodes]						(optional) Default: 1`
 
-`		Need Help?       https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
+``
+
+`          Questions?        <vnc2hpc@lanl.gov>`
+
+`          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
 
 _____
 
 ## Machines Supported
 
-vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
+VNC2HPC knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
 
 **Machines supported**
 
@@ -239,7 +245,7 @@ vnc2hpc knows about all LANL HPC supported resources in the yellow, turquoise an
 
 | Machine | Front-ends (Round-Robin Aliases) | Notes |
 | -- | -- | -- |
-| Snow | sn-fe, sn-rfe ||
+| Snow | sn-fe, sn-rfe, sn-fey (legacy) ||
 | Badger | ba-fe ||
 | Capulin | cp-login, cp-loginy ||
 | Chicoma | ch-fe1, ch-fe2 | fvwm, icewm only |
@@ -267,11 +273,11 @@ Simple launch instructions follow.  As demonstrated below, the script is knowled
 
 *To launch a session to Snow’s Yellow frontend*
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe`
+`$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe`
 
 *To launch a session to Snow's Turquoise frontend*
 
-`$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
+`$> ./vnc2hpc-v0.0.13 -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
 **Avoiding cluster password prompt(s)**
 
@@ -281,7 +287,7 @@ Simple launch instructions follow.  As demonstrated below, the script is knowled
 
 *Target a specific Darwin front-end*
 
-`./vnc2hpc -m darwin-fe1 -c "/Applicatoins/VNC\ Viewer.app/Contents/MacOS/vncviewer"`
+`./vnc2hpc-v0.0.13 -m darwin-fe1 -c "/Applicatoins/VNC\ Viewer.app/Contents/MacOS/vncviewer"`
 
 *Unavoidable authentication requirement for Turquoise systems to authenticate via wtrw gateway once - likely to change soon with the OUCH project*
 
@@ -309,8 +315,8 @@ vnc2hpc checks for basic requirements when run, to ensure it has all it needs to
 If the script is unable to find `$HOME/.vnc/passwd`, it will walk the user through the password creation for the vncserver:
 
 ```
-$> vnc2hpc -m sn-rfe -w fvwm -k -c "${VNCV}"
-INFO       VNC2HPC VERSION:								0.0.12
+$> vnc2hpc-v0.0.13 -m sn-rfe -w fvwm -k -c "${VNCV}"
+INFO       VNC2HPC VERSION:								0.0.13
 INFO       RECEIVED REQUEST TO CONNECT TO:						sn-rfe
 INFO       VNC CLIENT INFO:								VNC(R)Viewer-6.20.529
 INFO       LOCALHOST OS INFO:								pike.lanl.gov-Darwin
@@ -340,11 +346,12 @@ _____
 If you forget your password, the simplest solution it to remove it:
 
 **Reset VNCPasswd**
+
 ```
-$>  ssh -l $USER sn-fey1
+$>  ssh -l $USER sn-rfe
 jgreen@sn-fey1>  rm ~/.vnc/passwd
 jgreen@sn-fey1>  exit
-$>  vnc2hpc -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
+$>  vnc2hpc-v0.0.13 -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
 # walk through the password recreation process once again
 ```
 
@@ -368,7 +375,7 @@ _____
 ## Slurm integration
 
 If you need to use a GUI inside of Slurm allocation on the target cluster, you'll find better windowing responsiveness if you use the Slurm attach or interactive features of vnc2hpc.  GLXGears benchmarking of a job where vncserver is running on the headnode of a job, versus one where the vncserver is launched on the front-end and X11 is forwarded to the job, demonstrates an order of magnitude improvement in the FPS rate.  Either ask vnc2hpc to allocate the job for you:
-`vnc2hpc -m sn-fey1 -c "${VNCV}" -I -A <myaccount> -Q <myqos> -T <mywalltime>` or attach to an already running allocation `vnc2hpc -m sn-fey1 -c "${VNCV}" -J <jobid>`. 
+`vnc2hpc-v0.0.13 -m sn-rfe -c "${VNCV}" -I -A <myaccount> -Q <myqos> -T <mywalltime>` or attach to an already running allocation `vnc2hpc-v0.0.13 -m sn-rfe -c "${VNCV}" -J <jobid>`. 
 
 _____
 
@@ -391,7 +398,7 @@ The client flag is how you direct vnc2hpc to the vncviewer on your desktop to us
 It's a required option that will fail if not supplied.  A full path to the vncviewer executable is required if the executable
 isn't in your $PATH.  To determine if the executable is in your path, in a terminal window, run `which vncviewer`.
 
-`$> ./vnc2hpc -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
+`$> ./vnc2hpc-v0.0.13 -c “/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer” -m sn-fe1`
 
 *NOTE: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line to resolve the full path to the client is supported.* 
 
@@ -407,11 +414,11 @@ _____
 
 To preserve your vncserver session for later reuse, run the script with --keep or -k
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --keep`
+`$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe --keep`
 
 To reconnect to this, you can request a reconnect with later invocations with a --reconnect or -r flag
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --reconnect`
+`$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe --reconnect`
 
 The --reconnect flag sets a sentinel to "keep" the reconnected session upon closing the viewer
 
@@ -426,7 +433,7 @@ If one wants to reconnect to a vncserver session, the script will detect it upon
 
 *NOTE: If the vncserver invocation on that port doesn't succeed, vncserver (on the cluster) will attempt to auto-select a port. That value then will be passed back to the client to use for connection to the machine.*
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 --display 12345`
+`$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe --display 12345`
 
 *NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
 
@@ -436,7 +443,7 @@ _____
 
 Sometimes the user id of the user running on the desktop system where vnc2hpc is invoked doesn't match the corresponding user id for the remote system.  If you have different user ids, you need to pass the remote userid (a.k.a. moniker) to the script
 
-`$> ./vnc2hpc -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-fey1 -u jgreen`
+`$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe -u jgreen`
 
 _____
 
@@ -470,7 +477,7 @@ To change the pixel depth of the desktop to be started, call the script with a `
 
 ### [-J|--jobid \<jobid\>] (optional) Attach to running job
 
-Pass `-J <jobid>` if you wish to launch and connect to a vncserver inside a running job on a cluster. The script uses the jobid supplied by this argument to query the scheduler for the headnode of the allocation, then extend the ssh tunnel to launch a vncserver on the headnode, rather than the front-end node.  If a vncseerver was previously launched with a `-k` option, the vncserver will continue to run the in context of the job, and a re-connect to that vncserver is accomplished by `vnc2hpc -m <machinename> -J <jobid> -r -d <display> -c "${VNCV}"`
+Pass `-J <jobid>` if you wish to launch and connect to a vncserver inside a running job on a cluster. The script uses the jobid supplied by this argument to query the scheduler for the headnode of the allocation, then extend the ssh tunnel to launch a vncserver on the headnode, rather than the front-end node.  If a vncseerver was previously launched with a `-k` option, the vncserver will continue to run the in context of the job, and a re-connect to that vncserver is accomplished by `vnc2hpc-v0.0.13 -m <machinename> -J <jobid> -r -d <display> -c "${VNCV}"`
 
 -----
 
@@ -542,7 +549,7 @@ _____
 
 The script will prompt for an action on the command line if a port is already running for the user.
 
-`$> ./vnc2hpc -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
+`$> ./vnc2hpc-v0.0.13 -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
 
 `WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
 
@@ -557,13 +564,16 @@ _____
 ## Client Compatibility Table
 | Version | OS | Viewer | Window Managers
 | ------ | ------ | ------ | ------ |
-| v0.0.12 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.12 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.12 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.12 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.12 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.12 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.12 | Windows | UNSUPPORTED | UNSUPPORTED |
+| v0.0.13 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TurboVNCViewer-v2.2.6 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows Subsystem for Linux (WSL-Ubuntu) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows Subsystem for Linux (WSL-Centos) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows | UNSUPPORTED | UNSUPPORTED |
 
 _____
 
