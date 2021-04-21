@@ -206,7 +206,7 @@ The usage output is available by running
 
 `                       [-J|--jobid <jobid>]					(optional) Attach to running job`
 
-``
+
 
 `                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
 
@@ -226,7 +226,7 @@ The usage output is available by running
 
 `                       [-N|--numnodes]						(optional) Default: 1`
 
-``
+
 
 `          Questions?        <vnc2hpc@lanl.gov>`
 
@@ -462,6 +462,10 @@ Currently, six window managers are supported.  The window manager supplies the g
 ssh-agent is a key manager for SSH. It holds your keys and certificates in memory, unencrypted, and ready for use by ssh.  This feature benefits certain developer workflows by enabling ssh authentication automation.
 
 -----
+
+### [-o|--option] (optional) Pass arguments to VNCViewer Client
+
+VNCViewer clients offer various command line options to refine/modify the behavior of the VNC Viewer session.  This script offers the ability to pass along command line options via the -o|--option \<arg\> argument, to enhance your VNC Session behavior.  To use: `./vnc2hpc-v0.0.13 -m $MACHINE -c $VNCVIEWER -o Quality=Medium -o ColorLevel=Full`
 
 ### [-g|--geometry \<int\>x\<int\>] (optional) Default: xdpyinfo |grep dimensions
 
