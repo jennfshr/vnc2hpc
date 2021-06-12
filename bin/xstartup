@@ -192,8 +192,9 @@ case "$VNC2HPC_WM" in
     XCLIENTS_D=/etc/X11/xinit/Xclients.d
     # lack of SSH_AGENT is intentional, see #441123.  though
     # the whole thing should really happen in xinitrc.d anyway.
-    exec -l $SHELL -c gnome-session
-    exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
+    #exec -l $SHELL -c gnome-session
+    #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
+    [ -x /usr/bin/gnome-session ] && /usr/bin/gnome-session &
     ;;
     *)
         echo "UNSUPPORTED"
