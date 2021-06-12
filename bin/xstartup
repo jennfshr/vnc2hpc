@@ -196,7 +196,7 @@ case "$VNC2HPC_WM" in
     #exec -l $SHELL -c gnome-session
     #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
     #[ -x /usr/bin/gnome-session ] && startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
-    startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
+    /usr/bin/gnome-session &
     ;;
     *)
         echo "UNSUPPORTED $1"
