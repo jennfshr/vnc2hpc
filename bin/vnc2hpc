@@ -20,7 +20,7 @@ VERSION="0.0.13"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
-WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" )
+WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" "gdm" )
 
 usage () {
     message -m "${0//*\//} ${VERSION}
@@ -33,7 +33,7 @@ usage () {
 	                    [-d|--display <display>]				(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
-			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
+			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox|gdm>]	(optional) Default: [-w mwm] (Motif Window Manager)
 			    [-a|--agent]					(optional) Start the WM under the auspices of an ssh-agent
                             [-o|--option]					(optional) Pass arguments to VNCViewer Client
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
