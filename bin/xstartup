@@ -190,13 +190,16 @@ case "$VNC2HPC_WM" in
     # to start themselves up.  In the future, the legacy switchdesk mechanisms
     # and hard coded window managers and desktop environments will be removed from
     # this script. 
-    XCLIENTS_D=/etc/X11/xinit/Xclients.d
+    #XCLIENTS_D=/etc/X11/xinit/Xclients.d
     # lack of SSH_AGENT is intentional, see #441123.  though
     # the whole thing should really happen in xinitrc.d anyway.
     #exec -l $SHELL -c gnome-session
     #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
     #[ -x /usr/bin/gnome-session ] && startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
-    /usr/bin/gnome-session &
+    	
+    unset SESSION_MANAGER
+    unset DBUS_SESSION_BUS_ADDRESS
+    exec gnome-session &
     ;;
     *)
         echo "UNSUPPORTED $1"
