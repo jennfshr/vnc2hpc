@@ -195,3 +195,8 @@ case "$VNC2HPC_WM" in
     exec -l $SHELL -c gnome-session
     exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
     ;;
+    *)
+        echo "UNSUPPORTED"
+        exit 1
+    ;;
+esac
