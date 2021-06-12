@@ -178,7 +178,7 @@ case "$VNC2HPC_WM" in
     SWITCHDESKPATH=/usr/share/switchdesk
     # Mandatorily source xinitrc-common, which is common code shared between the
     # Xsession and xinitrc scripts which has been factored out to avoid duplication
-    [ -f /etc/X11/xinit/xinitrc ] && . /etc/X11/xinit/xinitrc
+    #[ -f /etc/X11/xinit/xinitrc ] && . /etc/X11/xinit/xinitrc
 #    . /etc/X11/xinit/xinitrc-common
 
     # This Xsession.d implementation, is intended to obsolte and replace the
@@ -195,7 +195,8 @@ case "$VNC2HPC_WM" in
     # the whole thing should really happen in xinitrc.d anyway.
     #exec -l $SHELL -c gnome-session
     #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
-    [ -x /usr/bin/gnome-session ] && /usr/bin/gnome-session &
+    #[ -x /usr/bin/gnome-session ] && startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
+    startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
     ;;
     *)
         echo "UNSUPPORTED $1"
