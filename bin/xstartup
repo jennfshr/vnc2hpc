@@ -197,9 +197,10 @@ case "$VNC2HPC_WM" in
     #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
     #[ -x /usr/bin/gnome-session ] && startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
     	
-    unset SESSION_MANAGER
-    unset DBUS_SESSION_BUS_ADDRESS
-    exec gnome-session &
+    #unset SESSION_MANAGER
+    #unset DBUS_SESSION_BUS_ADDRESS
+    #exec gnome-session &
+    startx & 
     ;;
     *)
         echo "UNSUPPORTED $1"
