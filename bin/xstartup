@@ -175,7 +175,22 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xfwm4 ] && ${VNC2HPC_AGENT} /usr/bin/xfwm4
     ;;
     gdm|gnome-session)
-    SWITCHDESKPATH=/usr/share/switchdesk
+# Uncomment the following two lines for normal desktop:
+unset SESSION_MANAGER
+exec /etc/X11/xinit/xinitrc
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+#xsetroot -solid grey
+#vncconfig -iconic &
+#xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+twm &
+if test -z "$DBUS_SESSION_BUS_ADDRESS" ; then
+	eval `dbus-launch --sh-syntax –exit-with-session`
+	echo "D-BUS per-session daemon address is: \
+	$DBUS_SESSION_BUS_ADDRESS"
+fi
+exec  gnome-session
+#    SWITCHDESKPATH=/usr/share/switchdesk
     # Mandatorily source xinitrc-common, which is common code shared between the
     # Xsession and xinitrc scripts which has been factored out to avoid duplication
     #[ -f /etc/X11/xinit/xinitrc ] && . /etc/X11/xinit/xinitrc
@@ -200,7 +215,7 @@ case "$VNC2HPC_WM" in
     #unset SESSION_MANAGER
     #unset DBUS_SESSION_BUS_ADDRESS
     #exec gnome-session &
-    startx & 
+ #   startx & 
     ;;
     *)
         echo "UNSUPPORTED $1"
