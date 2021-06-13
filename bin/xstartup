@@ -182,9 +182,13 @@ unset DBUS_SESSION_BUS_ADDRESS
 # We want to kill the session automatically in this case when user logs out. In case you modify
 # /etc/X11/xinit/Xclients or ~/.Xclients yourself to achieve a different result, then you should
 # be responsible to modify below code to avoid that your session will be automatically killed
-if [ -e /usr/bin/gnome-session -o -e /usr/bin/startkde ]; then
-    vncserver -kill $DISPLAY
-fi
+#if [ -e /usr/bin/gnome-session -o -e /usr/bin/startkde ]; then
+#    vncserver -kill $DISPLAY
+#fi
+export XDG_CURRENT_DESKTOP="GNOME-Flashback:GNOME"
+export XDG_MENU_PREFIX="gnome-flashback-"
+
+gnome-session --session=gnome-classic --disable-acceleration-check &
     ;;
     *)
         echo "UNSUPPORTED $1"
