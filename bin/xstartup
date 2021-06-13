@@ -175,47 +175,16 @@ case "$VNC2HPC_WM" in
         [ -x /usr/bin/xfwm4 ] && ${VNC2HPC_AGENT} /usr/bin/xfwm4
     ;;
     gdm|gnome-session)
-# Uncomment the following two lines for normal desktop:
 unset SESSION_MANAGER
-exec /etc/X11/xinit/xinitrc
-[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
-[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
-#xsetroot -solid grey
-#vncconfig -iconic &
-#xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
-twm &
-if test -z "$DBUS_SESSION_BUS_ADDRESS" ; then
-	eval `dbus-launch --sh-syntax –exit-with-session`
-	echo "D-BUS per-session daemon address is: \
-	$DBUS_SESSION_BUS_ADDRESS"
+unset DBUS_SESSION_BUS_ADDRESS
+/etc/X11/xinit/xinitrc
+# Assume either Gnome or KDE will be started by default when installed
+# We want to kill the session automatically in this case when user logs out. In case you modify
+# /etc/X11/xinit/Xclients or ~/.Xclients yourself to achieve a different result, then you should
+# be responsible to modify below code to avoid that your session will be automatically killed
+if [ -e /usr/bin/gnome-session -o -e /usr/bin/startkde ]; then
+    vncserver -kill $DISPLAY
 fi
-exec  gnome-session
-#    SWITCHDESKPATH=/usr/share/switchdesk
-    # Mandatorily source xinitrc-common, which is common code shared between the
-    # Xsession and xinitrc scripts which has been factored out to avoid duplication
-    #[ -f /etc/X11/xinit/xinitrc ] && . /etc/X11/xinit/xinitrc
-#    . /etc/X11/xinit/xinitrc-common
-
-    # This Xsession.d implementation, is intended to obsolte and replace the
-    # various mechanisms present in the 'case' statement which follows, and to
-    # eventually be able to easily remove all hard coded window manager specific
-    # content from this script.  See bug #142260 for additional explanation and
-    # details.  All window manager rpm packages and desktop environment
-    # packages should be modified to provide the Xsession.d/Xsession.$wm scripts
-    # to start themselves up.  In the future, the legacy switchdesk mechanisms
-    # and hard coded window managers and desktop environments will be removed from
-    # this script. 
-    #XCLIENTS_D=/etc/X11/xinit/Xclients.d
-    # lack of SSH_AGENT is intentional, see #441123.  though
-    # the whole thing should really happen in xinitrc.d anyway.
-    #exec -l $SHELL -c gnome-session
-    #exec /bin/sh -c "exec -l $SHELL -c \"gnome-session\"" 
-    #[ -x /usr/bin/gnome-session ] && startx /etc/X11/xinit/xinitrc /usr/bin/gnome-session &
-    	
-    #unset SESSION_MANAGER
-    #unset DBUS_SESSION_BUS_ADDRESS
-    #exec gnome-session &
- #   startx & 
     ;;
     *)
         echo "UNSUPPORTED $1"
