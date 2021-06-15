@@ -74,8 +74,8 @@ check_network () {
         *darwin*)			loc_network="DARWIN"		;;
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
-	gr*|ba*|cp-login*|ko*|sn*)	loc_network="TURQUOISE"     	;;
-        ga*|ch*)			loc_network="VLGATE"		;;
+	gr*|ba*|cp-login*|ko*|sn*|ch*)	loc_network="TURQUOISE"     	;;
+        ga*)				loc_network="VLGATE"		;;
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
