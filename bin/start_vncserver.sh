@@ -82,7 +82,7 @@ if [[ ${VNC2HPC_WM} == "gdm" ]] ; then
    export DISPLAY_MANAGER="gdm"
    [ -d /opt/TurboVNC/bin ] && export PATH=/opt/TurboVNC/bin:${PATH}
    [ -d /opt/VirtualGL/bin ] && export PATH=/opt/VirtualGL/bin:${PATH}
-   echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} &>$LOG
+   echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg}" &>$LOG
    ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} &>>$LOG
 
 elif [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
