@@ -98,7 +98,9 @@ else
        fi
        echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
        ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
+   fi
 fi
+
 
 if [[ $? -ne 0 ]] ; then 
    remote_display="FAILURE: $(tail -n 1 ${LOG})"
