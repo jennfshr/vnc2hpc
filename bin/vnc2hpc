@@ -826,7 +826,7 @@ wm_check () {
     if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
         return 2
     fi
-    if ! [[ "$MACHINE" =~ vm ]] && [[ "$WINDOWMANAGER" == "gdm" ]] ; then
+    if ! [[ "$MACHINE" =~ vm || "$MACHINE" =~ darw ]] && [[ "$WINDOWMANAGER" == "gdm" ]] ; then
         return 2
     fi
 }
@@ -1106,10 +1106,10 @@ if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
     die "PASS -m <frontend> TO ${0//\.\\/}!" "RECEIVED:${MACHINE}"
 fi
 
-# check remote vncserver install path
-VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
-if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
-debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
+## check remote vncserver install path
+#VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
+#if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
+#debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
 { check_remote_install_path "$REMOTE_INSTALL_PATH" && REMOTE_INSTALL_PATH=${REMOTE_INSTALL_PATH} ; } || \
 { check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" && REMOTE_INSTALL_PATH="\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" ; } || \
@@ -1222,6 +1222,11 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
     fi
 fi
     
+# check remote vncserver install path
+VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
+if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
+debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
+
 # show all users Xvnc processes, parsed for display
 all_active_displays=( $(get_vnc_connections) )
 
