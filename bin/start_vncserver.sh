@@ -95,9 +95,9 @@ else
          cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
          exit 1
       fi
-      echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
-      ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
    fi
+   echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
+   ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 fi
 
 if [[ $? -ne 0 ]] ; then 
