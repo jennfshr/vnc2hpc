@@ -84,23 +84,21 @@ if [[ ${VNC2HPC_WM} == "gdm" ]] ; then
    [ -d /opt/VirtualGL/bin ] && export PATH=/opt/VirtualGL/bin:${PATH}
    echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg}" &>$LOG
    ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} &>>$LOG
-
 else
-   if  [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
-          ! -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
-          ! $(which $VNC2HPC_WM &>/dev/null) ]] ; then
-       echo "No ${VNC2HPC_WM} found on ${SYSNAME}, building to ${HOME}/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" &>>$LOG
-       ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
-       if [[ $? -ne 0 ]] ; then
-          echo "Build of $WM FAILURE on $(hostname)"
-          cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
-          exit 1
-       fi
-       echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
-       ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
+   if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
+         ! -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
+         ! $(which $VNC2HPC_WM &>/dev/null) ]] ; then
+      echo "No ${VNC2HPC_WM} found on ${SYSNAME}, building to ${HOME}/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" &>>$LOG
+      ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
+      if [[ $? -ne 0 ]] ; then
+         echo "Build of $WM FAILURE on $(hostname)"
+         cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
+         exit 1
+      fi
+      echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
+      ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
    fi
 fi
-
 
 if [[ $? -ne 0 ]] ; then 
    remote_display="FAILURE: $(tail -n 1 ${LOG})"
