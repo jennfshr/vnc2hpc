@@ -826,6 +826,9 @@ wm_check () {
     if [[ ! "${WMS[@]}" =~ $WINDOWMANAGER ]] ; then
         return 2
     fi
+    if ! [[ "$MACHINE" =~ vm ]] && [[ "$WINDOWMANAGER" == "gdm" ]] ; then
+        return 2
+    fi
 }
 
 #######################################
@@ -993,7 +996,7 @@ inform "REMOTE USER:" "$MACHUSER"
 # ensure WINDOWMANAGER arg has a value
 WINDOWMANAGER=${WINDOWMANAGER:="mwm"}
 if ! $(wm_check 2>&-) ; then
-    die "INVALID WINDOWMANAGER: --wm $WINDOWMANAGER" "Valid values: $(echo ${WMS[@]})"
+    die "INVALID WINDOWMANAGER: --wm $WINDOWMANAGER" "Valid values: $(echo ${WMS[@]}) (gdm only valid when targeting vm3 or darwin)"
 fi
 inform "WINDOWMANAGER:" "$WINDOWMANAGER"
 
