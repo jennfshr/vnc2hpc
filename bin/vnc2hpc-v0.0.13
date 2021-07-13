@@ -16,11 +16,11 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.12"
+VERSION="v0.0.13"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
-WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" )
+WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" "gdm" )
 
 usage () {
     message -m "${0//*\//} ${VERSION}
@@ -33,8 +33,9 @@ usage () {
 	                    [-d|--display <display>]				(optional)
 			    [-k|--keep]						(optional)
 			    [-r|--reconnect]					(optional)
-			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]	(optional) Default: [-w mwm] (Motif Window Manager)
+			    [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox|gdm>]	(optional) Default: [-w mwm] (Motif Window Manager)
 			    [-a|--agent]					(optional) Start the WM under the auspices of an ssh-agent
+                            [-o|--option]					(optional) Pass arguments to VNCViewer Client
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
@@ -73,8 +74,8 @@ check_network () {
         *darwin*)			loc_network="DARWIN"		;;
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
-	gr*|ba*|cp-login*|ko*|sn*)	loc_network="TURQUOISE"     	;;
-        ga*|ch*)			loc_network="VLGATE"		;;
+	gr*|ba*|cp-login*|ko*|sn*|ch*)	loc_network="TURQUOISE"     	;;
+        ga*)				loc_network="VLGATE"		;;
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
@@ -903,6 +904,8 @@ for arg in "$@"; do
         *-reconnect)	set -- "$@" "-r"   ;;
         *-user)		set -- "$@" "-u"   ;;
         *-wm*)		set -- "$@" "-w"   ;;
+        *-ag*)		set -- "$@" "-a"   ;;
+        *-opt*)		set -- "$@" "-o"   ;;
         *-geo*)		set -- "$@" "-g"   ;;
         *-pixel*)	set -- "$@" "-p"   ;;
         *-source)	set -- "$@" "-s"   ;;
@@ -921,10 +924,11 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:vu:w:g:d:abhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
+while getopts "c:m:p:vu:w:g:d:ao:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
     case "${opt}" in
         a)  AGENT=true							;;
         b)  BACKDOOR=true						;;
+        o)  CLIENT_OPT=( "$OPTARG" "${CLIENT_OPT}" )			;;
         v)  DEBUG=true							;;
         d)  REMOTE_DISPLAY="$OPTARG"					;;
         m)  MACHINE="$OPTARG"						;;
@@ -975,6 +979,12 @@ inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
 # uname output on local host
 CLIENTOS=$(clientOS)
 inform "LOCALHOST OS INFO:" "$CLIENTOS"
+
+# inform if AGENT flag is true
+if [[ "${AGENT}x" != x ]] ; then inform "RECEIVED REQUEST TO RUN WM WITH ssh-agent" ; fi 
+
+# inform if additional args are getting passed to CLIENT
+if [[ "${CLIENT_OPT}x" != x ]] ;  then inform "CLIENT_OPT REQUESTED" "$(echo ${CLIENT_OPT[@]})";  fi
 
 # ensure MACHUSER is overriden by $USER if not specified
 MACHUSER=${MACHUSER:=$USER}
@@ -1352,11 +1362,13 @@ inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!"
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
 
 # connect client to localhost
-if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] || [[ "${CLIENT_VERSION}" =~ [Tt]urbo ]] ; then
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
-    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} ))>> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
+    debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]}"
+    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
 else
-    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
+    debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}"
+    "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} -EnableUdpRfb=false -WarnUnencrypted=0 -SecurityNotificationTimeout=0 -LogDir=${LOGDIR} -LogFile=${CLIENT_LOG_FILE}
 fi
 
 # test client connection return code
