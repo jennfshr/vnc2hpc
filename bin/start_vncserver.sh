@@ -65,11 +65,12 @@ touch $LOG
 cp -f ${remote_install_path}/bin/xstartup $HOME/.vnc2hpc/xstartup || echo "FAILURE"
 
 case ${VNC2HPC_WM} in
-   awesome*)    WM="awesome"    ;;
-   berry*)	WM="berry"	;;
-   ice*)	WM="icewm"	;;
-   fvwm)	WM="fvwm"	;;
-   openbox)	WM="openbox"	;;
+   awesome*)    WM="awesome"    	;;
+   berry*)	WM="berry"		;;
+   ice*)	WM="icewm"		;;
+   fvwm)	WM="fvwm"		;;
+   openbox)	WM="openbox"		;;
+   gdm)		WM="gnome-session"	;;
 esac
 
 if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
