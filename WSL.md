@@ -317,9 +317,11 @@ ssh sn-rfe2 -l $USER
 
 - Using elevated privileges, comment out `SendEnv LANG LC_*` in `/etc/ssh/ssh_config`
 
-`sudo vim /etc/ssh/ssh_config`
+```
+sudo vim /etc/ssh/ssh_config
+```
 
-`#  SendEnv LANG LC_*`
+- The line should now read: `#  SendEnv LANG LC_*`
 
 #### Obtain vnc2hpc to use in your Ubuntu box
 
