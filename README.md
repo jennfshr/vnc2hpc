@@ -1,31 +1,22 @@
 [[_TOC_]]
 
-_____
-
 # VNC2HPC
 
 VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/)) implementations.
 
-_____
-
-## What is VNC?
+### What is VNC?
 
 Virtual Network Computing (VNC) is a graphical desktop-sharing system that uses the Remote Frame Buffer (RFB) protocol to remotely control another computer. It transmits the keyboard and mouse events from one computer to another, relaying the graphical-screen updates back in the other direction, over a network.
 
-_____
-
-## What does VNC2HPC do that isn't already supported by the VNCViewer utilities
+### What does VNC2HPC do that isn't already supported by the VNCViewer utilities?
 
 In order to use a VNC Viewer to connect to a headless server, such as that which we supply for Scientific Computing in HPC, there is a considerable amount of setup which is cumbersome and non-trivial to establish.  The point of this software is to automate the setup and abstract away from customers the complexity of establishing a manual client server connection.  We hope that this software helps you in your scientific endeavors on HPC systems. We encourage bug reports, issues, questions and feedback to be sent to consult@lanl.gov or the vnc2hpc@lanl.gov mailing list so that we can improve this product over time. 
 
-_____
+### Production Status
 
-## Production Status
 VNC2HPC is now fully supported, production software for Linux and MacOS desktop systems at LANL.  Support for VNC2HPC, such as assistance in use, feature requests and bug reports may be reported to consult@lanl.gov.
 
-_____
-
-## Mailing list
+### Mailing List
 You can subscribe to the mailing list if you'd like to be more involved in the development efforts for this product.  Discourse in software issues, improvements, and usage is encouraged in this mailing list while we incorporate improvements to this software.
 
 **Subscribe to vnc2hpc@lanl.gov mailing list**
@@ -36,18 +27,13 @@ You can subscribe to the mailing list if you'd like to be more involved in the d
 
 3. Then click: "Subscribe" button
 
-**Engage the Mailing List**
-
 *Have questions, requests, concerns?  Feel free to email: vnc2hpc@lanl.gov*
 
-_____
+# Mac/Linux Setup
 
-## System Requirements
+### System Requirements
 This software requires a VNC Client installation on the system where it is running. Testing of VNC2HPC is conducted against RealVNC and TigerVNC.  
 
-_____ 
-
-**Requirements**
 Additionally, you'll need to have:
 
 **System packages**
@@ -56,20 +42,14 @@ Additionally, you'll need to have:
 * BASH >=v4.x
 * SSH client (where ssh is in your $PATH).
 
-_____
-
 **Downloadable VNC Viewer Clients Links**
 
 * [VNCViewer](https://www.realvnc.com/en/connect/download/viewer/)
 * [TigerVNC](https://bintray.com/tigervnc/stable/tigervnc/1.11.0)
 * [TurboVNC](https://sourceforge.net/projects/turbovnc/files/latest/download)
-
 *Note: VNCViewer by RealVNC seems to offer better command line control than Tiger or Turbo*
-_____
 
-**Obtain VNC2HPC Tool**
-
-*Note: In the future, will be supplied via LANL Self Services Application Catalog*
+-----
 
 **Methods to obtain VNC2HPC**
 
@@ -78,18 +58,12 @@ _____
 **Production releases will be supplied here: [Green Network Access](https://hpc.lanl.gov/software/hpc-provided-software/vnc2hpc.html)**
 
 **Clone the project**
-* `git clone git@git.lanl.gov:hpcsoft/vnc2hpc.git`
+* `git clone http://git.lanl.gov/hpcsoft/vnc2hpc.git`
 * `git checkout <tag>`
 
 *Note:  A git repository clone makes updating the project branches as simple as `git pull`, so it's probably the simplest way to keep an updated copy on your system*
 
-_____
-
-## Quickstart
-
-**Setup Software on your System**
-
-_____
+-----
 
 **Install a VNC Viewer**
 
@@ -133,7 +107,6 @@ Here's one way to do that:
 
 </details>
 
-_____
 
 *Install the vnc2hpc script*
 
@@ -164,77 +137,15 @@ Again, if you do this, be sure to adjust the `export PATH` command in your .bash
 
 </details>
 
-_____
+# Windows Setup
 
-## Usage Output
+vnc2hpc can't run on Windows itself. However, you can run Linux on Windows using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/)!
 
-The usage output is available by running
+[Click this link to set this up on your Windows 10 system for vnc2hpc](WSL.md)
 
-`./vnc2hpc-v0.0.13 --help`
+# Basic Usage
 
-`vnc2hpc-v0.0.13 0.0.13`
-
-`          usage: vnc2hpc-v0.0.13`
-
-`                       [-m|--machine <machine>]				(required)`
-
-`                       [-c|--client <vncclient>]				(required)`
-
-`			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost`
-
-`                       [-v|--verbose]						(optional)`
-
-`	                [-d|--display <display>]				(optional)`
-
-`			[-k|--keep]						(optional)`
-
-`			[-r|--reconnect]					(optional)`
-
-`			[-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
-
-`			[-a|--agent]						(optional) Start the WM under the auspices of an ssh-agent`
-
-`                       [-o|--option]						(optional) Pass arguments to VNCViewer Client`
-
-`                       [-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
-
-`                       [-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
-
-`                       [-s|--source /path/to/source.tar.gz]                	(optional) Only Required for systems with no backend where client has no internet`
-
-`			[-h|--help]`
-
-`                       [-J|--jobid <jobid>]					(optional) Attach to running job`
-
-
-
-`                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
-
-`                       [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
-
-`                       [-A|--account]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER default account in Slurm`
-
-`                       [-Q|--qos]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER qos defaults in Slurm`
-
-`                       [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
-
-`                       [-T|--time]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER walltime defaults in Slurm`
-
-`                       [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
-
-`                       [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
-
-`                       [-N|--numnodes]						(optional) Default: 1`
-
-
-
-`          Questions?        <vnc2hpc@lanl.gov>`
-
-`          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
-
-_____
-
-## Machines Supported
+### Machines Supported
 
 VNC2HPC knows about all LANL HPC supported resources in the yellow, turquoise and red networks.  Here's the list of the front-ends you potentially can run a VNC session on:
 
@@ -263,9 +174,7 @@ VNC2HPC knows about all LANL HPC supported resources in the yellow, turquoise an
 
 </details>
 
-_____
-
-## Basic usage
+### Launching a Session
 
 This project strives to make the connection command simple, with as few required arguments as possible.  The two required arguments are "machine" (front-end node of cluster you're connecting to), and "client" (path to the local VNC Viewer that will attach to the remote VNC Server session.)  Additional arguments are in place to allow better control of the behavior, so a user may wish to switch to a different Window Manager (-w fvwm), launch a "persisting" VNCServer session on the target machine (--keep), or reattach to a previously launched session (-r).  Controls to try different screen resolution of the VNCServer Display and pixel depth are available if you have a desire to change from the defaults.  
 
@@ -339,9 +248,7 @@ INFO       VNCPASSWD SUCCESSFULLY SET!
 
 Once this password is set on the "network" for the remote-host (i.e., Yellow, Turquoise, Red), it's sharable among all remote hosts on that network due to the shared home directories on LANL networks.
 
-_____
-
-**Whoops, I forgot my vncpasswd! Now what?!**
+### Forgot Password
 
 If you forget your password, the simplest solution it to remove it:
 
@@ -351,11 +258,9 @@ If you forget your password, the simplest solution it to remove it:
 $>  ssh -l $USER sn-rfe
 jgreen@sn-fey1>  rm ~/.vnc/passwd
 jgreen@sn-fey1>  exit
-$>  vnc2hpc-v0.0.13 -m sn-fey1 -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
+$>  vnc2hpc-v0.0.13 -m sn-rfe -c /Applications/VNC\ Viewer/Contents/MacOS/vncviewer
 # walk through the password recreation process once again
 ```
-
-_____
 
 **Manually Set VNC Passwd**
 
@@ -370,14 +275,128 @@ $> vncpasswd
 >  A view-only password is not used
 $> exit
 ```
-_____
 
-## Slurm integration
+
+### Slurm Integration
 
 If you need to use a GUI inside of Slurm allocation on the target cluster, you'll find better windowing responsiveness if you use the Slurm attach or interactive features of vnc2hpc.  GLXGears benchmarking of a job where vncserver is running on the headnode of a job, versus one where the vncserver is launched on the front-end and X11 is forwarded to the job, demonstrates an order of magnitude improvement in the FPS rate.  Either ask vnc2hpc to allocate the job for you:
 `vnc2hpc-v0.0.13 -m sn-rfe -c "${VNCV}" -I -A <myaccount> -Q <myqos> -T <mywalltime>` or attach to an already running allocation `vnc2hpc-v0.0.13 -m sn-rfe -c "${VNCV}" -J <jobid>`. 
 
+
+### Window Managers
+
+The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, that this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
+
+| Product | Product Info | URL |
+| ------ | ------ | ------ |
+| Motif Window Manager (mwm) | X window manager based on the Motif toolkit. | http://motif.ics.com/ |
+| F ? Virtual Window Manager (fvwm) | ICCCM Compliant minimal WM | https://www.fvwm.org/ |
+| Xfce 4 Window Manager (xfwm4) | Part of the Xfce Desktop Environment | https://docs.xfce.org/xfce/xfwm4/start |
+| Openbox (openbox) | a highly configurable, next generation window manager with extensive standards support | https://openbox.org/wiki/Main_Page |
+| IceWM (icewm) | The goal is speed, simplicity, and not getting in the user’s way | https://ice-wm.org |
+| Berry (berry) | A healthy, bite-sized window manager written in C for unix systems | https://berrywm.org/ |
+| GDM (gnome-session) | Gnome Display Manager integration support is under development to target hosts where this is supported | http://wiki.archlinux.org/title/GDM |
+
+### Session Management
+
+The script will prompt for an action on the command line if a port is already running for the user.
+
+`$> ./vnc2hpc -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
+
+`WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
+
+`WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
+
+`WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         [Y - yes, N - exit, R - reuse]?`
+
+If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the vncserver selected port.
+
+-----
+
+## Client Compatibility Table
+| Version | OS | Viewer | Window Managers
+| ------ | ------ | ------ | ------ |
+| v0.0.13 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | MacOSX v10.14.6 | TurboVNCViewer-v2.2.6 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
+| v0.0.13 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows Subsystem for Linux (WSL-Ubuntu) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows Subsystem for Linux (WSL-Centos) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
+| v0.0.13 | Windows | UNSUPPORTED | UNSUPPORTED |
+
+-----
+
+### Usage Output
+
+The usage output is available by running
+
+`./vnc2hpc-v0.0.13 --help`
+
+`vnc2hpc-v0.0.13 0.0.13`
+
+`          usage: vnc2hpc-v0.0.13`
+
+`                       [-m|--machine <machine>]				(required)`
+
+`                       [-c|--client <vncclient>]				(required)`
+
+`			[-u|--user <hpcuserid>] 				(optional) Default: $USER on localhost`
+
+`                       [-v|--verbose]						(optional)`
+
+`	                [-d|--display <display>]				(optional)`
+
+`			[-k|--keep]						(optional)`
+
+`			[-r|--reconnect]					(optional)`
+
+`			[-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox>]		(optional) Default: [-w mwm] (Motif Window Manager)`
+
+`			[-a|--agent]						(optional) Start the WM under the auspices of an ssh-agent`
+
+`                       [-o|--option]						(optional) Pass arguments to VNCViewer Client`
+
+`                       [-g|--geometry <int>x<int>]                 		(optional) Default: xdpyinfo |grep dimensions`
+
+`                       [-p|--pixeldepth <int>]                     		(optional) Default: 24 - others: 16,32`
+
+`                       [-s|--source /path/to/source.tar.gz]                	(optional) Only Required for systems with no backend where client has no internet`
+
+`			[-h|--help]`
+
+`                       [-J|--jobid <jobid>]					(optional) Attach to running job`
+
+
+
+`                 OPTIONS FOR INTERACTIVE JOB SUBMISSION:`
+
+`                       [-I|--interactive]					(optional) Run vncserver inside an interactive job on $MACHINE`
+
+`                       [-A|--account]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER default account in Slurm`
+
+`                       [-Q|--qos]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER qos defaults in Slurm`
+
+`                       [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation`
+
+`                       [-T|--time]						(optional) Without, vnc2hpc-v0.0.13 submits job with $USER walltime defaults in Slurm`
+
+`                       [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints`
+
+`                       [-P|--partition]					(optional) For use when targeting nodes in Slurm partition`
+
+`                       [-N|--numnodes]						(optional) Default: 1`
+
+
+
+`          Questions?        <vnc2hpc@lanl.gov>`
+
+`          Need Help?        https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob//README.md`
+
 _____
+
 
 ## Arguments
 
@@ -390,7 +409,7 @@ the network, and setup the gateway hop appropriately.
 *NOTE: LANL HPC Systems round-robin aliases are permittable arguments.
 When used, a remote /etc/hosts lookup will be performed in order to construct a list of valid hosts, from which a random hostname will be selected.  If the `--keep` option is supplied to the script, output will instruct which hostname was used, as a reconnect to that vncserver will require a specific hostname.*
 
-_____
+-----
 
 ### [-c|--client \<vncclient\>] (required)
 
@@ -402,13 +421,13 @@ isn't in your $PATH.  To determine if the executable is in your path, in a termi
 
 *NOTE: it's not required to pass the client in double quotes to the script, and tab-completion on the command-line to resolve the full path to the client is supported.* 
 
-_____
+-----
 
 ### [-v|--verbose] (optional)
 
 To have more visibility into the script's progression, you can run with --debug or -d
 
-_____
+-----
 
 ### [-k|--keep] (optional)
 
@@ -424,7 +443,7 @@ The --reconnect flag sets a sentinel to "keep" the reconnected session upon clos
 
 *NOTE: if a vncserver is left running on a host, the next attempt to vnc2hpc connect to that host will see that it's running and provide you a chance to `Kill it, Ignore It, or Reuse it`, interactively.*
 
-_____
+-----
 
 ### [-d|--display \<display\>] (optional)
 
@@ -437,7 +456,7 @@ If one wants to reconnect to a vncserver session, the script will detect it upon
 
 *NOTE: There is a limit of one vncserver service running per user per remote host, and the script will enforce this.*
 
-_____
+-----
 
 ### [-u|--user \<hpcuserid\>] (optional) Default: $USER on localhost
 
@@ -445,7 +464,7 @@ Sometimes the user id of the user running on the desktop system where vnc2hpc is
 
 `$> ./vnc2hpc-v0.0.13 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer" -m sn-rfe -u jgreen`
 
-_____
+-----
 
 ### [-w|--wm \<icewm|berry|fvwm|mwm|xfwm4|openbox\>] (optional) Default: [-w mwm] (Motif Window Manager)
 
@@ -533,54 +552,6 @@ Use `-N <numnodes>` to adjust how many nodes are requested in your Slurm allocat
 
 -----
 
-## Window Managers
-
-The motivation for the VNC2HPC product is to make a VNC setup accessible for the purpose of running GUI applications on the headless nodes of HPC Clusters at LANL.  There's an important distinction between the desktop environment (i.e., KDE/Gnome/Xfce) and the window manager environment, that this setup strives to support.  A Desktop Environment would place more demand on the shared resources on our cluster front-ends, therefore we don't offer those environments via the VNC2HPC software connection. 
-
-| Product | Product Info | URL |
-| ------ | ------ | ------ |
-| Motif Window Manager (mwm) | X window manager based on the Motif toolkit. | http://motif.ics.com/ |
-| F ? Virtual Window Manager (fvwm) | ICCCM Compliant minimal WM | https://www.fvwm.org/ |
-| Xfce 4 Window Manager (xfwm4) | Part of the Xfce Desktop Environment | https://docs.xfce.org/xfce/xfwm4/start |
-| Openbox (openbox) | a highly configurable, next generation window manager with extensive standards support | https://openbox.org/wiki/Main_Page |
-| IceWM (icewm) | The goal is speed, simplicity, and not getting in the user’s way | https://ice-wm.org |
-| Berry (berry) | A healthy, bite-sized window manager written in C for unix systems | https://berrywm.org/ |
-
-
-_____
-
-## Session Management
-
-The script will prompt for an action on the command line if a port is already running for the user.
-
-`$> ./vnc2hpc-v0.0.13 -m cp-loginy -c /Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer -w fvwm`
-
-`WARN       jgreen HAS ONE OR MORE VNCSERVER SESSIONS RUNNING!`
-
-`WARN       ACTIVE VNCSERVER PORTS FOR jgreen ON cp-loginy     47`
-
-`WARN       DO YOU WISH TO KILL OR REUSE THIS SESSION?         [Y - yes, N - exit, R - reuse]?`
-
-If that port returns a conflict when the vncserver script is invoked, the vnc2hpc script will utilize the vncserver selected port.
-
-_____
-
-## Client Compatibility Table
-| Version | OS | Viewer | Window Managers
-| ------ | ------ | ------ | ------ |
-| v0.0.13 | MacOSX v10.14.6 | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 32-bit v1.4.3 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | MacOSX v10.14.6 | TigerVNC Viewer 64-bit v1.10.1 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | MacOSX v10.14.6 | TurboVNCViewer-v2.2.6 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | Linux Ubuntu | TigerVNC Viewer 64-bit v1.10.0 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | Linux Ubuntu | VNC(R)Viewer-6.20.529 | fvwm, mwm, xfwm4, berry, openbox, icewm |
-| v0.0.13 | Linux Centos8 | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.13 | Windows Subsystem for Linux (WSL-Ubuntu) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.13 | Windows Subsystem for Linux (WSL-Centos) | TigerVNC Viewer 64-bit v1.9.0 | fvwm, mwm xfwm4, berry, openbox icewm |
-| v0.0.13 | Windows | UNSUPPORTED | UNSUPPORTED |
-
-_____
-
 ## FAQs
 
 #### How do I enable copy and paste on VNC?
@@ -594,6 +565,4 @@ The git.lanl.gov resides in the yellow network, which isn't accessible by everyo
 1. Download the compressed tarball of the project from https://hpc.lanl.gov/software/hpc-provided-software/vnc2hpc.html (Direct Download section) where the version matches the client version you wish to use. 
 2. `scp <path-to>/vnc2hpc-v<version>.tar.gz $USER@$MACHINE:/tmp/.`
 3. `./vnc2hpc-v<version> -m $MACHINE -s <path-to>/vnc2hpc-v<version>.tar.gz -c <client> <etc>`
-
-
 
