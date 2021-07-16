@@ -6,11 +6,18 @@ Since 2017, Windows has supplied the WSL tool in its Operating System.  The best
 
 Ensure you're running a compatible version of Windows.
 - Check that the version of Windows 10 will support WSL 2 by opening a PowerShell and typing
-`winver`
-Version and Build must be higher than 1903 and 18362 respectively for x64 systems, or 2004 and 19041 respectively for ARM64.
-- Windows 10 May 2020 (v2004)
-- Windows 10 May 2019 (v1903 builds 18362.1049) with [Windows Update KB4566116](https://support.microsoft.com/en-us/topic/august-20-2020-kb4566116-os-builds-18362-1049-and-18363-1049-preview-c75c6a43-9c87-e412-9a9e-10a0dabac4d5:"KB4566116")
-- Windows 10 November 2019 (v1909 with 18363.1049 [Windows Update KB4566116](https://support.microsoft.com/en-us/topic/august-20-2020-kb4566116-os-builds-18362-1049-and-18363-1049-preview-c75c6a43-9c87-e412-9a9e-10a0dabac4d5:"KB4566116") 
+
+```
+winver
+```
+
+*Version and Build must be higher than 1903 and 18362 respectively for x64 systems, or 2004 and 19041 respectively for ARM64.*
+
+| Windows Version | Build | Update | 
+| -- | -- | -- |
+| Windows 10 May 2020 | (v2004) ||
+| Windows 10 May 2019 | (v1903 builds 18362.1049) | [Windows Update KB4566116](https://support.microsoft.com/en-us/topic/august-20-2020-kb4566116-os-builds-18362-1049-and-18363-1049-preview-c75c6a43-9c87-e412-9a9e-10a0dabac4d5:"KB4566116") |
+| Windows 10 November 2019 | (v1909 with 18363.1049) | [Windows Update KB4566116](https://support.microsoft.com/en-us/topic/august-20-2020-kb4566116-os-builds-18362-1049-and-18363-1049-preview-c75c6a43-9c87-e412-9a9e-10a0dabac4d5:"KB4566116") | 
 
 ### WSL Setup (Microsoft Store)
 
