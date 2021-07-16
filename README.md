@@ -141,7 +141,7 @@ Again, if you do this, be sure to adjust the `export PATH` command in your .bash
 
 vnc2hpc can't run on Windows itself. However, you can run Linux on Windows using the Windows Subsystem for Linux.
 
--[Click this link for instructions to set this up on your Windows 10 WSL2 Linux appliance for vnc2hpc](WSL.md)
+- [Click this link for instructions to set this up on your Windows 10 WSL2 Linux appliance for vnc2hpc](WSL.md)
 
 # Basic Usage
 
