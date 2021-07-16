@@ -2,7 +2,7 @@
 
 # VNC2HPC
 
-VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/)) implementations.
+VNC2HPC is a series of custom scripts that utilize available utilities on users' local machines and remote cluster resources to instantiate a VNC Client/Server connection to LANL HPC Resources.  This software supports Linux and MacOS operating systems, and is usable on Windows in Windows Subsystem for Linux ([WSL](WSL.md)) implementations.
 
 ### What is VNC?
 
@@ -139,9 +139,9 @@ Again, if you do this, be sure to adjust the `export PATH` command in your .bash
 
 # Windows Setup
 
-vnc2hpc can't run on Windows itself. However, you can run Linux on Windows using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/)!
+vnc2hpc can't run on Windows itself. However, you can run Linux on Windows using the Windows Subsystem for Linux.
 
-[Click this link to set this up on your Windows 10 system for vnc2hpc](WSL.md)
+-[Click this link for instructions to set this up on your Windows 10 WSL2 Linux appliance for vnc2hpc](WSL.md)
 
 # Basic Usage
 
