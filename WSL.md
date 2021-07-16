@@ -206,14 +206,18 @@ ping hpc.lanl.gov
 
 - In PowerShell, invoke this command to shutdown your Ubuntu system
 
-`wsl --shutdown` 
+```
+wsl --shutdown
+``` 
 
 - Restart Ubuntu and ensure that resolv.conf is unchanged
 
-`wsl`
-`cat /etc/resolv.conf`
-`ping google.com`
-`ping hpc.lanl.gov`
+```
+wsl
+cat /etc/resolv.conf
+ping google.com
+ping hpc.lanl.gov
+```
 
 #### Setup Ubuntu for X capabilities
 
@@ -256,12 +260,17 @@ xeyes & # xeyes is backgrounded, can close the gui if it pops up, if it fails, r
 
 1. Install Kerberos Package
 
-`sudo apt install krb5-user`
+```
+sudo apt install krb5-user
+```
+
 *the prompts will imply that the configuration is complete.  This is not the case.  Further configuration steps should be continued below.
 
 2. Configure Kerberos for LANL kerberos authentication support
 
-`sudo vim /etc/krb5.conf`
+```
+sudo vim /etc/krb5.conf
+```
 
 and edit, replacing the default configuration with the following:
 
@@ -315,11 +324,13 @@ ssh sn-rfe2 -l $USER
 
 #### Configure SSH to avoid issues with locale setting forwarding to HPC clusters
 
-- Using elevated privileges, comment out `SendEnv LANG LC_*` in `/etc/ssh/ssh_config`
+- Using elevated privileges, edit `/etc/ssh/ssh_config`
 
 ```
 sudo vim /etc/ssh/ssh_config
 ```
+
+- comment out `SendEnv LANG LC_*`
 
 - The line should now read: `#  SendEnv LANG LC_*`
 
@@ -327,7 +338,7 @@ sudo vim /etc/ssh/ssh_config
 
 - There are a couple methods to get vnc2hpc in your Ubuntu session, depending on your access and desires
 
-1. Download from this page the script or the full tarball for the vnc2hpc you want to use on Ubuntu on your Windows OS, this example assumes you have it in `C:\Users\${WINDOWS_USER}\Downloads`
+1. Download from this page the script or the full tarball for the vnc2hpc you want to use on Ubuntu on your Windows OS, this example assumes you have saved it in `C:\Users\${WINDOWS_USER}\Downloads`
 
 ```
 cp /mnt/c/Users/${WINDOWS_USER}/Downloads/vnc2hpc-v0.0.13 $HOME
