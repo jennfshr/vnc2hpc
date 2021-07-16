@@ -38,7 +38,7 @@ You'll need an administrator account to enable WSL on your system.
 - Click Start > Settings > Update & security > For developers
 - Select the Developer mode radio box then click Yes
 
-* Microsoft documentation for this step: [Enable Developer Mode in Windows 10](https://answers.microsoft.com/en-us/insider/forum/insider_wintp-insider_install/how-to-enable-the-windows-subsystem-for-linux/16e8f2e8-4a6a-4325-a89a-fd28c7841775)*
+*Microsoft documentation for this step: [Enable Developer Mode in Windows 10](https://answers.microsoft.com/en-us/insider/forum/insider_wintp-insider_install/how-to-enable-the-windows-subsystem-for-linux/16e8f2e8-4a6a-4325-a89a-fd28c7841775)*
 
 **Enable Windows Subsystem Linux**
 - Open a PowerShell with administrator privileges and run:
