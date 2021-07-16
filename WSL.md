@@ -58,7 +58,7 @@ wsl --set-default-version 2
 
 **Use PowerShell to install already downloaded Ubuntu 20.04 Linux Subsystem**
 - Navigate to Microsoft's website to download WSL Distribution [MS WSL Manual Installation](https://docs.microsoft.com/en-us/windows/wsl/install-manual)
-- click on the link to Download and Select folder to Download to
+  *click on the link to Download*
 **OR**
 - Open PowerShell with elevated privileges and run:
 ```
