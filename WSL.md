@@ -11,7 +11,7 @@ Ensure you're running a compatible version of Windows.
 winver
 ```
 
-*Version and Build must be higher than 1903 and 18362 respectively for x64 systems, or 2004 and 19041 respectively for ARM64.*
+*Version and Build must be higher than 1903 and 18362, respectively, for x64 systems, or 2004 and 19041, respectively, for ARM64.*
 
 | Windows Version | Build | Update | 
 | -- | -- | -- |
