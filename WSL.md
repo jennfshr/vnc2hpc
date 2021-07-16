@@ -21,7 +21,8 @@ winver
 
 ### WSL Setup (Microsoft Store)
 
-If you're on a personal computer and have access to the Microsoft Store, you can setup WSL using [these instructions](https://docs.microsoft.com/en-us/windows/wsl/install-win10#manual-installation-steps). When you reach the point where you have to pick a Linux distribution, choose Ubuntu 20.04.
+If you're on a personal computer and have access to the Microsoft Store, you can setup WSL using: 
+- [https://docs.microsoft.com/en-us/windows/wsl/install-win10#manual-installation-steps](https://docs.microsoft.com/en-us/windows/wsl/install-win10#manual-installation-steps). When you reach the point where you have to pick a Linux distribution, choose Ubuntu 20.04 to ensure compatibility with the following instructions.
 
 
 ### WSL Setup (LANL Computer)
@@ -34,9 +35,10 @@ Normally, you would get this through the Microsoft Store, however, on LANL lapto
 You'll need an administrator account to enable WSL on your system.
 
 **Enable Developer Mode in Windows 10**
-- [Enable Developer Mode in Windows 10](https://answers.microsoft.com/en-us/insider/forum/insider_wintp-insider_install/how-to-enable-the-windows-subsystem-for-linux/16e8f2e8-4a6a-4325-a89a-fd28c7841775)
 - Click Start > Settings > Update & security > For developers
 - Select the Developer mode radio box then click Yes
+
+* Microsoft documentation for this step: [Enable Developer Mode in Windows 10](https://answers.microsoft.com/en-us/insider/forum/insider_wintp-insider_install/how-to-enable-the-windows-subsystem-for-linux/16e8f2e8-4a6a-4325-a89a-fd28c7841775)*
 
 **Enable Windows Subsystem Linux**
 - Open a PowerShell with administrator privileges and run:
