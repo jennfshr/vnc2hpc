@@ -244,7 +244,7 @@ sudo apt install xfce4
 ```
 cd /tmp
 wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.21.406-Linux-x64.deb
-sudo apt install /tmp/VNC-Viewer-6.20.529-Linux-x86.deb
+sudo apt install /tmp/VNC-Viewer-6.21.406-Linux-x64.deb
 which vncviewer #to test that it got installed
 ```
 
