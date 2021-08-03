@@ -193,6 +193,7 @@ sudo vim /etc/resolv.conf
 # [network]
 # generateHosts = false
 search lanl.gov localdomain
+nameserver 127.0.0.1
 nameserver 128.165.0.53
 nameserver 128.165.0.54
 ```
