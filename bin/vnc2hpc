@@ -70,7 +70,7 @@ check_network () {
     local loc_network
     case "${MACHINE}" in
         *loginy*|*fey*)			loc_network="YELLOW"    	;;
-        *rfe*)				loc_network="RESTRICTED"	;;
+        *rfe*|*rlogin*)			loc_network="RESTRICTED"	;;
         *darwin*)			loc_network="DARWIN"		;;
         ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
@@ -173,12 +173,12 @@ check_machine () {
         if ! [[ "$MACHINE" =~ [0-9] ]] && ! [[ "${MACHINE}" =~ cp ]] && ! [[ "${MACHINE}" =~ th ]]  ; then
             IGNORE="false"
             case "${NETWORK}" in
-                YELLOW)    netpart="128.165"    ;;
-                RESTRICTED)netpart="204.121.71" ;;
-                DARWIN)    netpart="192.168"    ;;
-                TURQUOISE) netpart="204.121"    ;;
-                RED)       netpart="10.160"     ;;
-                UNKNOWN)   IGNORE="true"        ;;
+                YELLOW)    	netpart="128.165"    ;;
+                RESTRICTED)	netpart="204.121.71" ;;
+                DARWIN)    	netpart="192.168"    ;;
+                TURQUOISE) 	netpart="204.121"    ;;
+                RED)       	netpart="10.160"     ;;
+                UNKNOWN)   	IGNORE="true"        ;;
             esac
             if [[ "${IGNORE}" != "true" ]] ; then
                 loc_machines=( $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
@@ -215,14 +215,22 @@ check_machine () {
 #   Writes "/path/to/vncserver" to stdout
 #######################################
 check_vncserver () {
-    local loc_vncserver_path
-    if [[ "${REMOTE_SHELL}" =~ csh ]] ; then
-        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
-    else
-        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
-                              "which vncserver || find /opt/ -name \"vncserver\" -executable" )
-    fi
-    echo "$loc_vncserver_path"
+#    local loc_vncserver_path
+#    if [[ "${REMOTE_SHELL}" =~ csh ]] ; then
+#        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "which vncserver \|\| find /opt/ -name \"vncserver\" -executable -print" )
+
+${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
+which vncserver 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
+EOF
+'
+        #loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "which vncserver \> /tmp/\${USER}-vncserver.out \|\| find /opt/ -name \"vncserver\" -executable \> /tmp/\${USER}-vncserver.out ; cat /tmp/\${USER}-vncserver.out ; rm /tmp/\${USER}-vncserver.out " )
+        #loc_vncserver_path=$( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "( which vncserver > /tmp/\${USER}-vncserver.out ) >& /dev/null || ( find /opt/ -name \"vncserver\" -executable > /tmp/\${USER}-vncserver.out ) >& /dev/null ;; cat /tmp/\${USER}-vncserver.out ;; ( rm /tmp\${USER}-vncserver.out ) >& /dev/null" )
+#    else
+#        #loc_vncserver_path=$( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} \
+#        loc_vncserver_path=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} \
+#                              "which vncserver || find /opt/ -name \"vncserver\" -executable" )
+#    fi
+#    echo "$loc_vncserver_path"
 }
 
 #######################################
@@ -318,8 +326,8 @@ setup_nogateway_ssh () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
         if [[ "${SLURM_HEADNODE}" =~ nid  ]] ; then
             case ${MACHINE} in
-                tt-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1-eth2"	;;
-                tr-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2"	;;
+                tt-*fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1-eth2"	;;
+                tr-*fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2"	;;
             esac
         fi
         local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
@@ -354,7 +362,18 @@ setup_nogateway_ssh_control_master () {
 #   Writes ssh cmd to stdout
 #######################################
 setup_nogateway_vncpasswd () {
-    echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${MACHINE}"
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+       if [[ "${SLURM_HEADNODE}" =~ nid ]] ; then
+           case ${MACHINE} in
+               tt-*fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tt-login1-eth2" ;;
+               tr-*fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2" ;;
+           esac
+       fi
+       local loc_lasthop="ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${SLURM_HEADNODE}"
+       echo "ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop}"
+    else
+       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${MACHINE}"
+    fi
 }
 
 #######################################
@@ -458,7 +477,17 @@ setup_gateway_ssh_control_master () {
 setup_gateway_vncpasswd () {
     local loc_gateway="$1"
     local loc_opts="$2"
-    echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    if [[ "${SLURM_HEADNODE}x" != x ]] ; then
+       if [[ "${SLURM_HEADNODE}" =~ nid ]] ; then
+           case ${MACHINE} in
+                ga-fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@ga-login1-eth2"	;;
+           esac
+       fi
+       local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
+       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop} "
+    else
+       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+    fi
 }
 
 #######################################
@@ -1214,16 +1243,27 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         GATEWAY="vl-gate.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
+        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
     else
         NO_GATEWAY_SSH=$(setup_nogateway_ssh)
+        NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
     fi
 fi
     
+debug "NO_GATEWAY_VNCPASSWD=${NO_GATEWAY_VNCPASSWD} $LINENO"
 # check remote vncserver install path
-VNCSERVER_PATH=$(check_vncserver 2>/dev/null)
+VNCSERVER_PATH=$(check_vncserver)
+## TEMP DEBUG ONLY
+#        VNCSERVER_PATH=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} /bin/bash << EOF
+#which vncserver 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
+#EOF)
+        #VNCSERVER_PATH=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "( which vncserver > /dev/stdout ) &>/dev/null || ( find /opt/ -name \"vncserver\" -executable -print > /dev/stdout ) &>/dev/null" )
+debug "VNCSERVER_PATH=$VNCSERVER_PATH"
+set +x 
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
 debug "$MACHINE VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
