@@ -1229,7 +1229,7 @@ fi
     
 # check the remote shell
 REMOTE_SHELL=$(check_remote_shell)
-debug "${SLURM_HEADNODE:+$MACHINE} $MACHUSER SHELL:" "${REMOTE_SHELL}"
+debug "${SLURM_HEADNODE:-$MACHINE} $MACHUSER SHELL:" "${REMOTE_SHELL}"
 
 # check vncpasswd
 check_vncpasswd
@@ -1238,7 +1238,7 @@ check_vncpasswd
 VNCSERVER_PATH=$(check_vncserver)
 debug "VNCSERVER_PATH=$VNCSERVER_PATH"
 if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
-debug "${SLURM_HEADNODE:+$MACHINE} VNCSERVER_PATH:" "${VNCSERVER_PATH}"
+debug "${SLURM_HEADNODE:-$MACHINE} VNCSERVER_PATH:" "${VNCSERVER_PATH}"
 
 # show all users Xvnc processes, parsed for display
 all_active_displays=( $(get_vnc_connections) )
@@ -1246,18 +1246,18 @@ all_active_displays=( $(get_vnc_connections) )
 # grab user specific vncserver from vncserver -list command on remote
 active_displays=( $(list_displays) )
 if [[ ${#active_displays[@]} -eq 0 ]] ; then
-    debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${SLURM_HEADNODE:+$MACHINE}"
+    debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}"
 else
-    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${SLURM_HEADNODE:+$MACHINE}" "$(echo ${active_displays[@]})"
+    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}" "$(echo ${active_displays[@]})"
 fi 
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
-    die "DETECTED FAILURE WITH SSH TO: ${SLURM_HEADNODE:+$MACHINE}"
+    die "DETECTED FAILURE WITH SSH TO: ${SLURM_HEADNODE:-$MACHINE}"
 elif [[ ${#all_active_displays[@]} -eq 0 ]] ; then
-    debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${SLURM_HEADNODE:+$MACHINE}"
+    debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${SLURM_HEADNODE:-$MACHINE}"
 else
-    debug "ALL USERS XVNC SESSIONS ON ${SLURM_HEADNODE:+$MACHINE}:" "$(echo ${all_active_displays[@]})"
+    debug "ALL USERS XVNC SESSIONS ON ${SLURM_HEADNODE:-$MACHINE}:" "$(echo ${all_active_displays[@]})"
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
@@ -1267,7 +1267,7 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
         REMOTE_DISPLAY=${active_displays}
         inform "RECONNECT REQUESTED WITHOUT REMOTE_DISPLAY ARGUMENT. USING:" "${REMOTE_DISPLAY}"
     elif ! [[ "${active_displays[@]}" =~ ${REMOTE_DISPLAY} ]] ; then
-        die "REMOTE_DISPLAY $REMOTE_DISPLAY NOT RUNNING VNCSERVER REMOTE_DISPLAY FOR" "$MACHUSER on ${SLURM_HEADNODE:+$MACHINE}"
+        die "REMOTE_DISPLAY $REMOTE_DISPLAY NOT RUNNING VNCSERVER REMOTE_DISPLAY FOR" "$MACHUSER on ${SLURM_HEADNODE:-$MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED REMOTE_DISPLAY" "localhost:$(( 5900+${REMOTE_DISPLAY} ))"
     fi
@@ -1277,7 +1277,7 @@ fi
 # for someone interested sufficiently to avoid this, note that the -b option sets BACKDOOR="true", therefore bypassing this
 if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
 #if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] && [[ "${SLURM_HEADNODE}x" == x ]] ; then
-    inform "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${SLURM_HEADNODE:+$MACHINE}" "$(echo "${active_displays[@]}")"
+    inform "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${SLURM_HEADNODE:-$MACHINE}" "$(echo "${active_displays[@]}")"
     inform "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -1378,7 +1378,7 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
-inform "ESTABLISHING ${CLIENT_VERION} CONNECTIO TO: ${SLURM_HEADNODE:+$MACHINE}"
+inform "ESTABLISHING ${CLIENT_VERION} CONNECTIO TO: ${SLURM_HEADNODE:-$MACHINE}"
 inform "CONNECTING $CLIENT_VERSION TO TUNNEL VIA:" "localhost:$(( 5900+${REMOTE_DISPLAY#0}))"
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW"
@@ -1400,11 +1400,11 @@ fi
 
 # if -k is passed to the script, don't kill the process
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:+$MACHINE}"
+    inform "KEEPING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY Active"
     #inform "KEEPING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "SLURM_JOBID: ${SLURM_JOBID} HEADNODE: ${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY Active"
 else
-    inform "KILLING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:+$MACHINE}"
+    inform "KILLING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY"
     #inform "KILLING VNC SERVER RUNNING ON:" "$(if [[ "${SLURM_HEADNODE}x" == x ]] ; then echo "${MACHINE}" ; else echo "${SLURM_HEADNODE}"; fi) AT REMOTE_DISPLAY $REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
