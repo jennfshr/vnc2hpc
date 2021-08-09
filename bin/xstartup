@@ -228,7 +228,7 @@ case "$VNC2HPC_WM" in
                # you to reset the compiz plugin state before Unity will work again.
                 if [ -f /usr/share/gnome-session/sessions/ubuntu.session -a "$TVNC_WM" = "" ] ; then
                     DESKTOP_SESSION=ubuntu; export DESKTOP_SESSION;
-                    grep -qE "DesktopName\s*=\sUnity" /usr/share/gnome-session/sessions/ubuntu.session && {
+                    grep -qE "DesktopName\s*=\s*Unity" /usr/share/gnome-session/sessions/ubuntu.session && {
                         XDG_CURRENT_DESKTOP=Unity; export XDG_CURRENT_DESKTOP;
                     } || {
                         XDG_CURRENT_DESKTOP=ubuntu:GNOME; export XDG_CURRENT_DESKTOP;
@@ -246,7 +246,7 @@ case "$VNC2HPC_WM" in
          fi
       fi
 
-      if [ "$TVNCC_VGL" = "1" ] ; then
+      if [ "$TVNC_VGL" = "1" ] ; then
          if [ -z "$SSH_AGENT_PID" -a -x /usr/bin/ssh-agent ] ; then
              TVNC_SSHAGENT=/usr/bin/ssh-agent
          fi
@@ -261,7 +261,15 @@ case "$VNC2HPC_WM" in
       if [ "$TVNC_WM" = "" ] ; then
          # Typical system-wide WM Startup script on Linux and Solaris 11
          if [ -f /etc/X11/xinit/xinitrc ] ; then
-             TVNC_WM=/etc/X11/init/initrc
+             TVNC_WM=/etc/X11/xinit/xinitrc
+         fi
+         # Typical system-wide WM  startup script on Solaris 10
+         if [ $OS = 'SunOS' -a -f /usr/dt/config/Xinitrcc.jds ]; then
+           TVNC_WM=/usr/dt/config/Xinitrc.jds
+         fi
+         # Typical peer-user WM startup script on Solaris 10
+         if [  $OS = 'SunOS' -a -f $HOME/.dt/sessions/lastsession ]; then
+           TVNC-WM=`cat $HOME/.dt/sessions/lastsession`
          fi
       else
          TVNC_WM=`which "$TVNC_WM" 2>/dev/null`
@@ -270,14 +278,14 @@ case "$VNC2HPC_WM" in
          if [ -x "$TVNC_WM" ] ; then
              exec $TVNC_SSHAGENT $TVNC_VGLRUN "$TVNC_WM"
          else
-             exec $TVNC_SSHAGENT $TVNC_VGLRUN sh "$TVNC_VM"
+             exec $TVNC_SSHAGENT $TVNC_VGLRUN sh "$TVNC_WM"
          fi
       else
          echo "no window manager startup script found.  Use the TVNC_WM environment"
          echo "variable to specify the path to aa window manager startup sccript or" 
          echo "executable.  Falling back to TWM."
          which twm >/dev/null && {
-             if [ -f $HOME/.Xreesourcecs ] ; then xrdb $HOME/.Xreesources; fi 
+             if [ -f $HOME/.Xresourcecs ] ; then xrdb $HOME/.Xresources; fi 
              xsetroot -solid grey
              xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
              twm
@@ -294,10 +302,10 @@ case "$VNC2HPC_WM" in
 #if [ -e /usr/bin/gnome-session -o -e /usr/bin/startkde ]; then
 #    vncserver -kill $DISPLAY
 #fi
-export XDG_CURRENT_DESKTOP="GNOME-Flashback:GNOME"
-export XDG_MENU_PREFIX="gnome-flashback-"
+#export XDG_CURRENT_DESKTOP="GNOME-Flashback:GNOME"
+#export XDG_MENU_PREFIX="gnome-flashback-"
 
-gnome-session --session=gnome-classic --disable-acceleration-check &
+#gnome-session --session=gnome-classic --disable-acceleration-check &
     ;;
     *)
         echo "UNSUPPORTED $1"
