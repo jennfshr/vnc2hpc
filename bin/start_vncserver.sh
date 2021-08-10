@@ -78,7 +78,7 @@ if [[ ${VNC2HPC_WM} == "gdm" ]] ; then
    unset XDG_RUNTIME_DIR
    export USE_PAM_AUTH=1
    # should be able to mate or kde here...
-   export TVNC_VM="mate-session"
+   export TVNC_WM="mate-session"
    export DISPLAY_MANAGER="gdm"
    [ -d /opt/TurboVNC/bin ] && export PATH=/opt/TurboVNC/bin:${PATH}
    [ -d /opt/VirtualGL/bin ] && export PATH=/opt/VirtualGL/bin:${PATH}
@@ -110,6 +110,6 @@ else
       RESULT="FAIL"
    fi
 fi 
-REMOTE_DISPLAY=$remote_display
+REMOTE_DISPLAY="${remote_display}"
 echo $REMOTE_DISPLAY
 echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) AGENT=${agent} WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} REMOTE_DISPLAY=${remote_display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
