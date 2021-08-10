@@ -73,15 +73,26 @@ case ${VNC2HPC_WM} in
    gdm)		WM="gnome-session"	;;
 esac
 
-if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
-   ! -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
-   ! $(which $VNC2HPC_WM &>/dev/null) ]] ; then
-   echo "No ${VNC2HPC_WM} found on ${SYSNAME}, building to ${HOME}/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" &>>$LOG
-   ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
-   if [[ $? -ne 0 ]] ; then
-      echo "Build of $WM FAILURE on $(hostname)"
-      cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
-      exit 1
+if [[ ${VNC2HPC_WM} == "gdm" ]] ; then
+   export TVNC_VGL=1
+   unset XDG_RUNTIME_DIR
+   export USE_PAM_AUTH=1
+   # should be able to mate or kde here...
+   export TVNC_WM="mate-session"
+   export DISPLAY_MANAGER="gdm"
+   [ -d /opt/TurboVNC/bin ] && export PATH=/opt/TurboVNC/bin:${PATH}
+   [ -d /opt/VirtualGL/bin ] && export PATH=/opt/VirtualGL/bin:${PATH}
+else
+   if [[ ! -d "/usr/projects/hpcsoft/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
+         ! -d "$HOME/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" && \
+         ! $(which $VNC2HPC_WM &>/dev/null) ]] ; then
+      echo "No ${VNC2HPC_WM} found on ${SYSNAME}, building to ${HOME}/.vnc2hpc/${OS}/common/${ARCH}/${VNC2HPC_WM}" &>>$LOG
+      ${VNC2HPC_INSTALL_PATH}/libexec/build_wms.sh -w $WM -p ${HOME}/.vnc2hpc &>>$LOG
+      if [[ $? -ne 0 ]] ; then
+         echo "Build of $WM FAILURE on $(hostname)"
+         cat /tmp/vnc2hpc-deps_${USER}/${VNC2HPC_WM}*/build.log &>>$LOG
+         exit 1
+      fi
    fi
 fi
 
@@ -99,6 +110,6 @@ else
       RESULT="FAIL"
    fi
 fi 
-REMOTE_DISPLAY=$remote_display
+REMOTE_DISPLAY="${remote_display}"
 echo $REMOTE_DISPLAY
 echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) AGENT=${agent} WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} REMOTE_DISPLAY=${remote_display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG
