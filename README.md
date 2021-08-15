@@ -167,7 +167,7 @@ VNC2HPC knows about all LANL HPC supported resources in the yellow, turquoise an
 | Ice | ic-fe ||
 | Cyclone | cy-fe ||
 | Trinity | tr-fe ||
-| Viewmaster | vm3-fe | GDM mate-session support with Virtual GL on Render Nodes|
+| Viewmaster | vm3-fe | **NEW FEATURE** GDM mate-session support with Virtual GL on Render Nodes|
 
 </details>
 
@@ -193,7 +193,7 @@ Simple launch instructions follow.  As demonstrated below, the script is knowled
 
 *Target a specific Darwin front-end*
 
-`./vnc2hpc-v0.0.14 -m darwin-fe1 -c "/Applicatoins/VNC\ Viewer.app/Contents/MacOS/vncviewer"`
+`./vnc2hpc-v0.0.14 -m darwin-fe1 -c "/Applications/VNC\ Viewer.app/Contents/MacOS/vncviewer"`
 
 *Unavoidable authentication requirement for Turquoise systems to authenticate via wtrw gateway once - likely to change soon with the OUCH project*
 
