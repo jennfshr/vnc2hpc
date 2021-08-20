@@ -23,7 +23,7 @@ REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" "gdm" )
 
 usage () {
-    message -m "${0//*\//} ${VERSION}
+    message -m "${0//*\//} Version ${VERSION}
 
           usage: ${0//*\//}
                             [-m|--machine <machine>]				(required)
@@ -129,7 +129,7 @@ job_control() {
     local loc_slurm_jobid="$1"
     case "${2}" in
         terminate)	echo "scancel $loc_slurm_jobid"									;;
-        failure)	echo "squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'"	;;
+        failure)	echo "squeue -j $loc_slurm_jobid | grep -q 'slurm_load_jobs error: Invalid job id specified'"	;;
         competed)	echo "sacct -j $loc_slurm_jobid | grep -q COMPLETED"						;;
         cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"			;; 
         running)	echo "squeue -j $loc_slurm_jobid -o %T | grep -q RUNNING"					;;
@@ -232,10 +232,6 @@ EOF
 #   Writes "SHELL" to stdout
 ######################################
 check_remote_shell () {
-#    local loc_remote_shell
-#    loc_remote_shell=$( ${GATEWAY_SSH}${NO_GATEWAY_SSH} \
-#        "echo \$SHELL")
-#    echo "${loc_remote_shell}"
     ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
 echo $SHELL
 EOF
@@ -292,8 +288,6 @@ setup_ssh_opts () {
 #######################################
 # Setup port/host string for tunnels
 # Globals:
-#   MACHINE
-#   MACHUSER
 #   REMOTE_DISPLAY
 # Arguments:
 #   None
