@@ -58,6 +58,49 @@ usage () {
 }
 
 #######################################
+# mv .cshrc 
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+# Arguments:
+#   start end
+# Outputs:
+#   
+######################################
+move_cshrc () {
+    _local_arg="${1}"
+    if [[ "${_local_arg}" =~ start ]] ; then
+        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+[ -f $HOME/.cshrc ] && mv $HOME/.cshrc $HOME/.cshrc_vnc2hpc.bak
+EOF' &>/dev/null
+    elif [[ "${_local_arg}" =~ end ]] ; then
+        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+[ -f $HOME/.cshrc_vnc2hpc.bak ] && mv $HOME/.cshrc_vnc2hpc.bak $HOME/.cshrc
+EOF' &>/dev/null
+    fi
+}
+
+#######################################
+# mv local $HOME/.vnc/*.tigervnc
+# Globals:
+# Arguments:
+#   start end
+# Outputs:
+#   
+######################################
+move_tigervnc_config () {
+    _local_arg="${1}"
+    if [[ "${_local_arg}" =~ start ]] ; then
+        vncconfig_start=$(find $HOME/.vnc/ -iname *\.tigervnc -print)
+        echo ${vncconfig_start}
+        find $HOME/.vnc/ -iname *\.tigervnc -exec mv {} {}.bak \;
+    elif [[ "${_local_arg}" =~ end ]] ; then
+        echo ${vncconfig_start}
+        find $HOME/.vnc/ -iname *\.tigervnc.bak -exec mv {} ${vncconfig_start} \;
+    fi  
+}   
+
+#######################################
 # Identify the Network for $MACHINE
 # Globals:
 #   MACHINE
@@ -232,8 +275,8 @@ EOF
 #   Writes "SHELL" to stdout
 ######################################
 check_remote_shell () {
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
-echo $SHELL
+    ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+echo \$SHELL
 EOF
 '
 }
@@ -1070,6 +1113,13 @@ fi
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 debug "SSH CMD FOR VNCPW ${NETWORK}:" "${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}"
 
+debug "TESTING FOR .cshrc:"
+remote_shell_check=$(check_remote_shell |grep -E '.*sh\b')
+if [[ ${remote_shell_check} =~ csh ]] ; then
+   debug "TEMPORARY RELOCATION:" "mv \$HOME/.cshrc \$HOME/.cshrc_vnc2hpc.bak"
+   move_cshrc start
+fi
+
 $(control_master_connection) || die "Control Master Connection Attempt Failed!"
 $(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!" 
 
@@ -1369,12 +1419,22 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
+# replace .cshrc file now
+#remote_shell_check=$(check_remote_shell |grep -E '.*sh\b')
+if [[ ${remote_shell_check} =~ csh ]] ; then
+   debug "RESTORING RELOCATED FILE:" "mv \$HOME/.cshrc_vnc2hpc.bak $HOME/.cshrc" 
+   move_cshrc end
+fi
+
 inform "CONNECTING $CLIENT_VERSION TO TUNNEL VIA:" "localhost:$(( 5900+${REMOTE_DISPLAY#0}))"
 inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW OR CTRL+c COMMAND IN TERMINAL"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] || [[ "${CLIENT_VERSION}" =~ [Tt]urbo ]] ; then
+    if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+        move_tigervnc_config start
+    fi
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]}"
     "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
@@ -1394,6 +1454,11 @@ if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY on ${SLURM_HEADNODE:-$MACHINE} Active"
     if [[ "${SLURM_JOBID}x" != x ]] ; then inform "REQUEST RECONNECT:" "$0 -c \"${CLIENT}\" -m ${MACHINE} -J ${SLURM_JOBID} -r -d ${REMOTE_DISPLAY}" ; fi 
 else
+    #TODO THIS STILL IS UNRESOLVED
+    if [[ ${remote_shell_check} =~ csh ]] ; then
+       debug "TEMPORARY RELOCATION:" "mv \$HOME/.cshrc \$HOME/.cshrc_vnc2hpc.bak"
+       move_cshrc start
+    fi
     inform "KILLING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
@@ -1410,6 +1475,9 @@ if kill -0 ${tunnel_pid} &>/dev/null ; then
 fi
 
 remotelog
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+    move_tigervnc_config end
+fi
 $(${CONTROL_KILL})
 
 exit
