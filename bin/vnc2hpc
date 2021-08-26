@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.14"
+VERSION="0.1"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Window managers supported:
@@ -1383,6 +1383,9 @@ if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
 else
     debug "VNCSERVER RUNNING AS $USER ALREADY on $REMOTE_DISPLAY" "WILL USE THIS REMOTE_DISPLAY $REMOTE_DISPLAY"
 fi
+
+# hide cshrc again
+move_cshrc start
 
 # get tunnel string
 TUNNEL_HOST=$(setup_tunnel_host)
