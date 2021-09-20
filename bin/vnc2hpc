@@ -296,6 +296,7 @@ setup_ssh_opts () {
     local loc_ssh_opts=""
     loc_ssh_opts+="-o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
+    loc_ssh_opts+=" -o GSSAPIAuthentication=yes"
     loc_ssh_opts+=" -o UserKnownHostsFile=/dev/null"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     case "$1" in
