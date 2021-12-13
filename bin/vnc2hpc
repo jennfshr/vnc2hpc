@@ -259,7 +259,7 @@ check_machine () {
 #######################################
 check_vncserver () {
     ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
-which vncserver 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
+which vncserver 2>/dev/null || which Xvnc 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
 EOF
 '
 }
