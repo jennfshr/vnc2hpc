@@ -16,7 +16,7 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="0.0.15"
+VERSION="v0.0.15"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
 
 # Initial setting for \$OLD_EAP_CSHRC
@@ -42,7 +42,7 @@ usage () {
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
-                [-e|--badcshrc]                 (optional - not recommended)
+                            [-e|--badcshrc]                 (optional - not recommended)
 			    [-h|--help]
                             [-J|--jobid <jobid>]				(optional) Attach to running job
 
