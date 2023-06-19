@@ -16,19 +16,22 @@ SSH_SOCKET="~/.ssh/connections/%C-$(date +%H.%M.%S)"
 
 # Feature updates signified by even numbers
 # Bugfix updates signified by odd numbers
-VERSION="v0.0.14"
+VERSION="v0.0.15"
 REMOTE_INSTALL_PATH="/usr/projects/hpcsoft/vnc2hpc/${VERSION}"
+
+# Initial setting for \$OLD_EAP_CSHRC
+OLD_EAP_CSHRC="false"
 
 # Window managers supported:
 WMS=( "berry" "icewm" "fvwm" "mwm" "openbox" "xfwm4" "awesome" "gdm" )
 
 usage () {
-    message -m "${0//*\//} ${VERSION}
+    message -m "${0//*\//} Version ${VERSION}
 
           usage: ${0//*\//}
                             [-m|--machine <machine>]				(required)
                             [-c|--client <vncclient>]				(required)
-			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost 
+			    [-u|--user <hpcuserid>] 				(optional) Default: \$USER on localhost
                             [-v|--verbose]					(optional)
 	                    [-d|--display <display>]				(optional)
 			    [-k|--keep]						(optional)
@@ -39,6 +42,7 @@ usage () {
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
+                            [-e|--badcshrc]                 (optional - not recommended)
 			    [-h|--help]
                             [-J|--jobid <jobid>]				(optional) Attach to running job
 
@@ -47,7 +51,7 @@ usage () {
                             [-A|--account]					(optional) Without, ${0//*\//} submits job with \$USER default account in Slurm
                             [-Q|--qos]						(optional) Without, ${0//*\//} submits job with \$USER qos defaults in Slurm
                             [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation
-                            [-T|--time]						(optional) Without, ${0//*\//} submits job with \$USER walltime defaults in Slurm 
+                            [-T|--time]						(optional) Without, ${0//*\//} submits job with \$USER walltime defaults in Slurm
                             [-C|--constraint]					(optional) For use when targeting nodes with Slurm Constraints
                             [-P|--partition]					(optional) For use when targeting nodes in Slurm partition
                             [-N|--numnodes]					(optional) Default: 1
@@ -55,6 +59,49 @@ usage () {
           Questions?        <${CONTACT}>
           Need Help?        ${README}
 "
+}
+
+#######################################
+# mv .cshrc
+# Globals:
+#   GATEWAY_SSH
+#   NO_GATEWAY_SSH
+# Arguments:
+#   start end
+# Outputs:
+# NOTE: THIS IS ONLY REQUIRED FOR OUTDATE CSHRC DOTFILES
+######################################
+move_cshrc () {
+    _local_arg="${1}"
+    if [[ "${_local_arg}" =~ start ]] ; then
+        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+[ -f $HOME/.cshrc ] && mv $HOME/.cshrc $HOME/.cshrc_vnc2hpc.bak
+EOF' &>/dev/null
+    elif [[ "${_local_arg}" =~ end ]] ; then
+        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+[ -f $HOME/.cshrc_vnc2hpc.bak ] && mv $HOME/.cshrc_vnc2hpc.bak $HOME/.cshrc
+EOF' &>/dev/null
+    fi
+}
+
+#######################################
+# mv local $HOME/.vnc/*.tigervnc
+# Globals:
+# Arguments:
+#   start end
+# Outputs:
+#
+######################################
+move_tigervnc_config () {
+    _local_arg="${1}"
+    if [[ "${_local_arg}" =~ start ]] ; then
+        vncconfig_start=$(find $HOME/.vnc/ -iname *\.tigervnc -print)
+        echo ${vncconfig_start}
+        find $HOME/.vnc/ -iname *\.tigervnc -exec mv {} {}.bak \;
+    elif [[ "${_local_arg}" =~ end ]] ; then
+        echo ${vncconfig_start}
+        find $HOME/.vnc/ -iname *\.tigervnc.bak -exec mv {} ${vncconfig_start} \;
+    fi
 }
 
 #######################################
@@ -72,7 +119,7 @@ check_network () {
         *loginy*|*fey*)			loc_network="YELLOW"    	;;
         *rfe*|*rlogin*)			loc_network="RESTRICTED"	;;
         *darwin*)			loc_network="DARWIN"		;;
-        ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
+        ic*|fi*|cy*|tr*|ty*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
 	gr*|ba*|cp-login*|ko*|sn*|ch*)	loc_network="TURQUOISE"     	;;
         ga*)				loc_network="VLGATE"		;;
@@ -129,9 +176,9 @@ job_control() {
     local loc_slurm_jobid="$1"
     case "${2}" in
         terminate)	echo "scancel $loc_slurm_jobid"									;;
-        failure)	echo "squeue -j $loc_slurm_jobid |grep -q 'slurm_load_jobs error: Invalid job id specified'"	;;
+        failure)	echo "squeue -j $loc_slurm_jobid | grep -q 'slurm_load_jobs error: Invalid job id specified'"	;;
         competed)	echo "sacct -j $loc_slurm_jobid | grep -q COMPLETED"						;;
-        cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"			;; 
+        cancelled)	echo "sacct -j $loc_slurm_jobid | grep "$loc_slurm_jobid " | grep -q CANCELLED"			;;
         running)	echo "squeue -j $loc_slurm_jobid -o %T | grep -q RUNNING"					;;
         failed)		echo "sacct -j $loc_slurm_jobid | grep "$1 " | grep -q FAILED"					;;
         headnode)	echo "scontrol show jobid $loc_slurm_jobid | grep BatchHost | awk -F= '{print \$2}'"		;;
@@ -149,8 +196,8 @@ job_control() {
 #######################################
 job_attach() {
     local loc_slurm_jobid="$1"
-    if ! $(job_control $loc_slurm_jobid running); then die "SLURM_JOBID" "$loc_slurm_jobid invalid"; fi 
-    
+    if ! $(job_control $loc_slurm_jobid running); then die "SLURM_JOBID" "$loc_slurm_jobid invalid"; fi
+
 }
 
 #######################################
@@ -197,7 +244,7 @@ check_machine () {
             loc_machine="INVALID"
         else
             loc_machine="${MACHINE}"
-        fi 
+        fi
     else
         loc_machine="invalid"
     fi
@@ -216,7 +263,7 @@ check_machine () {
 #######################################
 check_vncserver () {
     ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
-which vncserver 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
+which vncserver 2>/dev/null || which Xvnc 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
 EOF
 '
 }
@@ -232,12 +279,8 @@ EOF
 #   Writes "SHELL" to stdout
 ######################################
 check_remote_shell () {
-#    local loc_remote_shell
-#    loc_remote_shell=$( ${GATEWAY_SSH}${NO_GATEWAY_SSH} \
-#        "echo \$SHELL")
-#    echo "${loc_remote_shell}"
-    ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
-echo $SHELL
+    ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+echo \$SHELL
 EOF
 '
 }
@@ -257,6 +300,7 @@ setup_ssh_opts () {
     local loc_ssh_opts=""
     loc_ssh_opts+="-o LogLevel=QUIET"
     loc_ssh_opts+=" -o GSSAPIDelegateCredentials=yes"
+    loc_ssh_opts+=" -o GSSAPIAuthentication=yes"
     loc_ssh_opts+=" -o UserKnownHostsFile=/dev/null"
     loc_ssh_opts+=" -o StrictHostKeyChecking=no"
     case "$1" in
@@ -284,16 +328,14 @@ setup_ssh_opts () {
         ;;
         *)
             loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
-        ;;   
-    esac 
+        ;;
+    esac
     echo "$loc_ssh_opts"
 }
 
 #######################################
 # Setup port/host string for tunnels
 # Globals:
-#   MACHINE
-#   MACHUSER
 #   REMOTE_DISPLAY
 # Arguments:
 #   None
@@ -747,7 +789,7 @@ EOF'
                 fi
                 if ! ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd" &>/dev/null; then
                     die "SETTING VNCPASSWD FAILED!"
-                fi 
+                fi
                 perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
                 inform "VNCPASSWD SUCCESSFULLY SET!"
@@ -824,7 +866,7 @@ list_displays () {
 #######################################
 # File tests ${CLIENT} for viability
 # Globals:
-#   CLIENT 
+#   CLIENT
 # Arguments:
 #   None
 # Outputs:
@@ -910,9 +952,9 @@ clientOS () {
 #   None
 #######################################
 remotelog () {
-    if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then 
+    if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then
        ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \${HOME}/.vnc/${MACHINE//\.*}*${REMOTE_DISPLAY#0}.log ] && cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
-    fi 
+    fi
 }
 
 #######################################
@@ -942,6 +984,7 @@ for arg in "$@"; do
         *-time*)	set -- "$@" "-T"   ;;
         *-constraint*)	set -- "$@" "-C"   ;;
         *-partition)	set -- "$@" "-P"   ;;
+        *-badcshrc) set -- "$@" "-e"   ;;
         *-numnodes)	set -- "$@" "-N"   ;;
         *)		set -- "$@" "$arg" ;;
     esac
@@ -949,13 +992,14 @@ done
 
 OPTIND=1
 
-while getopts "c:m:p:vu:w:g:d:ao:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
+while getopts "c:em:p:vu:w:g:d:ao:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
     case "${opt}" in
         a)  AGENT=true							;;
         b)  BACKDOOR=true						;;
         o)  CLIENT_OPT=( "$OPTARG" "${CLIENT_OPT}" )			;;
         v)  DEBUG=true							;;
         d)  REMOTE_DISPLAY="$OPTARG"					;;
+        e)  OLD_EAP_CSHRC="true"                ;;
         m)  MACHINE="$OPTARG"						;;
         c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}		;;
         k)  KEEP_VNC_SERVER_ACTIVE=true					;;
@@ -981,7 +1025,7 @@ done
 
 #######################################
 # Inform vnc2hpc version used
-inform "VNC2HPC VERSION:" "${VERSION}" 
+inform "VNC2HPC VERSION:" "${VERSION}"
 
 # ensure display is set if arg is passed, and is number
 inform "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
@@ -993,7 +1037,7 @@ fi
 if [[ "${REMOTE_DISPLAY}x" != x ]] ; then
     [[ "${REMOTE_DISPLAY}" =~ ^[0-9]+$ ]] || die "REMOTE_DISPLAY isn't a number, or is unset" "REMOTE_DISPLAY=$REMOTE_DISPLAY"
     [[ "${REMOTE_DISPLAY}" -le 58999 ]] || die "REMOTE_DISPLAY must not exceed 58999!" "REMOTE_DISPLAY=${REMOTE_DISPLAY}"
-fi 
+fi
 
 # Check out the vncclient
 if [[ "${CLIENT}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
@@ -1006,7 +1050,7 @@ CLIENTOS=$(clientOS)
 inform "LOCALHOST OS INFO:" "$CLIENTOS"
 
 # inform if AGENT flag is true
-if [[ "${AGENT}x" != x ]] ; then inform "RECEIVED REQUEST TO RUN WM WITH ssh-agent" ; fi 
+if [[ "${AGENT}x" != x ]] ; then inform "RECEIVED REQUEST TO RUN WM WITH ssh-agent" ; fi
 
 # inform if additional args are getting passed to CLIENT
 if [[ "${CLIENT_OPT}x" != x ]] ;  then inform "CLIENT_OPT REQUESTED" "$(echo ${CLIENT_OPT[@]})";  fi
@@ -1027,8 +1071,8 @@ GEOMETRY=${GEOMETRY:="default"}
 if [[ "$GEOMETRY" != default ]] && [[ ! "$GEOMETRY" =~ x ]] ; then
     usage
     die "--geometry should be expressed as two integers delimited by an \"x\""
-fi 
-inform "GEOMETRY:" "${GEOMETRY}" 
+fi
+inform "GEOMETRY:" "${GEOMETRY}"
 
 # set PIXELDEPTH TO 24 default if not overridden
 PIXELDEPTH=${PIXELDEPTH:="24"}
@@ -1037,7 +1081,7 @@ inform "PIXELDEPTH:" "${PIXELDEPTH}"
 # ensure we know what network requirements there are to connect to machine
 NETWORK=$(check_network)
 if [[ "${NETWORK}" =~ INVALID ]] ; then die "INVALID NETWORK" "CHECK $MACHINE" ; fi
-inform "MACHINE:" "$MACHINE" 
+inform "MACHINE:" "$MACHINE"
 inform "NETWORK:" "$NETWORK"
 
 # some client side logs, the second one is only in the event of a failure
@@ -1076,8 +1120,15 @@ fi
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
 debug "SSH CMD FOR VNCPW ${NETWORK}:" "${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}"
 
+debug "TESTING FOR .cshrc:"
+remote_shell_check=$(check_remote_shell |grep -E '.*sh\b')
+if [[ ${remote_shell_check} =~ csh ]] && [[ "${OLD_EAP_CSHRC}" == 'true' ]] ; then
+   debug "TEMPORARY RELOCATION:" "mv \$HOME/.cshrc \$HOME/.cshrc_vnc2hpc.bak"
+   move_cshrc start
+fi
+
 $(control_master_connection) || die "Control Master Connection Attempt Failed!"
-$(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!" 
+$(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!"
 
 # Ensure MACHINE is set to a real hostname, not round-robin
 REAL_MACHINE=$(check_machine)
@@ -1101,7 +1152,7 @@ if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
         CONTROL_CHECK=$(check_nogateway_control_master_connection)
         CONTROL_KILL=$(kill_nogateway_control_master_connection)
         $(control_master_connection) || die "Control Master Reset Attempt Failed!"
-        $(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!" 
+        $(${CONTROL_CHECK} &>/dev/null) || die "Control Master Check Failed!"
     fi
 fi
 
@@ -1138,14 +1189,14 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         if $(which curl &>/dev/null) ; then
             debug "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH}"
             curl -sL ${REPO_URL} >${FULL_FILE_PATH}
-            if [[ $? -ne 0 ]] ; then 
+            if [[ $? -ne 0 ]] ; then
                 die "CURL CMD:" "curl -sL ${REPO_URL} &>${FULL_FILE_PATH} FAILED"
             fi
             [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
         elif $(which wget &>/dev/null); then
             debug "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH}"
             wget ${REPO_URL} -O ${FULL_FILE_PATH}
-            if [[ $? -ne 0 ]] ; then 
+            if [[ $? -ne 0 ]] ; then
                 die "WGET CMD:" "wget ${REPO_URL} -O ${FULL_FILE_PATH} FAILED"
             fi
             [ -f ${FULL_FILE_PATH} ] || die "FAILURE DOWNLOADING ${REPO_URL} TO ${FULL_FILE_PATH}"
@@ -1175,8 +1226,8 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         NO_GATEWAY_SCP=$(setup_nogateway_scp ${FULL_FILE_PATH} ${DEST})
         if ! $NO_GATEWAY_SCP &>/dev/null ; then
             die "SCP ${FULL_FILE_PATH} ${DEST} FAILED!"
-        fi 
-    fi 
+        fi
+    fi
     if ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} "[ -d ${DEST}/${FILE//.tar.gz} ] || pushd ${DEST} && tar xfz ${FILE}" &>/dev/null ; then
         die "FAILURE STAGING BACKEND SCRIPTS TO ${DEST}"
     else
@@ -1184,7 +1235,7 @@ if [[ "${NO_BACKEND}" == "true" ]] ; then
         inform "BACKEND SCRIPTS STAGED TO:" "${DEST}"
         inform "RESETTING REMOTE_INSTALL_PATH:" "$REMOTE_INSTALL_PATH"
     fi
-fi   
+fi
 
 # if JOBID is set, we need to attach to that job
 if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
@@ -1196,7 +1247,7 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
         [[ -n ${SLURM_CONSTRAINT} ]] && slurm_job_opts+=" -C ${SLURM_CONSTRAINT}"
         [[ -n ${SLURM_PARTITION} ]] && slurm_job_opts+=" -P ${SLURM_PARTITION}"
         [[ -n ${SLURM_NNODES} ]] && slurm_job_opts+=" -N ${SLURM_NNODES}"
-        inform "SUBMITTING REQUEST FOR NEW INTERACTIVE ALLOCATION. OPTIONS:" "${slurm_job_opts[@]}" 
+        inform "SUBMITTING REQUEST FOR NEW INTERACTIVE ALLOCATION. OPTIONS:" "${slurm_job_opts[@]}"
         SLURM_JOBID=$(job_submit ${slurm_job_opts[@]})
         if ! [[ "${SLURM_JOBID}" =~ [0-9]+ ]] ; then
             die "SLURM JOB ALLOCATION FAILED" "SLURM_JOBID:" "$(echo $SLURM_JOBID})"
@@ -1226,7 +1277,7 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
         NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
     fi
 fi
-    
+
 # check the remote shell
 REMOTE_SHELL=$(check_remote_shell)
 debug "${SLURM_HEADNODE:-$MACHINE} $MACHUSER SHELL:" "${REMOTE_SHELL}"
@@ -1248,7 +1299,7 @@ if [[ ${#active_displays[@]} -eq 0 ]] ; then
     debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}"
 else
     debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}" "$(echo ${active_displays[@]})"
-fi 
+fi
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
@@ -1340,6 +1391,11 @@ else
     debug "VNCSERVER RUNNING AS $USER ALREADY on $REMOTE_DISPLAY" "WILL USE THIS REMOTE_DISPLAY $REMOTE_DISPLAY"
 fi
 
+# hide cshrc again
+if [[ "${OLD_EAP_CSHRC}" == 'true' ]] ; then
+    move_cshrc start
+fi
+
 # get tunnel string
 TUNNEL_HOST=$(setup_tunnel_host)
 
@@ -1375,12 +1431,22 @@ if [[ "${remote_pid}x" == x ]] ; then
     die "ERROR OCCURRED STARTING VNCSERVER."
 fi
 
+# replace .cshrc file now
+#remote_shell_check=$(check_remote_shell |grep -E '.*sh\b')
+if [[ ${remote_shell_check} =~ csh ]] && [[ "${OLD_EAP_CSHRC}" == 'true' ]] ; then
+   debug "RESTORING RELOCATED FILE:" "mv \$HOME/.cshrc_vnc2hpc.bak $HOME/.cshrc"
+   move_cshrc end
+fi
+
 inform "CONNECTING $CLIENT_VERSION TO TUNNEL VIA:" "localhost:$(( 5900+${REMOTE_DISPLAY#0}))"
-inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!" 
+inform "WHILE RUNNING:" "KEEP THIS TERMINAL ACTIVE!"
 inform "TO TERMINATE:" "CLOSE $CLIENT_VERSION WINDOW OR CTRL+c COMMAND IN TERMINAL"
 
 # connect client to localhost
 if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] || [[ "${CLIENT_VERSION}" =~ [Tt]urbo ]] ; then
+    if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+        move_tigervnc_config start
+    fi
     warning "Client: ${CLIENT}" "Redirecting ${CLIENT} stdout to ${LOGDIR}/${CLIENT_LOG_FILE}"
     debug "${CLIENT} LAUNCH CMD:" "$CLIENT localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]}"
     "$CLIENT" localhost::$(( 5900+${REMOTE_DISPLAY#0} )) ${CLIENT_OPT[@]} >> ${LOGDIR}/${CLIENT_LOG_FILE} 2>&1
@@ -1398,8 +1464,13 @@ fi
 if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
     inform "KEEPING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY on ${SLURM_HEADNODE:-$MACHINE} Active"
-    if [[ "${SLURM_JOBID}x" != x ]] ; then inform "REQUEST RECONNECT:" "$0 -c \"${CLIENT}\" -m ${MACHINE} -J ${SLURM_JOBID} -r -d ${REMOTE_DISPLAY}" ; fi 
+    if [[ "${SLURM_JOBID}x" != x ]] ; then inform "REQUEST RECONNECT:" "$0 -c \"${CLIENT}\" -m ${MACHINE} -J ${SLURM_JOBID} -r -d ${REMOTE_DISPLAY}" ; fi
 else
+    #TODO THIS STILL IS UNRESOLVED
+    if [[ ${remote_shell_check} =~ csh ]] || [[ "${OLD_EAP_CSHRC}" == "true" ]] ; then
+       debug "TEMPORARY RELOCATION:" "mv \$HOME/.cshrc \$HOME/.cshrc_vnc2hpc.bak"
+       move_cshrc start
+    fi
     inform "KILLING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY"
     kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
@@ -1416,6 +1487,9 @@ if kill -0 ${tunnel_pid} &>/dev/null ; then
 fi
 
 remotelog
+if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
+    move_tigervnc_config end
+fi
 $(${CONTROL_KILL})
 
 exit

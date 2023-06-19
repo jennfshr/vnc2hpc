@@ -11,21 +11,21 @@ vncserver_path="$8"
 agent=""
 
 # some conditionals
-if [[ "${9}x" != x ]] ; then REMOTE_DISPLAY=":${9}" ; fi 
+if [[ "${9}x" != x ]] ; then REMOTE_DISPLAY=":${9}" ; fi
 if [[ "${10}" == "true" ]] ; then agent="$(type -P ssh-agent)" ; fi
-if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi 
+if [[ $geometry != "default" ]] ; then geoarg="-geometry ${geometry}" ; fi
 
 # setup pixeldepth arg
-pixeldeptharg="-depth ${pixeldepth}" 
+pixeldeptharg="-depth ${pixeldepth}"
 
 # this is required for a weird xvnccrash with MCNP
 backstore="-bs"
 
 export VNC2HPC_AGENT=${agent}
 export VNC2HPC_INSTALL_PATH=${remote_install_path}
-export VNC2HPC_WM="$windowmanager" 
+export VNC2HPC_WM="$windowmanager"
 HPCSOFT_PATH="/usr/projects/hpcsoft"
-if touch ${HPCSOFT_PATH}/usage_logs/vnc2hpc.log &>/dev/null ; then 
+if touch ${HPCSOFT_PATH}/usage_logs/vnc2hpc.log &>/dev/null ; then
    SPLUNK_LOG="${HPCSOFT_PATH}/usage_logs/vnc2hpc.log"
 else
    SPLUNK_LOG="/dev/null"
@@ -55,11 +55,11 @@ fi
 [ -d $HOME/.vnc2hpc ] || mkdir -p $HOME/.vnc2hpc
 
 # setup log to capture stdout
-if [[ -d "${HPCSOFT_PATH}/vnc2hpc/${vnc2hpc_version}/logs/${SYSNAME}" ]] ; then 
+if [[ -d "${HPCSOFT_PATH}/vnc2hpc/${vnc2hpc_version}/logs/${SYSNAME}" ]] ; then
    LOG="${HPCSOFT_PATH}/vnc2hpc/${vnc2hpc_version}/logs/${SYSNAME}/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
 else
    LOG="${HOME}/.vnc2hpc/${USER}_`hostname -s`.$(date +%F'_'%H'.'%M'.'%S)"
-fi 
+fi
 touch $LOG
 
 cp -f ${remote_install_path}/bin/xstartup $HOME/.vnc2hpc/xstartup || echo "FAILURE"
@@ -99,17 +99,17 @@ fi
 echo "RUNNING: ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name \"$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`\" -autokill ${pixeldeptharg} -xstartup \"$HOME/.vnc2hpc/xstartup\"" &>$LOG
 ${vncserver_path} ${REMOTE_DISPLAY} ${backstore} ${geoarg} ${pixeldeptharg} -localhost -verbose -name "$USER at `hostname -s` VNC2HPC $vnc2hpc_version $agent $windowmanager `date`" -autokill ${pixeldeptharg} -xstartup "$HOME/.vnc2hpc/xstartup" &>>$LOG
 
-if [[ $? -ne 0 ]] ; then 
+if [[ $? -ne 0 ]] ; then
    remote_display="FAILURE: $(tail -n 1 ${LOG})"
    RESULT="FAIL"
-else  
-   remote_display=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG) 
+else
+   remote_display=$(awk -F: '/^[New|Desktop]/ {print $NF}' $LOG)
    if [[ "${remote_display}" =~ ^[0-9]+$ ]] ; then
       RESULT="PASS"
    else
       RESULT="FAIL"
    fi
-fi 
+fi
 REMOTE_DISPLAY="${remote_display}"
 echo $REMOTE_DISPLAY
 echo "$(date +%F' '%H':'%M':'%S) VNC2HPC_VERSION=${vnc2hpc_version} USER=${USER} CLIENT=${client} CLIENTOS=${clientOS} MACHINE=$(hostname -s) AGENT=${agent} WINDOWMANAGER=${windowmanager} VNCSERVER=${vncserver_path} REMOTE_DISPLAY=${remote_display} BACKSTORE=${backstore} GEOMETRY=${geometry} PIXELDEPTH=${pixeldepth} RESULT=${RESULT}" &>>$SPLUNK_LOG

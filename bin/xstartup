@@ -3,7 +3,7 @@
 exec > >(tee -ai $HOME/.vnc2hpc/xstartup.log >&1)
 exec 2> >(tee -ai $HOME/.vnc2hpc/xstartup.log >&2)
 [[ "${VNC2HPC_INSTALL_PATH}x" != x ]] || exit -1
-[[ "${VNC2HPC_WM}x" != x ]] || exit -1 
+[[ "${VNC2HPC_WM}x" != x ]] || exit -1
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 [ -r /etc/profile ] && source /etc/profile
@@ -23,13 +23,13 @@ command -v xdpyinfo >/dev/null 2>&1 && \
 # fall back to system defaults.
 
 # Reusable arch/os variables:
-if /usr/projects/hpcsoft/utilities/bin/sys_arch &>/dev/null ; then 
+if /usr/projects/hpcsoft/utilities/bin/sys_arch &>/dev/null ; then
     ARCH=$(/usr/projects/hpcsoft/utilities/bin/sys_arch)
 else
     ARCH=$(uname -p)
 fi
 
-if /usr/projects/hpcsoft/utilities/bin/sys_os &>/dev/null ; then 
+if /usr/projects/hpcsoft/utilities/bin/sys_os &>/dev/null ; then
     OS=$(/usr/projects/hpcsoft/utilities/bin/sys_os)
 else
     OS=$(uname -o | sed 's/\//_/g')
@@ -158,7 +158,7 @@ case "$VNC2HPC_WM" in
         # Set path to use WM
         export PATH=${OBX_BIN}:${PATH}
 
-	[ -d ${OBX_SHARE} ] && export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
+    	[ -d ${OBX_SHARE} ] && export XDG_DATA_DIRS=${OBX_SHARE}:${XDG_DATA_DIRS}
         [ -d ${OBX_LIB} ] && export LD_LIBRARY_PATH=${OBX_LIB}:${LD_LIBRARY_PATH}
         [ -d ${OBX_ETC} ] && [ ! -d $HOME/.config/openbox ] && mkdir -p $HOME/.config/openbox && cp ${OBX_ETC}/xdg/openbox/* $HOME/.config/openbox/.
         [ -x /usr/bin/xsetroot ] && /usr/bin/xsetroot -solid '#222E45'
@@ -179,12 +179,12 @@ case "$VNC2HPC_WM" in
         unset DBUS_SESSION_BUS_ADDRESS
         XDG_SESSION_TYPE=x11; export XDG_SESSION_TYPE
         OS=`uname -s`
-        
+
         # Emulate DGM
         USESTARTUP=0
         if [ -x /usr/bin/gnome-session ] ; then
         # Use Unity 2D on Ubuntu 12 if no WM is specified. Unity 3D 5.20.x doesn't
-        # even pretend to work properly with our X server. 
+        # even pretend to work properly with our X server.
           if [ -f /usr/share/gnome-session/sessions/ubuntu-2d.session -a -z "$TVNC_WM" ] ; then
             TVNC_WM=2d
           fi
@@ -215,7 +215,7 @@ case "$VNC2HPC_WM" in
                     XDG_CURRENT_DESKTOP="GNOME-Flashback:GNOME";
                     export XDG_CURRENT_DESKTOP
                     GNOME_SHELL_SESSION_MODE=ubuntu; export GNOME_SHELL_SESSION_MODE;
-                    USESTARTUP=1; 
+                    USESTARTUP=1;
                   }
               fi
               unset TVNC_WM
@@ -250,11 +250,11 @@ case "$VNC2HPC_WM" in
          if [ -z "$SSH_AGENT_PID" -a -x /usr/bin/ssh-agent ] ; then
              TVNC_SSHAGENT=/usr/bin/ssh-agent
          fi
-         if [ -z "$TVNC_VGLRUN" ] ; then 
+         if [ -z "$TVNC_VGLRUN" ] ; then
              TVNC_VGLRUN="vglrun +wm"
          fi
       fi
-   
+
       if [ "$STARTUP" != "" -a "$USESTARTUP" = "1" ] ; then
          exec $TVNC_VGLRUN $STARTUP
       fi
@@ -274,7 +274,7 @@ case "$VNC2HPC_WM" in
       else
          TVNC_WM=`which "$TVNC_WM" 2>/dev/null`
       fi
-      if [ "$TVNC_WM" != "" ] ; then 
+      if [ "$TVNC_WM" != "" ] ; then
          if [ -x "$TVNC_WM" ] ; then
              exec $TVNC_SSHAGENT $TVNC_VGLRUN "$TVNC_WM"
          else
@@ -282,18 +282,18 @@ case "$VNC2HPC_WM" in
          fi
       else
          echo "no window manager startup script found.  Use the TVNC_WM environment"
-         echo "variable to specify the path to aa window manager startup sccript or" 
+         echo "variable to specify the path to a window manager startup sccript or"
          echo "executable.  Falling back to TWM."
          which twm >/dev/null && {
-             if [ -f $HOME/.Xresources ] ; then xrdb $HOME/.Xresources; fi 
+             if [ -f $HOME/.Xresources ] ; then xrdb $HOME/.Xresources; fi
              xsetroot -solid grey
              xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
              twm
          } || {
-             echo "TWM not found. I  give up" 
+             echo "TWM not found. I  give up"
              exit 1
-         } 
-      fi 
+         }
+      fi
     ;;
     *)
         echo "UNSUPPORTED $1"
