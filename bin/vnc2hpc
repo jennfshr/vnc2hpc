@@ -119,7 +119,7 @@ check_network () {
         *loginy*|*fey*)			loc_network="YELLOW"    	;;
         *rfe*|*rlogin*)			loc_network="RESTRICTED"	;;
         *darwin*)			loc_network="DARWIN"		;;
-        ic*|fi*|cy*|tr*|vm*)   		loc_network="RED"           	;;
+        ic*|fi*|cy*|tr*|ty*|vm*)   		loc_network="RED"           	;;
         wtrw*)                 		loc_network="INVALID"       	;;
 	gr*|ba*|cp-login*|ko*|sn*|ch*)	loc_network="TURQUOISE"     	;;
         ga*)				loc_network="VLGATE"		;;
