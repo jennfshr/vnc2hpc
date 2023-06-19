@@ -740,7 +740,7 @@ check_vncpasswd () {
                 if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
                     inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
                     eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} /bin/bash <<EOF
-echo "${VNCPW}" | /usr/bin/vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
+echo "${VNCPW}" | vncpasswd > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
 EOF'
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
