@@ -2,9 +2,9 @@
 #
 # vnc2hpc is a script that automates establishing vncclient>server connections to LANL HPC systems
 
-# Basic VNC2HPC information
-AUTHOR_EMAIL="jgreen@sandia.gov"
-CONTACT="vnc2hpc@lanl.gov"
+# Basic JUPYTERSERVER2HPC information
+AUTHOR_EMAIL="jkgreen@sandia.gov"
+CONTACT="jkgreen@lanl.gov"
 #TODO UPDATE THIS REPO="git@git.lanl.gov:hpcsoft/vnc2hpc.git"
 #TODO UPDATE THIS README="https://git.lanl.gov/hpcsoft/vnc2hpc/-/blob/${VERSION}/README.md"
 
@@ -37,9 +37,8 @@ usage () {
                             [-d|--display <display>]				(optional)
                             [-k|--keep]						(optional)
                             [-r|--reconnect]					(optional)
-                            [-w|--wm <icewm|berry|fvwm|mwm|xfwm4|openbox|gdm>]	(optional) Default: [-w mwm] (Motif Window Manager)
                             [-a|--agent]					(optional) Start the WM under the auspices of an ssh-agent
-                            [-o|--option]					(optional) Pass arguments to VNCViewer Client
+                            [-o|--option]					(optional) Pass arguments to Jupyter-Notebook Client
                             [-g|--geometry <int>x<int>]                 	(optional) Default: xdpyinfo |grep dimensions
                             [-p|--pixeldepth <int>]                     	(optional) Default: 24 - others: 16,32
                             [-s|--source /path/to/source.tar.gz]                (optional) Only Required for systems with no backend where client has no internet
@@ -48,7 +47,7 @@ usage () {
                             [-J|--jobid <jobid>]				(optional) Attach to running job
 
                  OPTIONS FOR INTERACTIVE JOB SUBMISSION:
-                            [-I|--interactive]					(optional) Run vncserver inside an interactive job on \$MACHINE
+                            [-I|--interactive]					(optional) Run jupyter-server inside an interactive job on \$MACHINE
                             [-A|--account]					(optional) Without, ${0//*\//} submits job with \$USER default account in Slurm
                             [-Q|--qos]						(optional) Without, ${0//*\//} submits job with \$USER qos defaults in Slurm
                             [-R|--reservation]					(optional) For use when targeting nodes in a Slurm reservation
@@ -60,49 +59,6 @@ usage () {
           Questions?        <${CONTACT}>
           Need Help?        ${README}
 "
-}
-
-#######################################
-# mv .cshrc
-# Globals:
-#   GATEWAY_SSH
-#   NO_GATEWAY_SSH
-# Arguments:
-#   start end
-# Outputs:
-# NOTE: THIS IS ONLY REQUIRED FOR OUTDATE CSHRC DOTFILES
-######################################
-move_cshrc () {
-    _local_arg="${1}"
-    if [[ "${_local_arg}" =~ start ]] ; then
-        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
-[ -f $HOME/.cshrc ] && mv $HOME/.cshrc $HOME/.cshrc_vnc2hpc.bak
-EOF' &>/dev/null
-    elif [[ "${_local_arg}" =~ end ]] ; then
-        ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
-[ -f $HOME/.cshrc_vnc2hpc.bak ] && mv $HOME/.cshrc_vnc2hpc.bak $HOME/.cshrc
-EOF' &>/dev/null
-    fi
-}
-
-#######################################
-# mv local $HOME/.vnc/*.tigervnc
-# Globals:
-# Arguments:
-#   start end
-# Outputs:
-#
-######################################
-move_tigervnc_config () {
-    _local_arg="${1}"
-    if [[ "${_local_arg}" =~ start ]] ; then
-        vncconfig_start=$(find $HOME/.vnc/ -iname *\.tigervnc -print)
-        echo ${vncconfig_start}
-        find $HOME/.vnc/ -iname *\.tigervnc -exec mv {} {}.bak \;
-    elif [[ "${_local_arg}" =~ end ]] ; then
-        echo ${vncconfig_start}
-        find $HOME/.vnc/ -iname *\.tigervnc.bak -exec mv {} ${vncconfig_start} \;
-    fi
 }
 
 #######################################
@@ -124,7 +80,7 @@ check_network () {
         wtrw*)                 		loc_network="INVALID"       	;;
 	gr*|ba*|cp-login*|ko*|sn*|ch*)	loc_network="TURQUOISE"     	;;
         ga*)				loc_network="VLGATE"		;;
-        eclipse*|amber*|boca*|flight*|ghost*|hops*|jetcool*|manzano*|stria*)         loc_network="SRN"               ;;
+        eclipse*|chama*|stria*)         loc_network="SRN"               ;;
         *)				loc_network="UNKNOWN"		;;
     esac
     echo "${loc_network}"
@@ -157,7 +113,7 @@ job_submit() {
     if echo ${loc_slurm_jobid} |grep -qi error ; then
         die "Salloc failed: ${loc_slurm_jobid}"
     else
-        loc_slurm_jobid=$( echo "${loc_slurm_jobid[@]}" | grep "salloc: Granted job allocation" | awk '{print $5}')
+        loc_slurm_jobid=$( echo $loc_slurm_jobid | grep -i "salloc: Granted job allocation" | awk '{print $5}')
         while ! ${GATEWAY_SSH}${NO_GATEWAY_SSH} $(job_control ${loc_slurm_jobid} running) ; do
             sleep 2
         done
@@ -254,6 +210,14 @@ check_machine () {
     echo "$loc_machine"
 }
 
+ml_test () {
+    local _modulefile=( $@ )
+    for x in ${_modulefile[@]} ; do
+        module --ignore_cache load $x &>/dev/null
+        module -t list |& grep $x || die "$x did not load"
+    done
+}
+
 #######################################
 # locate vncserver on remote
 # Globals:
@@ -264,9 +228,10 @@ check_machine () {
 # Outputs:
 #   Writes "/path/to/vncserver" to stdout
 #######################################
-check_vncserver () {
+check_jupyterserver () {
     ${GATEWAY_SSH} ${NO_GATEWAY_SSH} '/bin/bash -s <<EOF
-which vncserver 2>/dev/null || which Xvnc 2>/dev/null || find /opt/ -name "vncserver" -executable -print 2>/dev/null
+ml_test python
+which jupyter-server 2>/dev/null
 EOF
 '
 }
@@ -282,7 +247,7 @@ EOF
 #   Writes "SHELL" to stdout
 ######################################
 check_remote_shell () {
-    ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} '/bin/bash -s <<EOF
+    ${GATEWAY_JUPYTERSERVERPASSWD}${NO_GATEWAY_JUPYTERSERVERPASSWD} '/bin/bash -s <<EOF
 echo \$SHELL
 EOF
 '
@@ -293,7 +258,7 @@ EOF
 # Globals:
 #   SSH_SOCKET
 # Arguments:
-#   type (master, command, vncpasswd)
+#   type (master, command, jupyterserverpasswd)
 # Outputs:
 #   Writes $loc_ssh_opts to stdout
 #######################################
@@ -322,7 +287,7 @@ setup_ssh_opts () {
             loc_ssh_opts+=" -f"
             loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
         ;;
-        vncpasswd)
+        jupyterserverpasswd)
             loc_ssh_opts+=" -x"
             loc_ssh_opts+=" -o ControlPath=${SSH_SOCKET}"
         ;;
@@ -346,7 +311,7 @@ setup_ssh_opts () {
 #   Writes $TUNNELHOST to stdout
 #######################################
 setup_tunnel_host () {
-        echo "-L $(( 5900+${REMOTE_DISPLAY#0} )):localhost:$(( 5900+${REMOTE_DISPLAY#0} ))"
+        echo "-L $(( 1111+${REMOTE_DISPLAY#0} )):localhost:$(( 1111+${REMOTE_DISPLAY#0} ))"
 }
 
 #######################################
@@ -398,7 +363,7 @@ setup_nogateway_ssh_control_master () {
 # Outputs:
 #   Writes ssh cmd to stdout
 #######################################
-setup_nogateway_vncpasswd () {
+setup_nogateway_jupyterserverpasswd () {
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
        if [[ "${SLURM_HEADNODE}" =~ nid ]] ; then
            case ${MACHINE} in
@@ -406,10 +371,10 @@ setup_nogateway_vncpasswd () {
                tr-*fe*)    local loc_inthop="ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@tr-login1-eth2" ;;
            esac
        fi
-       local loc_lasthop="ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${SLURM_HEADNODE}"
+       local loc_lasthop="ssh $(setup_ssh_opts jupyterserverpasswd) ${MACHUSER}@${SLURM_HEADNODE}"
        echo "ssh -t $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop}"
     else
-       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${MACHINE}"
+       echo "ssh $(setup_ssh_opts jupyterserverpasswd) ${MACHUSER}@${MACHINE}"
     fi
 }
 
@@ -511,7 +476,7 @@ setup_gateway_ssh_control_master () {
 # Outputs:
 #   Writes ssh via wtrw to stdout
 #######################################
-setup_gateway_vncpasswd () {
+setup_gateway_jupyterpasswd () {
     local loc_gateway="$1"
     local loc_opts="$2"
     if [[ "${SLURM_HEADNODE}x" != x ]] ; then
@@ -521,9 +486,9 @@ setup_gateway_vncpasswd () {
            esac
        fi
        local loc_lasthop="ssh $(setup_ssh_opts no_controlmaster) ${MACHUSER}@${SLURM_HEADNODE}"
-       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop} "
+       echo "ssh $(setup_ssh_opts jupyterserverpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} ${loc_inthop} ${loc_lasthop} "
     else
-       echo "ssh $(setup_ssh_opts vncpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
+       echo "ssh $(setup_ssh_opts jupyterserverpasswd) ${MACHUSER}@${loc_gateway} ssh ${MACHUSER}@${MACHINE} "
     fi
 }
 
@@ -739,6 +704,9 @@ control_master_connection () {
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         local local_gateway="vl-gate.lanl.gov"
         local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
+    elif [[ "${NETWORK}" =~ IHPC ]] ; then
+        local local_gateway="ihpc.sandia.gov"
+        local local_gateway_ssh=$(setup_gateway_ssh_control_master ${local_gateway})
     else
         local local_nogateway_ssh=$(setup_nogateway_ssh_control_master)
     fi
@@ -747,7 +715,7 @@ control_master_connection () {
 }
 
 #######################################
-# Checks/sets vncpasswd interactively
+# Checks/sets jupyterserverpasswd interactively
 # Globals:
 #   GATEWAY_SSH
 #   NO_GATEWAY_SSH
@@ -758,13 +726,13 @@ control_master_connection () {
 # Outputs:
 #   None
 #######################################
-check_vncpasswd () {
-    # need a $HOME/.vnc directory if the first use
-    if ! $( ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "[ -d \$HOME/.vnc ]" 2>&- ); then
-        ${GATEWAY_VNCPASSWD} ${NO_GATEWAY_VNCPASSWD} "mkdir -p \$HOME/.vnc && chmod -Rf 0700 \$HOME/.vnc" 2>&-
+check_jupyterserverpasswd () {
+    # need a $HOME/.jupyterserver directory if the first use
+    if ! $( ${GATEWAY_JUPYTERSERVERPASSWD} ${NO_GATEWAY_JUPYTERSERVERPASSWD} "[ -d \$HOME/.jupyter ]" 2>&- ); then
+        ${GATEWAY_JUPYTERSERVERPASSWD} ${NO_GATEWAY_JUPYTERSERVERPASSWD} "mkdir -p \$HOME/.jupyter && chmod -Rf 0700 \$HOME/.jupyter" 2>&-
     fi
-    # test whether the vncpasswd file exists but is empty
-    if ! $( ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "[ -s  \$HOME/.vnc/passwd ] || exit 1" ); then
+    # test whether the jupyterserverpasswd file exists but is empty
+    if ! $( ${GATEWAY_JUPYTERSERVERPASSWD}${NO_GATEWAY_JUPYTERSERVERPASSWD} "[ -s  \$HOME/.jupyter/jupyter_server_config.json ] || exit 1" ); then
         # ensure user is forewarned of potential exposure of passwd with xtrace
         if echo ${SHELLOPTS} | grep xtrace &>/dev/null ; then
             DISABLE_XTRACE="set +x"
@@ -772,33 +740,33 @@ check_vncpasswd () {
         fi
         ${DISABLE_XTRACE}
 
-        inform "VNC passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
+        inform "Jupyter-Server passwd not available or is of zero size on ${MACHINE} for $MACHUSER"
         inform "Do you want to setup a password now? [Y/N]"
         read PWREPLY
 
         case $PWREPLY in
             Y*|y*)
                 inform "Enter your password (at least six characters long, up to eight)"
-                read -s VNCPW
+                read -s JUPYTERSERVERPASSWD
                 inform "Reenter your password to confirm"
-                read -s REVNCPW
-                if [[ "${VNCPW}" == "${REVNCPW}" ]] ; then
-                    inform "SETTING VNCPASSWD" "${MACHINE} for $MACHUSER"
-                    eval '${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} /bin/bash <<EOF
-echo "${VNCPW}" | vncpasswd -f > \$HOME/.vnc/passwd && chmod 0600 \$HOME/.vnc/passwd
+                read -s REJUPYTERSERVERPASSWD
+                if [[ "${JUPYTERSERVERPASSWD}" == "${REJUPYTERSERVERPASSWD}" ]] ; then
+                    inform "SETTING jupyterserverpasswd" "${MACHINE} for $MACHUSER"
+                    eval '${GATEWAY_jupyterserverpasswd}${NO_GATEWAY_JUPYTERSERVERPASSWD} /bin/bash <<EOF
+echo "${JUPYTERSERVERPASSWD}" | jupyter-server password -f > \$HOME/.jupyterserver/passwd && chmod 0600 \$HOME/.jupyterserver/passwd
 EOF'
                 else
                     die "FIRST AND SECOND PASSWORDS DIDN'T MATCH"
                 fi
-                if ! ${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd" &>/dev/null; then
-                    die "SETTING VNCPASSWD FAILED!"
+                if ! ${GATEWAY_jupyterserverpasswd}${NO_GATEWAY_JUPYTERSERVERPASSWD} "ls -al \$HOME/.jupyterserver/passwd" &>/dev/null; then
+                    die "SETTING jupyterserverpasswd FAILED!"
                 fi
-                perms=$(${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD} "ls -al \$HOME/.vnc/passwd")
+                perms=$(${GATEWAY_jupyterserverpasswd}${NO_GATEWAY_JUPYTERSERVERPASSWD} "ls -al \$HOME/.jupyterserver/passwd")
                 debug "CHECKING PERMS ON PASSWD FILE:" "$perms"
-                inform "VNCPASSWD SUCCESSFULLY SET!"
+                inform "jupyterserverpasswd SUCCESSFULLY SET!"
             ;;
             N*|n*)
-                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A VNC PASSWORD TO PROCEED"
+                die "YOU MUST LOGIN TO ${MACHINE} AND SETUP A JUPYTERSERVER PASSWORD TO PROCEED"
             ;;
             *)
                 die "A password to use your vncserver on ${MACHINE} is required!"
@@ -822,7 +790,7 @@ EOF'
 #######################################
 kill_vnc () {
     local loc_display=$1
-    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${VNCSERVER_PATH} -kill :${loc_display} 2>&1)
+    kill_vnc_response=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} ${JUPYTERSERVER_PATH} -kill :${loc_display} 2>&1)
     # strange characters in stdout via wtrw filtered in the substitution below
     echo "${kill_vnc_response%$'\r'}"
 }
@@ -856,10 +824,10 @@ get_vnc_connections () {
 # Arguments:
 #   None
 # Outputs:
-#   ${VNCSERVERS_LIST[@]}
+#   ${JUPYTERSERVERS_LIST[@]}
 #######################################
 list_displays () {
-    for item in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${VNCSERVER_PATH} -list|egrep -v 'DISPLAY|T*VNC|^$' \
+    for item in $( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${JUPYTERSERVER_PATH} -list|egrep -v 'DISPLAY|T*JUPYTERSERVER|^$' \
                                                     | awk '{ gsub(\":\",\"\",\$1); print \$1}'" ) ; do
         local loc_vncservers_list=( $(printf "%s " "${item%$'\r'}") "${loc_vncservers_list[@]}" )
     done
@@ -956,7 +924,7 @@ clientOS () {
 #######################################
 remotelog () {
     if [[ -n ${GATEWAY_SSH} ]] || [[ -n ${NO_GATEWAY_SSH} ]] ; then
-       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \${HOME}/.vnc/${MACHINE//\.*}*${REMOTE_DISPLAY#0}.log ] && cat \${HOME}/.vnc/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
+       ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "[ -f \${HOME}/.jupyterserver/${MACHINE//\.*}*${REMOTE_DISPLAY#0}.log ] && cat \${HOME}/.jupyterserver/${MACHINE//\.*/}*${REMOTE_DISPLAY#0}.log" >>${LOGDIR}/${SERVER_LOG_FILE} &>/dev/null
     fi
 }
 
@@ -1005,8 +973,8 @@ while getopts "c:em:p:vu:w:g:d:ao:bhIrks:J:A:Q:R:T:C:P:N:-" opt ; do
         e)  OLD_EAP_CSHRC="true"                ;;
         m)  MACHINE="$OPTARG"						;;
         c)  CLIENT=${OPTARG//\\/} && CLIENT=${CLIENT//\~/$HOME}		;;
-        k)  KEEP_VNC_SERVER_ACTIVE=true					;;
-        r)  RECONNECT=true && KEEP_VNC_SERVER_ACTIVE=true		;;
+        k)  KEEP_JUPYTERSERVER_SERVER_ACTIVE=true					;;
+        r)  RECONNECT=true && KEEP_JUPYTERSERVER_SERVER_ACTIVE=true		;;
         h)  usage && exit 0						;;
         u)  MACHUSER="${OPTARG}"					;;
         w)  WINDOWMANAGER="${OPTARG}"					;;
@@ -1028,7 +996,7 @@ done
 
 #######################################
 # Inform vnc2hpc version used
-inform "VNC2HPC VERSION:" "${VERSION}"
+inform "JUPYTERSERVER2HPC VERSION:" "${VERSION}"
 
 # ensure display is set if arg is passed, and is number
 inform "RECEIVED REQUEST TO CONNECT TO:" "${MACHINE}"
@@ -1043,10 +1011,10 @@ if [[ "${REMOTE_DISPLAY}x" != x ]] ; then
 fi
 
 # Check out the vncclient
-if [[ "${CLIENT}x" == x ]] ; then usage; die "A PATH TO A VNC CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
-if ! $(client_check 2>&-) ; then die "$CLIENT" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO VNCVIEWER" ; fi
+if [[ "${CLIENT}x" == x ]] ; then usage; die "A PATH TO A JUPYTERSERVER CLIENT MUST BE SUPPLIED TO ${0/\*/}!" ; fi
+if ! $(client_check 2>&-) ; then die "$CLIENT" "FAILED BASIC TESTS" "RECHECK YOUR PATH TO JUPYTERSERVERVIEWER" ; fi
 CLIENT_VERSION=$(client_version)
-inform "VNC CLIENT INFO:" "$CLIENT_VERSION"
+inform "JUPYTERSERVER CLIENT INFO:" "$CLIENT_VERSION"
 
 # uname output on local host
 CLIENTOS=$(clientOS)
@@ -1088,12 +1056,12 @@ inform "MACHINE:" "$MACHINE"
 inform "NETWORK:" "$NETWORK"
 
 # some client side logs, the second one is only in the event of a failure
-LOGDIR="${HOME:=~}/.vnc2hpc/${MACHINE}"
+LOGDIR="${HOME:=~}/.jupyterserver2hpc/${MACHINE}"
 mkdir -p "${LOGDIR}"
 CLIENT_LOG_FILE="vncclient.log.${MYDATE}"
-inform "VNC CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
+inform "JUPYTERSERVER CLIENT ${CLIENT//*\//} LOGGING:" "${LOGDIR}/${CLIENT_LOG_FILE}"
 SERVER_LOG_FILE="vncserver.log.${MYDATE}"
-inform "VNC SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
+inform "JUPYTERSERVER SERVER LOGGING:" "${LOGDIR}/${SERVER_LOG_FILE}"
 
 [[ "${SOURCE}x" != x ]] && inform "SOURCE:" "$SOURCE"
 # setup initial ssh options for reuse
@@ -1104,24 +1072,24 @@ debug "SSH_OPTS:" "$SSH_OPTS"
 if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
     GATEWAY="wtrw.lanl.gov"
     GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-    GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+    GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
     CONTROL_KILL=$(kill_gateway_control_master_connection ${GATEWAY})
 elif [[ "${NETWORK}" =~ VLGATE ]] ; then
     GATEWAY="vl-gate.lanl.gov"
     GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-    GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+    GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     CONTROL_CHECK=$(check_gateway_control_master_connection ${GATEWAY})
     CONTROL_KILL=$(kill_gateway_control_master_connection ${GATEWAY})
 else
     NO_GATEWAY_SSH=$(setup_nogateway_ssh)
-    NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
+    NO_GATEWAY_jupyterserverpasswd=$(setup_nogateway_vncpasswd)
     CONTROL_CHECK=$(check_nogateway_control_master_connection)
     CONTROL_KILL=$(kill_nogateway_control_master_connection)
 fi
 
 debug "SSH CMD FOR ${NETWORK}:" "${GATEWAY_SSH}${NO_GATEWAY_SSH}"
-debug "SSH CMD FOR VNCPW ${NETWORK}:" "${GATEWAY_VNCPASSWD}${NO_GATEWAY_VNCPASSWD}"
+debug "SSH CMD FOR JUPYTERSERVERPW ${NETWORK}:" "${GATEWAY_jupyterserverpasswd}${NO_GATEWAY_JUPYTERSERVERPASSWD}"
 
 debug "TESTING FOR .cshrc:"
 remote_shell_check=$(check_remote_shell |grep -E '.*sh\b')
@@ -1143,15 +1111,15 @@ if [[ "${MACHINE}" != "${REAL_MACHINE}" ]] ; then
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+        GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         GATEWAY="vl-gate.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+        GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     else
         $(${CONTROL_KILL}) || die "Can't kill control socket"
         NO_GATEWAY_SSH=$(setup_nogateway_ssh)
-        NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
+        NO_GATEWAY_jupyterserverpasswd=$(setup_nogateway_vncpasswd)
         CONTROL_CHECK=$(check_nogateway_control_master_connection)
         CONTROL_KILL=$(kill_nogateway_control_master_connection)
         $(control_master_connection) || die "Control Master Reset Attempt Failed!"
@@ -1168,13 +1136,13 @@ if [[ "${MACHINE}"x == x ]] || [[ "${MACHINE}" =~ invalid ]] ; then
 fi
 
 { check_remote_install_path "$REMOTE_INSTALL_PATH" && REMOTE_INSTALL_PATH=${REMOTE_INSTALL_PATH} ; } || \
-{ check_remote_install_path "\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" && REMOTE_INSTALL_PATH="\$HOME/.vnc2hpc/vnc2hpc-${VERSION}" ; } || \
+{ check_remote_install_path "\$HOME/.jupyterserver2hpc/vnc2hpc-${VERSION}" && REMOTE_INSTALL_PATH="\$HOME/.jupyterserver2hpc/vnc2hpc-${VERSION}" ; } || \
 { NO_BACKEND="true" ; REMOTE_INSTALL_PATH="" ; }
 debug "REMOTE_INSTALL_PATH=$REMOTE_INSTALL_PATH"
 
 # setup NO_GATEWAY_SCP or GATEWAY_SCP commands to get server side setup
 if [[ "${NO_BACKEND}" == "true" ]] ; then
-    DEST="\$HOME/.vnc2hpc/."
+    DEST="\$HOME/.jupyterserver2hpc/."
     # get the repo locally
     if [[ "${SOURCE}"x != x ]] ; then
         FILE="${SOURCE//*\/}"
@@ -1270,14 +1238,14 @@ if [[ ${INTERACTIVE_JOB} == "true" ]] || [[ "${SLURM_JOBID}x" != x ]] ; then
     if [[ "${NETWORK}" =~ TURQUOISE ]] ; then
         GATEWAY="wtrw.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+        GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     elif [[ "${NETWORK}" =~ VLGATE ]] ; then
         GATEWAY="vl-gate.lanl.gov"
         GATEWAY_SSH=$(setup_gateway_ssh ${GATEWAY})
-        GATEWAY_VNCPASSWD=$(setup_gateway_vncpasswd ${GATEWAY})
+        GATEWAY_jupyterserverpasswd=$(setup_gateway_vncpasswd ${GATEWAY})
     else
         NO_GATEWAY_SSH=$(setup_nogateway_ssh)
-        NO_GATEWAY_VNCPASSWD=$(setup_nogateway_vncpasswd)
+        NO_GATEWAY_jupyterserverpasswd=$(setup_nogateway_vncpasswd)
     fi
 fi
 
@@ -1285,13 +1253,13 @@ fi
 REMOTE_SHELL=$(check_remote_shell)
 debug "${SLURM_HEADNODE:-$MACHINE} $MACHUSER SHELL:" "${REMOTE_SHELL}"
 
-# check vncpasswd
-check_vncpasswd
+# check jupyterserverpasswd
+check_jupyterserverpasswd
 
 # check remote vncserver install path
-VNCSERVER_PATH=$(check_vncserver)
-if [[ ! "${VNCSERVER_PATH}" =~ vncserver ]] ; then die "\$VNCSERVER_PATH isn't set" ; fi
-debug "${SLURM_HEADNODE:-$MACHINE} VNCSERVER_PATH:" "${VNCSERVER_PATH}"
+JUPYTERSERVER_PATH=$(check_vncserver)
+if [[ ! "${JUPYTERSERVER_PATH}" =~ jupyter-server ]] ; then die "\$JUPYTERSERVER_PATH isn't set" ; fi
+debug "${SLURM_HEADNODE:-$MACHINE} JUPYTERSERVER_PATH:" "${JUPYTERSERVER_PATH}"
 
 # show all users Xvnc processes, parsed for display
 all_active_displays=( $(get_vnc_connections) )
@@ -1299,18 +1267,18 @@ all_active_displays=( $(get_vnc_connections) )
 # grab user specific vncserver from vncserver -list command on remote
 active_displays=( $(list_displays) )
 if [[ ${#active_displays[@]} -eq 0 ]] ; then
-    debug "DETECT NO PREVIOUSLY RUNNING VNCSERVERS:" "${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}"
+    debug "DETECT NO PREVIOUSLY RUNNING JUPYTERSERVERS:" "${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}"
 else
-    debug "DETECT ${#active_displays[@]} VNCSERVERS FOR ${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}" "$(echo ${active_displays[@]})"
+    debug "DETECT ${#active_displays[@]} JUPYTERSERVERS FOR ${MACHUSER}@${SLURM_HEADNODE:-$MACHINE}" "$(echo ${active_displays[@]})"
 fi
 
 # test connecting to remote and scraping ps output for Xvnc
 if [[ "${all_active_displays[@]}" =~ FAILURE ]] ; then
     die "DETECTED FAILURE WITH SSH TO: ${SLURM_HEADNODE:-$MACHINE}"
 elif [[ ${#all_active_displays[@]} -eq 0 ]] ; then
-    debug "NOT FINDING OTHER VNCSERVERS RUNNING ON" "${SLURM_HEADNODE:-$MACHINE}"
+    debug "NOT FINDING OTHER JUPYTERSERVERS RUNNING ON" "${SLURM_HEADNODE:-$MACHINE}"
 else
-    debug "ALL USERS XVNC SESSIONS ON ${SLURM_HEADNODE:-$MACHINE}:" "$(echo ${all_active_displays[@]})"
+    debug "ALL USERS XJUPYTERSERVER SESSIONS ON ${SLURM_HEADNODE:-$MACHINE}:" "$(echo ${all_active_displays[@]})"
 fi
 
 # attempt to reconnect to the first vncserver -list display available to $USER if port isn't specified
@@ -1319,7 +1287,7 @@ if [[ "${RECONNECT}"x != x ]] && [[ "${#active_displays[@]}" -gt 0 ]] ; then
         # grab the first element in active_displays
         REMOTE_DISPLAY=${active_displays}
     elif ! [[ "${active_displays[@]}" =~ ${REMOTE_DISPLAY} ]] ; then
-        die "REMOTE_DISPLAY $REMOTE_DISPLAY NOT RUNNING VNCSERVER REMOTE_DISPLAY FOR" "$MACHUSER on ${SLURM_HEADNODE:-$MACHINE}"
+        die "REMOTE_DISPLAY $REMOTE_DISPLAY NOT RUNNING JUPYTERSERVER REMOTE_DISPLAY FOR" "$MACHUSER on ${SLURM_HEADNODE:-$MACHINE}"
     else
         inform "ATTEMPTING CONNECTION TO REQUESTED REMOTE_DISPLAY" "localhost:$(( 5900+${REMOTE_DISPLAY} ))"
     fi
@@ -1328,7 +1296,7 @@ fi
 # ensure that we limit displays to one per user per host, if there are more than one vncservers running for $MACHUSER, force a kill, exit, or reuse of that server
 # for someone interested sufficiently to avoid this, note that the -b option sets BACKDOOR="true", therefore bypassing this
 if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BACKDOOR != "true" ]] ; then
-    inform "ACTIVE VNCSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${SLURM_HEADNODE:-$MACHINE}" "$(echo "${active_displays[@]}")"
+    inform "ACTIVE JUPYTERSERVER REMOTE_DISPLAYS FOR $MACHUSER ON ${SLURM_HEADNODE:-$MACHINE}" "$(echo "${active_displays[@]}")"
     inform "DO YOU WISH TO KILL OR REUSE THIS SESSION?" "[Y - yes (kill it), N - exit (keep it, exit), R - reuse]?"
     read RESPONSE
     case $RESPONSE in
@@ -1341,14 +1309,14 @@ if [[ "${#active_displays[@]}" -ge 1 ]] && [[ $RECONNECT != "true" ]] && [[ $BAC
             done
 	;;
         N*|n*)
-	    warning "YOU HAVE ${#active_displays[@]} VNCSERVER SESSIONS RUNNING!"
-	    warning "YOUR LISTENING VNC SESSIONS ARE RUNNING ON" "$(for p in ${active_displays[@]}; do printf "%s " $p ; done)"
+	    warning "YOU HAVE ${#active_displays[@]} JUPYTERSERVER SESSIONS RUNNING!"
+	    warning "YOUR LISTENING JUPYTERSERVER SESSIONS ARE RUNNING ON" "$(for p in ${active_displays[@]}; do printf "%s " $p ; done)"
 	    die "YOU MUST KILL SOME SESSIONS OR SPECIFY" "${0} \"-d \$REMOTE_DISPLAY\""
 	;;
         R*|r*)
 	    debug "WILL REUSE REMOTE_DISPLAY ${active_displays}"
             debug "WILL ALSO KEEP REMOTE_DISPLAY ACTIVE UPON DISCONNECT"
-	    KEEP_VNC_SERVER_ACTIVE=true
+	    KEEP_JUPYTERSERVER_SERVER_ACTIVE=true
             REMOTE_DISPLAY=${active_displays}
 	;;
     esac
@@ -1378,9 +1346,9 @@ done
 # if the display requested isn't already actively listening for USER, call startvncserver script remotely
 if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
     debug "RUNNING:" "${GATEWAY_SSH}${NO_GATEWAY_SSH} \"${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\""
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${JUPYTERSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\""
     newport=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} "${REMOTE_INSTALL_PATH}/bin/start_vncserver.sh \
-           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${VNCSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\"")
+           \"${VERSION}\" \"${WINDOWMANAGER}\" \"${CLIENT_VERSION//(*)/}\" \"${CLIENTOS}\" \"${GEOMETRY}\" \"${PIXELDEPTH}\" \"${REMOTE_INSTALL_PATH}\" \"${JUPYTERSERVER_PATH}\" \"${REMOTE_DISPLAY}\" \"${AGENT}\"")
     # turquoise network connection requires parsing weird carriage return characters
     newport=${newport%$'\r'}
     if [[ "${newport}" =~ FAIL ]] || [[ "${newport}" == "0" ]] || [[ -z "${newport}" ]] ; then
@@ -1391,7 +1359,7 @@ if ! [[ "${active_displays[@]}" =~ $REMOTE_DISPLAY ]] ; then
     fi
     sleep 2.5
 else
-    debug "VNCSERVER RUNNING AS $USER ALREADY on $REMOTE_DISPLAY" "WILL USE THIS REMOTE_DISPLAY $REMOTE_DISPLAY"
+    debug "JUPYTERSERVER RUNNING AS $USER ALREADY on $REMOTE_DISPLAY" "WILL USE THIS REMOTE_DISPLAY $REMOTE_DISPLAY"
 fi
 
 # hide cshrc again
@@ -1427,11 +1395,11 @@ debug "TUNNEL PID IS:" "${tunnel_pid}"
 # test that the Xvnc process on $REMOTE_DISPLAY was instantiated
 remote_pid=$( ${GATEWAY_SSH} ${NO_GATEWAY_SSH} "ps aux" 2>&- \
               | awk -v exclude="awk" -v pat="Xvnc :*${REMOTE_DISPLAY} " '($0 !~ exclude) && $0~pat{print $2}' )
-debug "XVNC PID IS:" "${remote_pid}"
+debug "XJUPYTERSERVER PID IS:" "${remote_pid}"
 
 # fail if not
 if [[ "${remote_pid}x" == x ]] ; then
-    die "ERROR OCCURRED STARTING VNCSERVER."
+    die "ERROR OCCURRED STARTING JUPYTERSERVER."
 fi
 
 # replace .cshrc file now
@@ -1464,24 +1432,19 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 # if -k is passed to the script, don't kill the process
-if [[ "${KEEP_VNC_SERVER_ACTIVE}"x != x ]]; then
-    inform "KEEPING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
+if [[ "${KEEP_JUPYTERSERVER_SERVER_ACTIVE}"x != x ]]; then
+    inform "KEEPING JUPYTERSERVER SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY on ${SLURM_HEADNODE:-$MACHINE} Active"
     if [[ "${SLURM_JOBID}x" != x ]] ; then inform "REQUEST RECONNECT:" "$0 -c \"${CLIENT}\" -m ${MACHINE} -J ${SLURM_JOBID} -r -d ${REMOTE_DISPLAY}" ; fi
 else
-    #TODO THIS STILL IS UNRESOLVED
-    if [[ ${remote_shell_check} =~ csh ]] || [[ "${OLD_EAP_CSHRC}" == "true" ]] ; then
-       debug "TEMPORARY RELOCATION:" "mv \$HOME/.cshrc \$HOME/.cshrc_vnc2hpc.bak"
-       move_cshrc start
-    fi
-    inform "KILLING VNC SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
+    inform "KILLING JUPYTERSERVER SERVER RUNNING ON:" "${SLURM_HEADNODE:-$MACHINE}"
     inform "REMOTE_DISPLAY:" "$REMOTE_DISPLAY"
-    kill_vnc_output=$(kill_vnc ${REMOTE_DISPLAY})
+    kill_jupyterserver_output=$(kill_jupyterserver ${REMOTE_DISPLAY})
     if [[ "${SLURM_HEADNODE}x" != x ]] && [[ "${KEEP_JOB}x" == x ]] ; then
         kill_job_output=$(${GATEWAY_SSH} ${NO_GATEWAY_SSH} $(job_control ${SLURM_JOBID} terminate))
         inform "CANCELLED SLURM_JOBID $SLURM_JOBID" "$(echo ${kill_job_output})"
     fi
-    debug "OUTPUT FROM KILL VNC:" "${kill_vnc_output[@]}"
+    debug "OUTPUT FROM KILL JUPYTERSERVER:" "${kill_jupyterserver_output[@]}"
 fi
 
 # killing the tunnel to $MACHINE
@@ -1490,9 +1453,6 @@ if kill -0 ${tunnel_pid} &>/dev/null ; then
 fi
 
 remotelog
-if [[ "${CLIENT_VERSION}" =~ [Tt]iger ]] ; then
-    move_tigervnc_config end
-fi
 $(${CONTROL_KILL})
 
 exit
